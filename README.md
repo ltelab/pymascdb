@@ -6,20 +6,20 @@ The code in this repository provides an API to query, filter and visualize MASC 
 
 ATTENTION: The code is subject to changes in the coming weeks / months.
 
+The folder `tutorials` (will) provide jupyter notebooks describing various features of MASC-DB api.
+- Downloading MASC DB  [[`download.ipynb`]]
+- Read and filter MASC DB [[`read_and_filter.ipynb`]]
+- Exploratory Data Analysis of MASC DB [[`eda.ipynb`]]
+
+[`download.ipynb`]: https://nbviewer.jupyter.org/github/deepsphere/deepsphere-weather/blob/outputs/tutorials/spherical_grids.ipynb
+[`eda.ipynb`]: https://nbviewer.jupyter.org/github/deepsphere/deepsphere-weather/blob/outputs/tutorials/interpolation_pooling.ipynb
+
 The folder `experiments` (will) provide examples for:
 - Multinomial logistic classification
 - CNN classification
 - Info-GAN clustering
 - Latent Space Exploration with UMAP / PCA
 - 3D snowflake mass reconstruction 
-
-The folder `tutorials` (will) provide jupyter notebooks describing various features of MASC-DB api.
-- Downloading MASC DB  [`download.ipynb`]
-- Read and filter MASC DB [`read_and_filter.ipynb`]
-- Exploratory Data Analysis of MASC DB [`eda.ipynb`]
-
-[`download.ipynb`]: https://nbviewer.jupyter.org/github/deepsphere/deepsphere-weather/blob/outputs/tutorials/spherical_grids.ipynb
-[`eda.ipynb`]: https://nbviewer.jupyter.org/github/deepsphere/deepsphere-weather/blob/outputs/tutorials/interpolation_pooling.ipynb
 
 ## Installation
 
@@ -40,16 +40,16 @@ For a local installation, follow the below instructions.
    conda activate mascdb
    ```
    
-4  (Just for info... to update the environment.yml: 
-  ```sh
-  conda env export > environment.yml
-  ```
+4. Just for info... to update the environment.yml: 
+   ```sh
+   conda env export > environment.yml
+   ```
 
 ## References 
 
-- [Manuscript](https://XXXX)]
-- [Slides](https://XXXX)]
-- [Presentation](https://XXXX)]
+- [Manuscript](https://XXXX)
+- [Slides](https://XXXX)
+- [Presentation](https://XXXX)
 
 ## Contributors
 
