@@ -12,65 +12,12 @@ import zarr
 import pandas as pd
 
 dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
-#-------------------------------------------------------------------------------.
-### Create metadata for custom zarr store 
-fpath = os.path.join(dir_path, "MASCdb_orig","MASCdb.zarr")
-arr = zarr.open_array(fpath, group=None)  # 1.69 TiB -->  (589416, 1024, 1024, 3) 
-arr.chunks
-arr.compressor
-
-arr1 = arr[0:10,:,:,:]
-
-da = xr.DataArray(data=arr1,
-                  dims=["TripletID","y","x","CAM_ID"],
-                  coords=dict(CAM_ID=[0,1,2]))
-
-ds = da.to_dataset(name='data')
-ds.to_zarr(os.path.join("/media/ghiggi/New Volume/Data/MASCDB","my_masc.zarr"))
-
-## And the modify .attr, .metadata according to original zarr 
 
 #-----------------------------------------------------------------------------.
 ### Plot images / triplets 
 fpath = os.path.join(dir_path,"MASCdb.zarr")
 ds = xr.open_zarr(fpath)
 
-# Select CAM_ID 0 
-ds.sel(CAM_ID = 0)   # by label
-ds.isel(CAM_ID = 0)  # by index 
-
-# Display 9 images of CAM_ID = 0 [plot_flakes()]
-p = ds['data'].sel(CAM_ID = 0, TripletID = slice(0,9)).plot(x='x',y='y', row="TripletID", col_wrap=3, 
-                                                            aspect=1, 
-                                                            cmap='gray', add_colorbar=False, 
-                                                            vmin=0, vmax=255)
-for i, ax in enumerate(p.axes.flat):
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-    ax.set_axis_off() 
-p.fig.subplots_adjust(wspace=0.01, hspace=0.1)
-
-# add option to report mm ... 
-# pix_size = self.triplet.loc[index].pix_size*1e3  # mm
-# xsize = out.shape[0]*pix_size # mm
-# ysize = out.shape[1]*pix_size # mm
-
-
-# Display 3 images of all CAM [plot_triplets()]
-p = ds['data'].isel(TripletID = slice(0,3)).plot(x='x',y='y',
-                                                 col="CAM_ID",
-                                                 row="TripletID",
-                                                 aspect=1,
-                                                 cmap='gray', add_colorbar=False,
-                                                 vmin=0, vmax=255)
- 
-for i, ax in enumerate(p.axes.flat):
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-    ax.set_axis_off()
-p.fig.subplots_adjust(wspace=0.01, hspace=0.01)
-
-#-----------------------------------------------------------------------------.
 # Stack CAM_ID and Triplet_ID into Image_ID
 ds_stacked = ds.stack(image_ID = ('TripletID','CAM_ID'))
 ds_stacked.isel(image_ID = slice(0,10)) # subset image_ID (by position only !)
@@ -194,8 +141,102 @@ np.unique(db['bs_precip_type']) # ! Do not match with https://github.com/jacgraz
 # > 0 : some snowflake 
 # max 255 
 
+#-----------------------------------------------------------------------------.
+#################
+## Filtering ####
+################# get always the idx ... to subset all db and ds 
+
+### Always return a copy of the object 
+# arrange (by size i.e. , pixel number, diameter)  (on what cam db?)
+# select_first_n 
+# select_last_n 
+# sample_n 
+
+# select (column) 
+# filter (row) 
+ 
+# filter(marketing.AmountSpent > 2000) & (marketing.History == 'High') # now 
+# filter(AmountSpent > 2000) & (History == 'High')) # ideal 
+    
+# https://github.com/kieferk/dfply
+# https://github.com/dodger487/dplython
+# https://pythonhosted.org/dplython/
+# https://github.com/coursera/pandas-ply
+# https://github.com/koaning/kadro
+
+# select : db columns 
+# dplython:sift --> filter        #  pandas-ply.ply_where(X.arr > 30, X.dep > 30)) #
+# sample_n : sample 
+# arrange : reorder 
+
+# capture expression ... check cam0, cam1, cam2, triplet.env (env.T > ), 
+
+#-----------------------------------------------------------------------------.
+###########################
+### Already implemented ###
+###########################
 ##--------------------------------------------.
 import matplotlib.pyplot as plt
+
+#-------------------------------------------------------------------------------.
+### Create metadata for custom zarr store 
+fpath = os.path.join(dir_path, "MASCdb_orig","MASCdb.zarr")
+arr = zarr.open_array(fpath, group=None)  # 1.69 TiB -->  (589416, 1024, 1024, 3) 
+arr.chunks
+arr.compressor
+
+arr1 = arr[0:10,:,:,:]
+
+da = xr.DataArray(data=arr1,
+                  dims=["TripletID","y","x","CAM_ID"],
+                  coords=dict(CAM_ID=[0,1,2]))
+
+ds = da.to_dataset(name='data')
+ds.to_zarr(os.path.join("/media/ghiggi/New Volume/Data/MASCDB","my_masc.zarr"))
+
+## And the modify .attr, .metadata according to original zarr 
+
+#-----------------------------------------------------------------------------.
+### Plot images / triplets 
+fpath = os.path.join(dir_path,"MASCdb.zarr")
+ds = xr.open_zarr(fpath)
+
+# Select CAM_ID 0 
+ds.sel(CAM_ID = 0)   # by label
+ds.isel(CAM_ID = 0)  # by index 
+
+# Display 9 images of CAM_ID = 0 [plot_flakes()]
+p = ds['data'].sel(CAM_ID = 0, TripletID = slice(0,9)).plot(x='x',y='y', row="TripletID", col_wrap=3, 
+                                                            aspect=1, 
+                                                            cmap='gray', add_colorbar=False, 
+                                                            vmin=0, vmax=255)
+for i, ax in enumerate(p.axes.flat):
+    ax.set_xlabel('')
+    ax.set_ylabel('')
+    ax.set_axis_off() 
+p.fig.subplots_adjust(wspace=0.01, hspace=0.1)
+
+# add option to report mm ... 
+# pix_size = self.triplet.loc[index].pix_size*1e3  # mm
+# xsize = out.shape[0]*pix_size # mm
+# ysize = out.shape[1]*pix_size # mm
+
+
+# Display 3 images of all CAM [plot_triplets()]
+p = ds['data'].isel(TripletID = slice(0,3)).plot(x='x',y='y',
+                                                 col="CAM_ID",
+                                                 row="TripletID",
+                                                 aspect=1,
+                                                 cmap='gray', add_colorbar=False,
+                                                 vmin=0, vmax=255)
+ 
+for i, ax in enumerate(p.axes.flat):
+    ax.set_xlabel('')
+    ax.set_ylabel('')
+    ax.set_axis_off()
+p.fig.subplots_adjust(wspace=0.01, hspace=0.01)
+
+
 ### zoom function 
 # --> should we respect aspect=1 and return square images 
 img_triplet = ds['data'].isel(TripletID=0).values
@@ -205,7 +246,7 @@ plt.colorbar()
 
 img = img_triplet[:,:,0]
 
-def bbox(img):
+def _internal_bbox(img):
     rows = np.any(img, axis=1)
     cols = np.any(img, axis=0)
     rmin, rmax = np.where(rows)[0][[0, -1]]
@@ -213,7 +254,7 @@ def bbox(img):
     return rmin, rmax, cmin, cmax
 
 def _get_zoomed_image(img):
-    rmin, rmax, cmin, cmax = bbox(img)
+    rmin, rmax, cmin, cmax = _internal_bbox(img)
     zoom_img = img[rmin:rmax+1, cmin:cmax+1]
     return zoom_img
 
@@ -240,56 +281,3 @@ l_zoomed = [_center_image(img, nrow=r_max, ncols=c_max) for img in l_zoomed]
 for img in l_zoomed:
     plt.imshow(img, vmin=0, vmax=255, cmap="gray")
     plt.show()
-
-#-----------------------------------------------------------------------------.
-## Filtering: get always the idx ... to subset all db and ds 
-
-# import seaborn as sns
-# - Assign plot methods from sns (pass data=self.cam0 in the background, user select only x,y and kwargs)
-# cam0.sns.boxplot()
-
-# filter(marketing.AmountSpent > 2000) & (marketing.History == 'High') # now 
-# filter(AmountSpent > 2000) & (History == 'High')) # ideal 
-    
-# https://github.com/kieferk/dfply
-# https://github.com/dodger487/dplython
-# https://pythonhosted.org/dplython/
-
-#-----------------------------------------------------------------------------.
-### EDA tools 
-mascdb.cam0.boxplot(x='Dmax', ...)
-mascdb.cam0.boxplot(x='Dmax', ...)
-mascdb.cam0.pairplot(..) 
-
-violinplot
-boxplot
-boxenplot
-swarmplot
-stripplot
-pointplot
-
-  
-lmplot
-corrplot # https://seaborn.pydata.org/examples/many_pairwise_correlations.html
-pairplot
-
-scatterplot
-displot # kind
-catplot
-barplot
-
-histplot
-jointplot
-kdeplot
-kde_ridgeplot  # https://seaborn.pydata.org/examples/kde_ridgeplot.html
-kde_marginals  # https://seaborn.pydata.org/examples/smooth_bivariate_kde.html
-relplot 
-
-
-relplot(data, x='datetime')  # https://seaborn.pydata.org/examples/timeseries_facets.html
-lineplot(data, x='datetime') # https://seaborn.pydata.org/examples/wide_data_lineplot.html
-relplot(data, x='datetime')  # https://seaborn.pydata.org/examples/faceted_lineplot.html
-
-# https://seaborn.pydata.org/examples/horizontal_boxplot.html
-# https://seaborn.pydata.org/examples/pairgrid_dotplot.html
-# https://seaborn.pydata.org/examples/palette_generation.html
