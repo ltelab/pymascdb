@@ -1,6 +1,69 @@
+import warnings
 """
 Miscellaneaous auxiliary functions
+
+TODO: keep up to date with eventual name change of variables
+
+
 """
+
+def get_label_name_dict(method='Praz2017'):
+    """
+    Get hydrometeor class ID from label name
+    according to a given hydrometeor classif method
+
+    Input:
+
+        method: hydro class method. Default Praz2017 based on
+        https://amt.copernicus.org/articles/10/1335/2017/
+
+
+    """
+
+    if method == 'Praz2017':
+        dict ={
+            'small_particle':1,
+            'columnar_crystal':2,
+            'planar_crystal':3,
+            'aggregate':4,
+            'graupel':5,
+            'columnar_planar_combination':6,    
+        }
+    else:
+        warnings.warn("Dictionary not available for given hydro-class method: "+method)
+
+    return dict
+
+
+def get_label_id_dict(method='Praz2017'):
+    
+    """
+    Get hydrometeor label name form class ID
+    according to a given hydrometeor classif method
+
+    Input:
+
+        method: hydro class method. Default Praz2017 based on
+        https://amt.copernicus.org/articles/10/1335/2017/
+
+
+    """
+    if method == 'Praz2017':
+        dict ={
+            1:'small_particle',
+            2:'columnar_crystal',
+            3:'planar_crystal',
+            4:'aggregate',
+            5:'graupel',
+            6:'columnar_planar_combination',    
+        }
+    else:
+        warnings.warn("Dictionary not available for given hydro-class method: "+method)
+
+    return dict
+
+    return dict
+
 
 def get_units():
     """
