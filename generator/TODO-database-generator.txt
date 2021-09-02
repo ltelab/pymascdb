@@ -1,0 +1,4 @@
+(1) Put index also as a column, not only as pandas index
+(2) Do not put flake_id but rather the name of the original picture file
+(3) Do not leave empty strings '' for blowing snow, when this info is missing. Better None?
+(4) Add riming_name column in database (1: unrimed, 2: rimed, 3: densely_rimed, 4: graupel-like, 5:graupel)

@@ -62,7 +62,58 @@ def get_label_id_dict(method='Praz2017'):
 
     return dict
 
+def get_riming_name_dict(method='Praz2017'):
+    """
+    Get riming class ID from riming name
+    according to a given hydrometeor classif method
+
+    Input:
+
+        method: hydro class method. Default Praz2017 based on
+        https://amt.copernicus.org/articles/10/1335/2017/
+
+
+    """
+
+    if method == 'Praz2017':
+        dict ={
+            'unrimed':1,
+            'rimed':2,
+            'densely_rimed':3,
+            'greupel-like':4,
+            'graupel':5
+        }
+    else:
+        warnings.warn("Dictionary not available for given  method: "+method)
+
     return dict
+
+def get_riming_id_dict(method='Praz2017'):
+    """
+    Get riming name from riming id
+    according to a given hydrometeor classif method
+
+    Input:
+
+        method: hydro class method. Default Praz2017 based on
+        https://amt.copernicus.org/articles/10/1335/2017/
+
+
+    """
+
+    if method == 'Praz2017':
+        dict ={
+            1:'unrimed',
+            2:'rimed',
+            3:'densely_rimed',
+            4:'greupel-like',
+            5:'graupel'
+        }
+    else:
+        warnings.warn("Dictionary not available for given method: "+method)
+
+    return dict
+
 
 
 def get_units():
