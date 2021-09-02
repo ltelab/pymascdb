@@ -55,7 +55,7 @@ cam0.columns.values.tolist()  # TODO: get_columns_list()
 # TODO: which rows have been used for manual classification? 
 
 # TODO:
-# get_label_name_dict(name: id) .. and viceversa
+# get_label_name_dict(name: id) .. and viceversa --> Done in aux.py 
 # get_label_id_dict(id: name)
 # get_riming_id_dict(id: name)
 # get_riming_name_dict(name: id) TODO: riming_name ? not provided !
@@ -86,8 +86,9 @@ db = pd.read_parquet(triplet_fpath)
 db.shape
 db.columns.values.tolist()  
 
-np.unique(db['bs_precip_type']) # ! Do not match with https://github.com/jacgraz/pymascdb/blob/master/reader/database_reader.py#L57
-                                # What ['', means? 
+np.unique(db['bs_precip_type']) # ! Do not match with https://github.com/jacgraz/pymascdb/blob/master/reader/database_reader.py#L57 
+                                # What ['', means? --> JGR answer: indeed they do not match (the function in reader is older)
+                                # '' means that for any reason the blowing snow estimation is not available. Not a good choice. Better None?
 ## Triplet_ID 
 'flake_id'
 
