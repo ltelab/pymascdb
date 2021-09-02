@@ -11,15 +11,15 @@ import pandas as pd
 import numpy as np
 import mascdb.pd_sns_accessor 
 import copy
-# TODO 
-# - RANDOM TO FALSE 
-
+ 
+#-----------------------------------------------------------------------------.
 # TODO: add stuff of mm @Jacobo did 
 # add option to report mm ... 
-# pix_size = self.triplet.loc[index].pix_size*1e3  # mm
+# pix_size = self._triplet.loc[index].pix_size*1e3  # mm
 # xsize = out.shape[0]*pix_size # mm
 # ysize = out.shape[1]*pix_size # mm
 
+# zarr as a zarr store ... with ID ordered 
 #-----------------------------------------------------------------------------.
 ### In future ###
 ## filter
@@ -50,8 +50,9 @@ def _center_image(img, nrow, ncol):
     return arr 
 
 #-----------------------------------------------------------------------------.
-### Checks 
-
+##############
+### Checks ###
+##############
 def _check_CAM_ID(CAM_ID): 
     "Return CAM_ID integer."
     if not isinstance(CAM_ID, (int, np.int64, list)):
@@ -125,7 +126,44 @@ def _check_random(random):
 def _check_zoom(zoom): 
     if not isinstance(zoom, bool):
         raise TypeError("'zoom' must be either True or False.")
-        
+
+def _check_isel_idx(idx, vmax):
+    # Return a numpy array of positional idx 
+    if not isinstance(idx, (int,list, pd.Series, np.ndarray)):
+        raise ValueError("Expecting isel idx to be int, list/pd.Series/np.array of int or boolean.")
+    # Reformat all types to unique format 
+    if isinstance(idx, np.ndarray):
+        if idx.dtype.name == 'bool':
+            idx = np.where(idx)[0]
+        elif idx.dtype.name == 'int64':
+            idx = np.array(idx)
+        else:
+            raise ValueError("Expecting idx np.array to be of 'bool' or 'int64' type.")
+    if isinstance(idx, pd.Series):
+        if idx.dtype.name == 'bool':
+            idx = np.where(idx)[0]
+        else: 
+            idx = np.array(idx)
+    if isinstance(idx, int): 
+        idx = np.array([idx])
+    if isinstance(idx, list): 
+        idx = np.array(idx)
+        if idx.dtype.name == 'bool':
+            idx = np.where(idx)[0]
+        elif idx.dtype.name == 'int64':
+            idx = np.array(idx)
+        else:
+            raise ValueError("Expecting values in the idx list to be of 'bool' or 'int' type.")
+    #--------------------------------------------------------------------.
+    # Check idx validity 
+    if np.any(idx > vmax):
+        raise ValueError("The maximum positional idx is {}".format(vmax))
+    if np.any(idx < 0):
+        raise ValueError("The positional idx must be positive integers.")
+    #--------------------------------------------------------------------.
+    # Return idx 
+    return idx 
+
 #-----------------------------------------------------------------------------.
 class MASC_DB:
     """
@@ -144,17 +182,48 @@ class MASC_DB:
         cam2_fpath = os.path.join(dir_path, "MASCdb_cam2.parquet")
         triplet_fpath = os.path.join(dir_path, "MASCdb_triplet.parquet")
         
-        self.da = xr.open_zarr(zarr_store_fpath)['data']
+        self._da = xr.open_zarr(zarr_store_fpath)['data']
+        self._da.name = "MASC Images"
 
         # Read data into dataframes
-        self.cam0    = pd.read_parquet(cam0_fpath)
-        self.cam1    = pd.read_parquet(cam1_fpath)
-        self.cam2    = pd.read_parquet(cam2_fpath)
-        self.triplet = pd.read_parquet(triplet_fpath)
+        self._cam0    = pd.read_parquet(cam0_fpath)
+        self._cam1    = pd.read_parquet(cam1_fpath)
+        self._cam2    = pd.read_parquet(cam2_fpath)
+        self._triplet = pd.read_parquet(triplet_fpath)
         
         # Number of triplets 
-        self.n_triplets = len(self.triplet)
-        
+        self.n_triplets = len(self._triplet)
+    
+    ##------------------------------------------------------------------------.
+    ####################
+    ## Print method  ###
+    ####################
+    def __str__(self):
+        print("MASCDB data structure:")
+        print("-------------------------------------------------------------------------")
+        print("- mascdb.da:")
+        print(self._da)
+        print("-------------------------------------------------------------------------")
+        print("- mascdb.cam0, mascdb.cam1, mascdb.cam2:")
+        print(self._cam0) 
+        print("-------------------------------------------------------------------------")
+        print("- mascdb.triplet")
+        print(self._triplet)
+        print("-------------------------------------------------------------------------")
+        print("- mascdb.env")
+        print(self.env)
+        print("-------------------------------------------------------------------------")
+        print("- mascdb.bs")
+        print(self.bs)
+        print("-------------------------------------------------------------------------")
+        print("- mascdb.gan3d")
+        print(self.gan3d)
+        print("-------------------------------------------------------------------------")
+        return "" 
+    
+    def __len__(self):
+        return self.n_triplets
+    
     ##------------------------------------------------------------------------.
     #################
     ## Subsetting ###
@@ -163,61 +232,120 @@ class MASC_DB:
         # Copy new instance 
         self = copy.deepcopy(self)
         #---------------------------------------------------------------------.
-        # TODO: Check valid idx 
-        if isinstance(idx, pd.Series):
-            if idx.dtype.name == 'bool':
-                idx = np.where(idx)[0]
-            else: 
-                idx = np.array(idx)
-        # if list of bool --> np.where 
-        idx = list(idx)
-
+        # Check valid idx 
+        idx = _check_isel_idx(idx, vmax=self.n_triplets-1)
         ##--------------------------------------------------------------------.
         # Subset all datasets 
-        self.da = self.da.isel(TripletID=idx)
+        self._da = self._da.isel(TripletID=idx)
         if isinstance(idx[0], bool):
-            self.cam0 = self.cam0[idx]  
-            self.cam1 = self.cam1[idx]  
-            self.cam2 = self.cam2[idx]  
-            self.triplet = self.triplet[idx]  
+            self._cam0 = self._cam0[idx]  
+            self._cam1 = self._cam1[idx]  
+            self._cam2 = self._cam2[idx]  
+            self._triplet = self._triplet[idx]  
         else: 
-            self.cam0 = self.cam0.iloc[idx]
-            self.cam1 = self.cam1.iloc[idx]
-            self.cam2 = self.cam2.iloc[idx]
-            self.triplet = self.triplet.iloc[idx]
+            self._cam0 = self._cam0.iloc[idx]
+            self._cam1 = self._cam1.iloc[idx]
+            self._cam2 = self._cam2.iloc[idx]
+            self._triplet = self._triplet.iloc[idx]
         ##--------------------------------------------------------------------.
         # Update number of triplets 
-        self.n_triplets = len(self.triplet)
+        self.n_triplets = len(self._triplet)
         return self 
     
     def sample_n(self, n=10):
+        if n > len(self): 
+            raise ValueError("The MASCDB instance has currently only {} triplets.".format(len(self)))      
         idx = np.random.choice(self.n_triplets, n) 
         return self.isel(idx)
-    
-    def first_n(self, n=10):     
+        
+    def first_n(self, n=10):  
+        if n > len(self): 
+            raise ValueError("The MASCDB instance has currently only {} triplets.".format(len(self)))
         idx = np.arange(n)
         return self.isel(idx)
     
-    def head(self, n=10):     
+    def last_n(self, n=10): 
+        if n > len(self): 
+            raise ValueError("The MASCDB instance has currently only {} triplets.".format(len(self)))
+        idx = np.arange(self.n_triplets-1,self.n_triplets-n-1, step=-1)
+        return self.isel(idx)
+    
+    def head(self, n=10): 
+        n = min(self.n_triplets, n)
         idx = np.arange(n)
         return self.isel(idx)
     
-    def tail(self, n=10):     
+    def tail(self, n=10):
+        n = min(self.n_triplets, n)
         idx = np.arange(self.n_triplets-1,self.n_triplets-n-1, step=-1)
         return self.isel(idx)
-    
-    def last_n(self, n=10):     
-        idx = np.arange(self.n_triplets-1,self.n_triplets-n-1, step=-1)
+     
+    ##------------------------------------------------------------------------.
+    ############ 
+    ### Sort ###
+    ############
+    def arrange(self, variable, decreasing=True):
+        # Check variable type 
+        if not isinstance(variable, str):
+            raise TypeError("'variable' must be a string.")
+        #------------------------------.
+        # Retrieve db name and column 
+        split_variable = variable.split(".")
+        db_name = split_variable[0]
+        db_column = split_variable[1]
+        # Check valid format 
+        if len(split_variable) != 2:
+            raise ValueError("An unvalid 'variable' has been specified.\n"
+                             "The expected format is <cam*/triplet/env/bs>.<column_name>.")
+        # Check valid db 
+        valid_db = ['cam0', 'cam1','cam2','triplet','bs','env','gan3d']
+        if db_name not in valid_db:
+            raise ValueError("The first component must be one of {}".format(valid_db))
+        #------------------------------.
+        # Get db 
+        db = getattr(self, db_name)
+        # Check valid column 
+        valid_columns = list(db.columns)
+        if db_column not in valid_columns:
+            raise ValueError("{!r} is not a column of {!r}. Valid columns are {}".format(db_column, db_name, valid_columns))
+        #------------------------------.
+        # Retrieve sorting idx 
+        idx = db[db_column].to_numpy().argsort()
+        if decreasing: 
+            idx = idx[::-1]
+        #------------------------------.
+        # Return sorted object
         return self.isel(idx)
-    
-   
+            
     ##------------------------------------------------------------------------.
     ################
     ### Getters ####
-    ################
+    ################  
+    # The following properties are used to avoid accidental modification in place by the user
+    @property
+    def da(self):
+        return self._da.copy()
+    
+    @property
+    def cam0(self):
+        return self._cam0.copy()
+    
+    @property
+    def cam1(self):
+        return self._cam1.copy()
+    
+    @property
+    def cam2(self):
+        return self._cam2.copy()
+    
+    @property
+    def triplet(self):
+        return self._triplet.copy()
+    
+    # The following properties are just utils
     @property
     def env(self):
-        columns = list(self.triplet.columns)
+        columns = list(self._triplet.columns)
         env_variables = [column for column in columns if column.startswith("env_")]
         env_db = self.triplet[[*env_variables]]
         env_db.columns = [column.strip("env_") for column in env_variables]
@@ -225,7 +353,7 @@ class MASC_DB:
     
     @property
     def bs(self):
-        columns = list(self.triplet.columns)
+        columns = list(self._triplet.columns)
         bs_variables = [column for column in columns if column.startswith("bs_")]
         bs_db = self.triplet[[*bs_variables]]
         bs_db.columns = [column.strip("bs_") for column in bs_variables]
@@ -234,7 +362,7 @@ class MASC_DB:
     @property
     def gan3d(self):
         # TODO: to modify 3dgan_ to gan3d_ in future
-        columns = list(self.triplet.columns)
+        columns = list(self._triplet.columns)
         gan3d_variables = [column for column in columns if column.startswith("3dgan_")]
         gan3d_db = self.triplet[[*gan3d_variables]]
         gan3d_db.columns = [column.strip("3dgan_") for column in gan3d_variables]
@@ -242,9 +370,8 @@ class MASC_DB:
     
     @property
     def full_db(self):
-        triplet = self.triplet.copy()
         # Add CAM_ID to each cam db 
-        l_cams = [self.cam0.copy(), self.cam1.copy(), self.cam2.copy()]
+        l_cams = [self.cam0, self.cam1, self.cam2]
         for i, cam in enumerate(l_cams):
              cam['CAM_ID'] = i
         # Merge cam(s) db into 
@@ -258,7 +385,7 @@ class MASC_DB:
                        'label_id',
                        'label_id_prob']
         vars_not_add = ['pix_size','Xhi','n_roi', 'Dmax'] + labels_vars
-        triplet = triplet.drop(columns=vars_not_add)
+        triplet = self.triplet.drop(columns=vars_not_add)
         full_db = full_db.merge(triplet, how="left")
         return full_db
     
@@ -267,10 +394,10 @@ class MASC_DB:
     ### Plotting routines #####
     ###########################
 
-    def plot_triplets(self, indices=None, random = True, n_triplets = 1, zoom=True, **kwargs):
+    def plot_triplets(self, indices=None, random = False, n_triplets = 1, zoom=True, **kwargs):
         #--------------------------------------------------.
         # Retrieve number of valid index
-        n_idxs = len(self.triplet.index)
+        n_idxs = len(self._triplet.index)
         if n_idxs == 0: 
             raise ValueError("No data to plot.") 
         #--------------------------------------------------.
@@ -291,7 +418,7 @@ class MASC_DB:
         indices = _check_indices(indices, vmax=n_idxs-1)
         #--------------------------------------------------.
         # Subset triplet(s) images 
-        da_subset = self.da.isel(TripletID = indices).transpose(...,'CAM_ID','TripletID')
+        da_subset = self._da.isel(TripletID = indices).transpose(...,'CAM_ID','TripletID')
         #--------------------------------------------------.
         # Zoom all images to same extent 
         if zoom:
@@ -327,13 +454,13 @@ class MASC_DB:
         #--------------------------------------------------. 
         return p       
             
-    def plot_flake(self, CAM_ID=None, index=None, random = True, zoom=True, **kwargs):
+    def plot_flake(self, CAM_ID=None, index=None, random = False, zoom=True, **kwargs):
         # Check args
         _check_random(random)
         _check_zoom(zoom)
         #--------------------------------------------------.
         # Retrieve number of valid index
-        n_idxs = len(self.triplet.index)
+        n_idxs = len(self._triplet.index)
         if n_idxs == 0: 
             raise ValueError("No data to plot.")
         #--------------------------------------------------.
@@ -355,7 +482,7 @@ class MASC_DB:
         #--------------------------------------------------.
         # Subset triplet(s) images 
         # - If CAM_ID is an integer (instead of list of length 1), then the CAM_ID dimension is dropped)
-        da_img = self.da.isel(TripletID = index, CAM_ID = CAM_ID) 
+        da_img = self._da.isel(TripletID = index, CAM_ID = CAM_ID) 
         #--------------------------------------------------.
         # Zoom all images to same extent 
         if zoom:
@@ -375,11 +502,11 @@ class MASC_DB:
         #--------------------------------------------------. 
         return p  
 
-    def plot_flakes(self, CAM_ID=None, indices=None, random = True, 
+    def plot_flakes(self, CAM_ID=None, indices=None, random = False, 
                     n_images = 9, zoom=True, 
                     col_wrap = 3, **kwargs):
         # Retrieve number of valid index
-        n_idxs = len(self.triplet.index) # TODO 
+        n_idxs = len(self._triplet.index) # TODO 
         # TODO: 
         # - Option to stack to ImageID ... and then sample that ... title will report TripletID and CAM ID
 
@@ -411,7 +538,7 @@ class MASC_DB:
         #--------------------------------------------------.
         # Subset triplet(s) images 
         # - If CAM_ID is an integer (instead of list length 1 ... the CAM_ID dimension is dropped)
-        da_subset = self.da.isel(TripletID = indices, CAM_ID = CAM_ID).transpose(...,'TripletID')
+        da_subset = self._da.isel(TripletID = indices, CAM_ID = CAM_ID).transpose(...,'TripletID')
         #--------------------------------------------------.
         # Zoom all images to same extent 
         if zoom:
