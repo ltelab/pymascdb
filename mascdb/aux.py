@@ -106,7 +106,7 @@ def get_riming_id_dict(method='Praz2017'):
             1:'unrimed',
             2:'rimed',
             3:'densely_rimed',
-            4:'greupel-like',
+            4:'graupel-like',
             5:'graupel'
         }
     else:

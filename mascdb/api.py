@@ -363,9 +363,9 @@ class MASC_DB:
     def gan3d(self):
         # TODO: to modify 3dgan_ to gan3d_ in future
         columns = list(self._triplet.columns)
-        gan3d_variables = [column for column in columns if column.startswith("3dgan_")]
+        gan3d_variables = [column for column in columns if column.startswith("gan3d_")]
         gan3d_db = self.triplet[[*gan3d_variables]]
-        gan3d_db.columns = [column.strip("3dgan_") for column in gan3d_variables]
+        gan3d_db.columns = [column.strip("gan3d_") for column in gan3d_variables]
         return gan3d_db
     
     @property
