@@ -6,12 +6,20 @@ Created on Wed Sep  1 21:56:51 2021
 @author: ghiggi
 """
 import os
+import shutil
+import copy
 import xarray as xr
 import pandas as pd
 import numpy as np
 import mascdb.pd_sns_accessor 
-import copy
+from mascdb.utils_event import _define_event_id
+from mascdb.utils_event import _get_timesteps_duration
  
+from mascdb.utils_img import xri_zoom
+from mascdb.utils_img import xri_contrast_stretching 
+from mascdb.utils_img import xri_hist_equalization 
+from mascdb.utils_img import xri_local_hist_equalization 
+  
 #-----------------------------------------------------------------------------.
 # TODO: add stuff of mm @Jacobo did 
 # add option to report mm ... 
@@ -28,26 +36,6 @@ import copy
 # mascdb.filter(triplet.Dmax > 2 and cam1.Xhi > 2)
 # mascdb.sel(label)
 #-----------------------------------------------------------------------------.
-
-def _internal_bbox(img):
-    rows = np.any(img, axis=1)
-    cols = np.any(img, axis=0)
-    rmin, rmax = np.where(rows)[0][[0, -1]]
-    cmin, cmax = np.where(cols)[0][[0, -1]]
-    return rmin, rmax, cmin, cmax
-
-def _get_zoomed_image(img):
-    rmin, rmax, cmin, cmax = _internal_bbox(img)
-    zoom_img = img[rmin:rmax+1, cmin:cmax+1]
-    return zoom_img
-
-def _center_image(img, nrow, ncol): 
-    r, c = img.shape 
-    col_incr = int((ncol - c)/2)
-    row_incr = int((nrow - r)/2)
-    arr = np.zeros((nrow, ncol))
-    arr[slice(row_incr,row_incr+r), slice(col_incr,col_incr+c)] = img 
-    return arr 
 
 #-----------------------------------------------------------------------------.
 ##############
@@ -127,6 +115,15 @@ def _check_zoom(zoom):
     if not isinstance(zoom, bool):
         raise TypeError("'zoom' must be either True or False.")
 
+def _check_enhancement(enhancement): 
+    if not isinstance(enhancement, (type(None), str)): 
+        raise TypeError("'enhancement' must be a string (or None).")
+    if isinstance(enhancement, str): 
+        valid_enhancements=["histogram_equalization", "contrast_stretching", "local_equalization"]
+        if enhancement not in valid_enhancements:
+            raise ValueError("{!r} is not a valid enhancement. "
+                             "Specify one of {}".format(enhancement, valid_enhancements))
+            
 def _check_isel_idx(idx, vmax):
     # Return a numpy array of positional idx 
     if not isinstance(idx, (int,list, pd.Series, np.ndarray)):
@@ -192,7 +189,13 @@ class MASC_DB:
         self._triplet = pd.read_parquet(triplet_fpath)
         
         # Number of triplets 
-        self.n_triplets = len(self._triplet)
+        self._n_triplets = len(self._triplet)
+        
+        # Save dir_path info 
+        self._dir_path = dir_path
+    
+    def __len__(self):
+        return self._n_triplets
     
     ##------------------------------------------------------------------------.
     ####################
@@ -221,9 +224,53 @@ class MASC_DB:
         print("-------------------------------------------------------------------------")
         return "" 
     
-    def __len__(self):
-        return self.n_triplets
-    
+    def __repr__(self):
+        return self.__str__()
+        
+    ##------------------------------------------------------------------------.
+    #################
+    ## Save db    ###
+    #################
+    def save(self, dir_path, force=False):
+        # - Check there are data to save
+        if self._n_triplets == 0: 
+            raise ValueError("Nothing to save. No data left in the MASCDB.")
+        # - Check dir_path
+        if dir_path == self._dir_path:
+            if force: 
+                print("- Overwriting existing MASCDB at {}".format(dir_path))
+                shutil.rmtree(dir_path)
+            else:
+                raise ValueError("If you want to overwrite the existing MASCDB at {},"
+                                 "please specify force=True".format(dir_path))
+        if os.path.exists(dir_path): 
+            if force: 
+                print("- Replacing content of directory {}.".format(dir_path))
+                shutil.rmtree(dir_path)  
+            else: 
+                raise ValueError("A directory already exists at {}."
+                                 "Please specify force=True if you want to overwrite it.".format(dir_path))
+        #---------------------------------------------------------------------.
+        # - Create directory 
+        os.makedirs(dir_path)
+        
+        # - Define fpath of databases 
+        zarr_store_fpath = os.path.join(dir_path,"MASCdb.zarr")
+        cam0_fpath = os.path.join(dir_path, "MASCdb_cam0.parquet")
+        cam1_fpath = os.path.join(dir_path, "MASCdb_cam1.parquet")
+        cam2_fpath = os.path.join(dir_path, "MASCdb_cam2.parquet")
+        triplet_fpath = os.path.join(dir_path, "MASCdb_triplet.parquet")
+        
+        # - Write databases 
+        ds = self._da.to_dataset(name="data") 
+        ds.to_zarr(zarr_store_fpath)
+        self._cam0.to_parquet(cam0_fpath)
+        self._cam1.to_parquet(cam1_fpath)
+        self._cam2.to_parquet(cam2_fpath)
+        self._triplet.to_parquet(triplet_fpath)
+        #---------------------------------------------------------------------.
+        return None 
+        
     ##------------------------------------------------------------------------.
     #################
     ## Subsetting ###
@@ -233,7 +280,7 @@ class MASC_DB:
         self = copy.deepcopy(self)
         #---------------------------------------------------------------------.
         # Check valid idx 
-        idx = _check_isel_idx(idx, vmax=self.n_triplets-1)
+        idx = _check_isel_idx(idx, vmax=self._n_triplets-1)
         ##--------------------------------------------------------------------.
         # Subset all datasets 
         self._da = self._da.isel(TripletID=idx)
@@ -249,13 +296,13 @@ class MASC_DB:
             self._triplet = self._triplet.iloc[idx]
         ##--------------------------------------------------------------------.
         # Update number of triplets 
-        self.n_triplets = len(self._triplet)
+        self._n_triplets = len(self._triplet)
         return self 
     
     def sample_n(self, n=10):
         if n > len(self): 
             raise ValueError("The MASCDB instance has currently only {} triplets.".format(len(self)))      
-        idx = np.random.choice(self.n_triplets, n) 
+        idx = np.random.choice(self._n_triplets, n) 
         return self.isel(idx)
         
     def first_n(self, n=10):  
@@ -267,17 +314,17 @@ class MASC_DB:
     def last_n(self, n=10): 
         if n > len(self): 
             raise ValueError("The MASCDB instance has currently only {} triplets.".format(len(self)))
-        idx = np.arange(self.n_triplets-1,self.n_triplets-n-1, step=-1)
+        idx = np.arange(self._n_triplets-1,self._n_triplets-n-1, step=-1)
         return self.isel(idx)
     
     def head(self, n=10): 
-        n = min(self.n_triplets, n)
+        n = min(self._n_triplets, n)
         idx = np.arange(n)
         return self.isel(idx)
     
     def tail(self, n=10):
-        n = min(self.n_triplets, n)
-        idx = np.arange(self.n_triplets-1,self.n_triplets-n-1, step=-1)
+        n = min(self._n_triplets, n)
+        idx = np.arange(self._n_triplets-1,self._n_triplets-n-1, step=-1)
         return self.isel(idx)
      
     ##------------------------------------------------------------------------.
@@ -389,12 +436,106 @@ class MASC_DB:
         full_db = full_db.merge(triplet, how="left")
         return full_db
     
+    def ds_images(self, CAM_ID = None, campaign=None, img_id='img_id'):
+        #----------------------------------------------------------------------.
+        # Subset by campaign 
+        if campaign is not None:
+            if isinstance(campaign, str): 
+                campaign = [campaign]
+            campaign = np.array(campaign).astype(str)
+            db_campaigns = self.triplet['campaign'].values.astype(str)
+            valid_campaigns = np.unique(db_campaigns)
+            unvalid_campaigns_arg = campaign[np.isin(campaign, valid_campaigns, invert=True)]
+            if len(unvalid_campaigns_arg) > 0: 
+                raise ValueError("{} is not a campaign of the current mascdb. "
+                                 "Valid campaign names are {}".format(unvalid_campaigns_arg.tolist(),
+                                                                      valid_campaigns.tolist()))
+            idx = np.isin(db_campaigns, campaign)
+            da = self.isel(idx).da
+        else: 
+            da = self.da
+        #----------------------------------------------------------------------.
+        # Subset cam images
+        if CAM_ID is not None:
+            da = da.isel(CAM_ID = CAM_ID)
+        #----------------------------------------------------------------------.
+        ### Retrieve dimensions to eventually stack along a new third dimension 
+        dims = list(da.dims)
+        unstacked_dims = list(set(dims).difference(["x","y"]))
+        # - If only x and y, add third dimension img_id
+        if len(unstacked_dims) == 0: 
+            stack_dict = {}
+            da_stacked = da.expand_dims(img_id, axis=-1)
+        # - If there is already a third dimension, transpose to the last 
+        elif len(unstacked_dims) == 1:
+            da = da.rename({unstacked_dims[0]: img_id})
+            da_stacked = da.transpose(..., img_id) 
+        # - If there is more than 3 dimensions, stack it all into a new third dimension
+        elif len(unstacked_dims) > 1: 
+            stack_dict = {img_id: unstacked_dims}
+            # Stack all additional dimensions into a 3D array with all img_id in the last dimension 
+            da_stacked = da.stack(stack_dict).transpose(..., img_id)
+        else: 
+            raise NotImplementedError()
+        return da_stacked   
+    
+    ##------------------------------------------------------------------------.
+    ##############################
+    ### Datetime/Event utils #####
+    ##############################
+    def _add_event_n_triplets(self):
+        if 'event_id' not in list(self._triplet.columns):
+            raise ValueError("First define 'event_id' using mascdb.define_event_id().")
+        event_triplets = self.triplet.groupby('event_id').size()
+        event_triplets.name = "event_n_triplets"
+        self._triplet = self._triplet.merge(event_triplets, on="event_id")
+        
+    def _add_event_duration(self):
+        if 'event_id' not in list(self._triplet.columns):
+            raise ValueError("First define 'event_id' using mascdb.define_event_id().")
+        event_durations = self.triplet.groupby('event_id').apply(lambda x: _get_timesteps_duration(x.datetime, unit="m"))
+        event_durations.name = "event_duration"
+        self._triplet = self._triplet.merge(event_durations, on="event_id")
+        
+    def define_event_id(self, timedelta_thr): 
+        # - Extract relevant columns from triplet db
+        db = self.triplet[['campaign','datetime']]
+        # - Retrieve campaign_ids 
+        campaign_ids = np.unique(db['campaign'])
+        # - Retrieve event_id column 
+        db['event_id'] = -1
+        max_event_id = 0
+        for campaign_id in campaign_ids:
+            # - Retrieve row index of specific campaign 
+            idx_campaign = db['campaign'] == campaign_id
+            # - Define event_ids for the campaign 
+            campaign_event_ids = _define_event_id(timesteps = db.loc[idx_campaign,'datetime'], 
+                                                 timedelta_thr=timedelta_thr)
+            # - Add offset to ensure having an unique event_id across all campaigns 
+            campaign_event_ids = campaign_event_ids + max_event_id  
+            # - Add event_id to the campaign subset of the database 
+            db.loc[idx_campaign, 'event_id'] = campaign_event_ids
+            # - Update the current maximum event_id
+            max_event_id = max(campaign_event_ids) + 1
+         
+        # - Add event_id column to all databases 
+        self._cam0['event_id'] = db['event_id']
+        self._cam1['event_id'] = db['event_id']
+        self._cam2['event_id'] = db['event_id']
+        self._triplet['event_id'] = db['event_id']
+        
+        # - Add also duration and n_triplets for each event 
+        self._add_event_duration()
+        self._add_event_n_triplets()
+        
     ##------------------------------------------------------------------------.
     ###########################
     ### Plotting routines #####
     ###########################
 
-    def plot_triplets(self, indices=None, random = False, n_triplets = 1, zoom=True, **kwargs):
+    def plot_triplets(self, indices=None, random = False, n_triplets = 1,
+                      enhancement="histogram_equalization",
+                      zoom=True, **kwargs):
         #--------------------------------------------------.
         # Retrieve number of valid index
         n_idxs = len(self._triplet.index)
@@ -404,6 +545,7 @@ class MASC_DB:
         # Check args
         _check_random(random)
         _check_zoom(zoom)
+        _check_enhancement(enhancement)
         _check_n_triplets(n_triplets, vmax=n_idxs)
      
         #--------------------------------------------------.
@@ -416,25 +558,26 @@ class MASC_DB:
         #--------------------------------------------------.       
         # Check validity of indices
         indices = _check_indices(indices, vmax=n_idxs-1)
+        
         #--------------------------------------------------.
         # Subset triplet(s) images 
         da_subset = self._da.isel(TripletID = indices).transpose(...,'CAM_ID','TripletID')
+        
+        #--------------------------------------------------.
+        # Apply enhancements 
+        if enhancement is not None: 
+            if enhancement == "histogram_equalization":
+               da_subset =  xri_hist_equalization(da_subset, adaptive=True)
+            elif enhancement == "contrast_stretching":
+               da_subset =  xri_contrast_stretching(da_subset, pmin=2, pmax=98)
+            elif enhancement == "local_equalization":
+               da_subset = xri_local_hist_equalization(da_subset)
+               
         #--------------------------------------------------.
         # Zoom all images to same extent 
         if zoom:
-            # Get list of images 
-            l_imgs = [da_subset.isel(TripletID=i,CAM_ID=j).values for i in range(len(indices)) for j in range(3)]
-            # Zoom a list of image 
-            l_zoomed = [_get_zoomed_image(img) for img in l_imgs]
-            # Ensure same shape across all zoomed images 
-            l_shapes = [img.shape for img in l_zoomed]
-            r_max, c_max = (max(n) for n in zip(*l_shapes)) # Get max number of row an columns 
-            l_zoomed = [_center_image(img, nrow=r_max, ncol=c_max) for img in l_zoomed]
-            # Reassign to da_subset 
-            da_subset = da_subset.isel(x=slice(0, c_max), y=slice(0,r_max))
-            l_stack = [np.stack(l_zoomed[i*3:3*(i+1)], axis=-1) for i in range(len(indices))]
-            new_arr = np.stack(l_stack, axis=-1)  
-            da_subset.values = new_arr
+            da_subset = xri_zoom(da_subset, squared=False)
+            
         #--------------------------------------------------.
         # Plot triplet(s)
         row = "TripletID" if len(indices) > 1 else None
@@ -454,10 +597,14 @@ class MASC_DB:
         #--------------------------------------------------. 
         return p       
             
-    def plot_flake(self, CAM_ID=None, index=None, random = False, zoom=True, **kwargs):
+    def plot_flake(self, CAM_ID=None, index=None, random = False,
+                   enhancement="histogram_equalization",
+                   zoom=True, ax=None, **kwargs):
         # Check args
         _check_random(random)
         _check_zoom(zoom)
+        _check_enhancement(enhancement)
+        
         #--------------------------------------------------.
         # Retrieve number of valid index
         n_idxs = len(self._triplet.index)
@@ -479,23 +626,31 @@ class MASC_DB:
         # Check validty of CAM_ID and index 
         CAM_ID = _check_CAM_ID(CAM_ID)
         index = _check_index(index, vmax=n_idxs-1)
+        
         #--------------------------------------------------.
         # Subset triplet(s) images 
         # - If CAM_ID is an integer (instead of list of length 1), then the CAM_ID dimension is dropped)
         da_img = self._da.isel(TripletID = index, CAM_ID = CAM_ID) 
+        
+        #--------------------------------------------------.
+        # Apply enhancements 
+        if enhancement is not None: 
+            if enhancement == "histogram_equalization":
+               da_img =  xri_hist_equalization(da_img, adaptive=True)
+            elif enhancement == "contrast_stretching":
+               da_img =  xri_contrast_stretching(da_img, pmin=2, pmax=98)
+            elif enhancement == "local_equalization":
+               da_img = xri_local_hist_equalization(da_img)
+           
         #--------------------------------------------------.
         # Zoom all images to same extent 
         if zoom:
-            # Zoom a list of image 
-            zoomed_img = _get_zoomed_image(da_img.values)  
-            r_max, c_max = zoomed_img.shape
-            # Reassign to da_subset 
-            da_img = da_img.isel(x=slice(0, c_max), y=slice(0,r_max))
-            da_img.values = zoomed_img
+            da_img = xri_zoom(da_img, squared=False)
+            
         #--------------------------------------------------.
         # Plot single image 
         # - TODO: 'aspect' cannot be specified without 'size'
-        p = da_img.plot(x='x',y='y', 
+        p = da_img.plot(x='x',y='y', ax=ax,
                         cmap='gray', add_colorbar=False, 
                         vmin=0, vmax=255,
                         **kwargs)
@@ -503,8 +658,10 @@ class MASC_DB:
         return p  
 
     def plot_flakes(self, CAM_ID=None, indices=None, random = False, 
-                    n_images = 9, zoom=True, 
-                    col_wrap = 3, **kwargs):
+                    n_images = 9, col_wrap = 3,
+                    enhancement="histogram_equalization",
+                    zoom=True, 
+                    **kwargs):
         # Retrieve number of valid index
         n_idxs = len(self._triplet.index) # TODO 
         # TODO: 
@@ -514,6 +671,7 @@ class MASC_DB:
         # Check args
         _check_random(random)
         _check_zoom(zoom)
+        _check_enhancement(enhancement)
         _check_n_images(n_images, vmax=n_idxs)
         #--------------------------------------------------
         # Define index if is not provided
@@ -532,28 +690,32 @@ class MASC_DB:
         indices = _check_indices(indices, vmax=n_idxs-1)
         CAM_ID = _check_CAM_ID(CAM_ID)
         #-------------------------------------------------- 
+        # If a single flake is specified, plot it with plot_flake 
         if len(indices) == 1: 
             print("It's recommended to use 'plot_flake()' to plot a single image.")
-            return self.plot_flake(index=indices[0], CAM_ID=CAM_ID, random=random, zoom=zoom, *kwargs)
+            return self.plot_flake(index=indices[0], CAM_ID=CAM_ID, random=random,
+                                   enhancement=enhancement, zoom=zoom, *kwargs)
+        
         #--------------------------------------------------.
         # Subset triplet(s) images 
         # - If CAM_ID is an integer (instead of list length 1 ... the CAM_ID dimension is dropped)
         da_subset = self._da.isel(TripletID = indices, CAM_ID = CAM_ID).transpose(...,'TripletID')
+        
+        #--------------------------------------------------.
+        # Apply enhancements 
+        if enhancement is not None: 
+            if enhancement == "histogram_equalization":
+               da_subset =  xri_hist_equalization(da_subset, adaptive=True)
+            elif enhancement == "contrast_stretching":
+               da_subset =  xri_contrast_stretching(da_subset, pmin=2, pmax=98)
+            elif enhancement == "local_equalization":
+               da_subset = xri_local_hist_equalization(da_subset)
+               
         #--------------------------------------------------.
         # Zoom all images to same extent 
         if zoom:
-            # Get list of images 
-            l_imgs = [da_subset.isel(TripletID=i,).values for i in range(len(indices))]
-            # Zoom a list of image 
-            l_zoomed = [_get_zoomed_image(img) for img in l_imgs]
-            # Ensure same shape across all zoomed images 
-            l_shapes = [img.shape for img in l_zoomed]
-            r_max, c_max = (max(n) for n in zip(*l_shapes)) # Get max number of row an columns 
-            l_zoomed = [_center_image(img, nrow=r_max, ncol=c_max) for img in l_zoomed]
-            # Reassign to da_subset 
-            da_subset = da_subset.isel(x=slice(0, c_max), y=slice(0,r_max))
-            new_arr = np.stack(l_zoomed, axis=-1) 
-            da_subset.values = new_arr
+            da_subset = xri_zoom(da_subset, squared=False)
+        
         #--------------------------------------------------.
         # Plot triplet(s)
         row = "TripletID" if len(indices) > 1 else None
