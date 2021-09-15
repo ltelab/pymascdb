@@ -142,20 +142,24 @@ np.unique(db['bs_precip_type']) # ! Do not match with https://github.com/jacgraz
 # > 0 : some snowflake 
 # max 255 
 
+####################
+### TODO CHECKS ####
+####################
+### 1
+# Retrieve the event leading to largest Dmax 
+timedelta_thr = np.timedelta64(2, 'h')
+mascdb.define_event_id(timedelta_thr=timedelta_thr)
+mascdb.arrange('cam0.Dmax', decreasing=True)        # TODO CHECK WHY THIS RAISE WARNING
+
+event_id = mascdb.arrange('cam0.Dmax', decreasing=True).cam0['event_id']
+idx_event = mascdb.cam0['event_id'] == event_id[0]
+mascdb_event = mascdb.isel(idx_event).arrange('cam0.datetime', decreasing=False)
+print(mascdb_event)
+
 #-----------------------------------------------------------------------------.
 #################
 ## Filtering ####
-################# get always the idx ... to subset all db and ds 
-
-### Always return a copy of the object 
-# arrange (by size i.e. , pixel number, diameter)  (on what cam db?)
-# select_first_n 
-# select_last_n 
-# sample_n 
-
-# select (column) 
-# filter (row) 
- 
+#################  
 # filter(marketing.AmountSpent > 2000) & (marketing.History == 'High') # now 
 # filter(AmountSpent > 2000) & (History == 'High')) # ideal 
     
@@ -164,18 +168,12 @@ np.unique(db['bs_precip_type']) # ! Do not match with https://github.com/jacgraz
 # https://pythonhosted.org/dplython/
 # https://github.com/coursera/pandas-ply
 # https://github.com/koaning/kadro
-
-# select : db columns 
 # dplython:sift --> filter        #  pandas-ply.ply_where(X.arr > 30, X.dep > 30)) #
-# sample_n : sample 
-# arrange : reorder 
-
-# capture expression ... check cam0, cam1, cam2, triplet.env (env.T > ), 
 
 #-----------------------------------------------------------------------------.
-###########################
-### Already implemented ###
-###########################
+#############################################
+### Zarr store metadata/attrs generation  ###
+#############################################
 ##--------------------------------------------.
 import matplotlib.pyplot as plt
 
@@ -190,95 +188,16 @@ arr1 = arr[0:10,:,:,:]
 
 da = xr.DataArray(data=arr1,
                   dims=["TripletID","y","x","CAM_ID"],
-                  coords=dict(CAM_ID=[0,1,2]))
+                  coords=dict(CAM_ID=[0,1,2], TripletID=np.arange(start, end)))
 
-ds = da.to_dataset(name='data')
-ds.to_zarr(os.path.join("/media/ghiggi/New Volume/Data/MASCDB","my_masc.zarr"))
 
+ds = da.to_dataset(name='campaign_name')
+ds.to_zarr(os.path.join("/media/ghiggi/New Volume/Data/MASCDB","Campaign.zarr"))
+
+l_stores = glob.glob("*.zarr")
+l_ds = [xr.open_zarr(fpath) for fpath in l_stores]
+ds =xr.concat(l_ds, dim="triplet_id")
+ds.to_zarr()
 ## And the modify .attr, .metadata according to original zarr 
 
-#-----------------------------------------------------------------------------.
-### Plot images / triplets 
-fpath = os.path.join(dir_path,"MASCdb.zarr")
-ds = xr.open_zarr(fpath)
-
-# Select CAM_ID 0 
-ds.sel(CAM_ID = 0)   # by label
-ds.isel(CAM_ID = 0)  # by index 
-
-# Display 9 images of CAM_ID = 0 [plot_flakes()]
-p = ds['data'].sel(CAM_ID = 0, TripletID = slice(0,9)).plot(x='x',y='y', row="TripletID", col_wrap=3, 
-                                                            aspect=1, 
-                                                            cmap='gray', add_colorbar=False, 
-                                                            vmin=0, vmax=255)
-for i, ax in enumerate(p.axes.flat):
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-    ax.set_axis_off() 
-p.fig.subplots_adjust(wspace=0.01, hspace=0.1)
-
-# add option to report mm ... 
-# pix_size = self.triplet.loc[index].pix_size*1e3  # mm
-# xsize = out.shape[0]*pix_size # mm
-# ysize = out.shape[1]*pix_size # mm
-
-
-# Display 3 images of all CAM [plot_triplets()]
-p = ds['data'].isel(TripletID = slice(0,3)).plot(x='x',y='y',
-                                                 col="CAM_ID",
-                                                 row="TripletID",
-                                                 aspect=1,
-                                                 cmap='gray', add_colorbar=False,
-                                                 vmin=0, vmax=255)
  
-for i, ax in enumerate(p.axes.flat):
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-    ax.set_axis_off()
-p.fig.subplots_adjust(wspace=0.01, hspace=0.01)
-
-
-### zoom function 
-# --> should we respect aspect=1 and return square images 
-img_triplet = ds['data'].isel(TripletID=0).values
-plt.imshow(img_triplet[:,:,0], vmin=0, vmax=255, cmap="gray") 
-plt.imshow(img_triplet[:,:,2], vmin=0, vmax=255, cmap="gray") 
-plt.colorbar()
-
-img = img_triplet[:,:,0]
-
-def _internal_bbox(img):
-    rows = np.any(img, axis=1)
-    cols = np.any(img, axis=0)
-    rmin, rmax = np.where(rows)[0][[0, -1]]
-    cmin, cmax = np.where(cols)[0][[0, -1]]
-    return rmin, rmax, cmin, cmax
-
-def _get_zoomed_image(img):
-    rmin, rmax, cmin, cmax = _internal_bbox(img)
-    zoom_img = img[rmin:rmax+1, cmin:cmax+1]
-    return zoom_img
-
-def _center_image(img, nrow, ncols): 
-    r, c = img.shape 
-    col_incr = int((ncol - c)/2)
-    row_incr = int((nrow - r)/2)
-    arr = np.zeros((nrow, ncol))
-    arr[slice(row_incr,row_incr+r), slice(col_incr,col_incr+c)] = img 
-    return arr 
-
-
-img = img_triplet[:,:,0]
-plt.imshow(_get_zoomed_image(img), vmin=0, vmax=255, cmap="gray") 
-l_imgs = [img_triplet[:,:,i] for i in range(3)]
-
-# Zoom a list of image 
-l_zoomed = [_get_zoomed_image(img) for img in l_imgs]
-# Ensure same shape across all zoomed images 
-l_shapes = [img.shape for img in l_zoomed]
-r_max, c_max = (max(n) for n in zip(*l_shapes)) # Get max number of row an columns 
-l_zoomed = [_center_image(img, nrow=r_max, ncols=c_max) for img in l_zoomed]
-
-for img in l_zoomed:
-    plt.imshow(img, vmin=0, vmax=255, cmap="gray")
-    plt.show()
