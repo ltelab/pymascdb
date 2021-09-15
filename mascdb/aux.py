@@ -236,6 +236,34 @@ def get_units():
              }
     return units
 
+def get_vars_gan3d():
+    variables = ['gan3d_mass',
+                 'gan3d_vol_ch', 
+                 'gan3d_r_g',
+                 ]
+    return variables
 
+def get_vars_env():
+    variables = ['env_T',
+                 'env_P',
+                 'env_DD',
+                 'env_FF',
+                 'env_RH',
+                 ]
+    return variables
 
+def get_vars_blowing_snow():
+    variables = ['bs_nor_angle',
+                 'bs_mix_ind',
+                 'bs_precip_type',
+                 ]
+    return variables 
 
+def get_vars_location(): 
+    variables = ['datetime',
+                 'campaign',
+                 'latitude',
+                 'longitude',
+                 'altitude',
+                ]
+    return variables 
