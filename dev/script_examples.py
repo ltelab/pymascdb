@@ -50,17 +50,6 @@ cam0['label_name']
 
 cam0.columns.values.tolist()  # TODO: get_columns_list()
 
-# TODO: get_feature_list (without predicted classes, datetime, flake_id) 
-# TODO: get_classes_list (riming_*, label_*, melting_*) 
-# TODO: which rows have been used for manual classification? 
-
-# TODO:
-# get_label_name_dict(name: id) .. and viceversa --> Done in aux.py 
-# get_label_id_dict(id: name)  -->   Done in aux.py 
-# get_riming_id_dict(id: name) -->   Done in aux.py
-# get_riming_name_dict(name: id) TODO: add riming_name in dataset as column!
-
-
 np.unique(cam0['label_id'])
 np.unique(cam0['label_name'])  
 
@@ -77,84 +66,12 @@ cam1_ds = cam1_ds.set_coords('flake_id').swap_dims({'index': 'flake_id'})
 cam2_ds = xr.Dataset.from_dataframe(cam2)
 cam2_ds = cam2_ds.set_coords('flake_id').swap_dims({'index': 'flake_id'})
 
-
-
 #-----------------------------------------------------------------------------.
 # Triplet DB
 triplet_fpath = os.path.join(dir_path, "MASCdb_triplet.parquet")
 db = pd.read_parquet(triplet_fpath)
 db.shape
 db.columns.values.tolist()  
-
-np.unique(db['bs_precip_type']) # ! Do not match with https://github.com/jacgraz/pymascdb/blob/master/reader/database_reader.py#L57 
-                                # What ['', means? --> JGR answer: indeed they do not match (the function in reader is older)
-                                # '' means that for any reason the blowing snow estimation is not available. Not a good choice. Better None?
-## Triplet_ID 
-'flake_id'
-
-### Predicted variables (average of the three cam?)
-'riming_deg_level', # what is that? 
-'riming_id',        # create riming_name ? or riming_degree?
-'melting_id',
-'melting_prob',  
-'label_name',      # --> snowflake_label ?
-'label_id',
-'label_id_prob',
-
-# Other descriptors (single estimate based on 3 images?)
-'fallspeed' # not in cam DB 
-
-# TODO: 
-# get_3d_gan_variables() 
-'3dgan_mass',
-'3dgan_vol_ch',
-'3dgan_r_g',
-
-# get_env_variables() 
-'env_T',
-'env_P',
-'env_DD',
-'env_FF',
-'env_RH'
-
-# get_blowing_snow_variables()  
-'bs_nor_angle',
-'bs_mix_ind',
-'bs_precip_type',
-
-# get_data_info 
-'datetime',
-'campaign',
-'latitude',
-'longitude',
-'altitude',
- 
-# This also present in cam DB  ... same? average? else? 
-'pix_size',
-'Xhi',
-'n_roi', 
-'Dmax'    
-
-### TODO: check images are not all 0 !!!!
-
-# Report somewhere 
-# 0 : no values 
-# > 0 : some snowflake 
-# max 255 
-
-####################
-### TODO CHECKS ####
-####################
-### 1
-# Retrieve the event leading to largest Dmax 
-timedelta_thr = np.timedelta64(2, 'h')
-mascdb.define_event_id(timedelta_thr=timedelta_thr)
-mascdb.arrange('cam0.Dmax', decreasing=True)        # TODO CHECK WHY THIS RAISE WARNING
-
-event_id = mascdb.arrange('cam0.Dmax', decreasing=True).cam0['event_id']
-idx_event = mascdb.cam0['event_id'] == event_id[0]
-mascdb_event = mascdb.isel(idx_event).arrange('cam0.datetime', decreasing=False)
-print(mascdb_event)
 
 #-----------------------------------------------------------------------------.
 #################
