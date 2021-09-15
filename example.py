@@ -7,7 +7,7 @@ Created on Wed Sep  1 22:50:08 2021
 """
 #-----------------------------------------------------------------------------.
 import os
-os.chdir("/home/ghiggi/Projects/pymascdb")
+os.chdir("/home/grazioli/CODES/python/pymascdb")
 #os.chdir("/home/grazioli/CODES/python/pymascdb")
 import numpy as np
 import pandas as pd 
@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import mascdb.api
 from mascdb.api import MASC_DB
 
-dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
+dir_path = "/data/MASC_DB"
 #dir_path = "/data/MASC_DB/"
 
 ##----------------------------------------------------------------------------.

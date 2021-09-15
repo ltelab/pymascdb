@@ -2,7 +2,9 @@ import warnings
 """
 Miscellaneaous auxiliary functions
 
-TODO: keep up to date with eventual name change of variables
+
+TODO: Make sure that all functions here are integrated in  api.py
+IMPORTANT: keep up to date with eventual name change of variables
 
 
 """
@@ -106,7 +108,7 @@ def get_riming_id_dict(method='Praz2017'):
             1:'unrimed',
             2:'rimed',
             3:'densely_rimed',
-            4:'greupel-like',
+            4:'graupel-like',
             5:'graupel'
         }
     else:
@@ -122,8 +124,12 @@ def get_units():
     """
 
     units = {'datetime':      'datetime',
+             'index':         '-',
              'flake_id':      '-',
+             'flake_number_tmp':'-',
              'pix_size':      'm',
+             'quality_xhi':   '-',
+
              'n_roi'   :      '-',
              'area'    :      'm**2',
              'perim'   :      'm',
@@ -193,27 +199,30 @@ def get_units():
              'roi_centroid_Y':     'pix',
              'roi_width':          'pix',
              'roi_height':         'pix',
-             'Xhi':                '-',
              'Dmax_ori':           'deg',
              'Dmax_90':            'm',
              'D90_r':              '-',
              'riming_id':          'class',
+             'riming_id_prob':     '-',
+             'riming_name':        'class string',
              'riming_deg_level':   '-',
              'melting_id':         'boolean',
              'melting_prob':       '-',
-             'label_name':         'class string',
-             'label_id':           'class',
-             'label_id_prob':      '-',
+             'snowflake_class_name':'class string',
+             'snowflake_class_id':  'class',
+             'snowflake_class_id_prob': '-',
 
              'fallspeed':          'm s**-1',
              'campaign':           '-',
              'latitude':           'deg_north',
              'longitude':          'deg_east',
              'altitude':           'm',
+             'quality_xhi_flake':  '-',
 
-             '3dgan_mass':         'kg',
-             '3dgan_vol_ch':       'm**3',
-             '3dgan_r_g':          'm',
+
+             'gan3d_mass':         'kg',
+             'gan3d_vol_ch':       'm**3',
+             'gan3d_gyration':     'm',
 
              'bs_nor_angle':       '-',
              'bs_mix_ind':         '-',

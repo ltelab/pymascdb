@@ -1,4 +1,26 @@
-(1) Put index also as a column, not only as pandas index
-(2) Do not put flake_id but rather the name of the original picture file
-(3) Do not leave empty strings '' for blowing snow, when this info is missing. Better None?
-(4) Add riming_name column in database (1: unrimed, 2: rimed, 3: densely_rimed, 4: graupel-like, 5:graupel)
+DONE (1) Put index also as a column, not only as pandas index  
+    added "index"
+DONE (2) Do not put flake_id but rather the name of the original picture file
+    added flake_id in format 2018.11.29_03.25.43_flake_23
+    added cam_id
+DONE (3) Do not leave empty strings '' for blowing snow, when this info is missing. Better None?
+    changed to "undefined"
+DONE (4) Add riming_name column in database (1: unrimed, 2: rimed, 3: densely_rimed, 4: graupel-like, 5:graupel)
+    added riming_name and riming_id_prob
+DONE (5) Change label_* --> snowflake_class_*, label_id_prob, snowflake_class_prob
+    labels changed to snowflake_class_name, snowflake_class_id, snowflake_class_id_prob
+DONE (6) riming_degree a due decimali
+    and other few vars
+DONE (7) possibility to rename Xhi --> quality_xhi 
+    renamed quality_xhi / quality_xhi_flake
+DONE (8) In the triplet file:      --> quality_xhi_flake (?) Dmax --> Dmax_flake
+
+(9) Check with SLF guys if weather data for Davos are OK ?
+(10) Check existence of original database of manually labelled samples !
+(11) Check relaxation of filters 
+
+DONE (12) Rename 3dgan --> gan3d
+done, gan3d_gyration, gan3d_volumne, gan3d_mass
+
+(?) Event ID ?
+(Add SN of MASC)

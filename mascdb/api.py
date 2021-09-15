@@ -408,11 +408,10 @@ class MASC_DB:
     
     @property
     def gan3d(self):
-        # TODO: to modify 3dgan_ to gan3d_ in future
         columns = list(self._triplet.columns)
-        gan3d_variables = [column for column in columns if column.startswith("3dgan_")]
+        gan3d_variables = [column for column in columns if column.startswith("gan3d_")]
         gan3d_db = self.triplet[[*gan3d_variables]]
-        gan3d_db.columns = [column.strip("3dgan_") for column in gan3d_variables]
+        gan3d_db.columns = [column.strip("gan3d_") for column in gan3d_variables]
         return gan3d_db
     
     @property
@@ -425,13 +424,13 @@ class MASC_DB:
         full_db = pd.concat(l_cams)
         # Add triplet variables to fulldb 
         # TODO: to remove/modify in future
-        labels_vars = ['riming_deg_level', 'riming_id',  
+        labels_vars = ['riming_deg_level', 'riming_id','riming_id_prob', 
                        'melting_id',
                        'melting_prob',  
-                       'label_name',       
-                       'label_id',
-                       'label_id_prob']
-        vars_not_add = ['pix_size','Xhi','n_roi', 'Dmax'] + labels_vars
+                       'snowflake_class_name',       
+                       'snowflake_class_id',
+                       'snowflake_class_id_prob']
+        vars_not_add = ['pix_size','quality_xhi_flake','n_roi', 'Dmax_flake'] + labels_vars
         triplet = self.triplet.drop(columns=vars_not_add)
         full_db = full_db.merge(triplet, how="left")
         return full_db

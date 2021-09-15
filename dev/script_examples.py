@@ -56,16 +56,16 @@ cam0.columns.values.tolist()  # TODO: get_columns_list()
 
 # TODO:
 # get_label_name_dict(name: id) .. and viceversa --> Done in aux.py 
-# get_label_id_dict(id: name)
-# get_riming_id_dict(id: name)
-# get_riming_name_dict(name: id) TODO: riming_name ? not provided !
+# get_label_id_dict(id: name)  -->   Done in aux.py 
+# get_riming_id_dict(id: name) -->   Done in aux.py
+# get_riming_name_dict(name: id) TODO: add riming_name in dataset as column!
 
 
 np.unique(cam0['label_id'])
 np.unique(cam0['label_name'])  
 
-np.unique(cam0['riming_id'])        # predicted? 
-np.unique(cam0['riming_deg_level']) # what is that?    TODO: riming_name column !!! 
+np.unique(cam0['riming_id'])        # predicted?  
+np.unique(cam0['riming_deg_level']) # what is that?   
 
 # Features in xarray Dataset
 cam0_ds = xr.Dataset.from_dataframe(cam0)

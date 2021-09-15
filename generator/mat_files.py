@@ -91,11 +91,26 @@ def pmax06(mat_in):
             
     return [np.argmax(vec),np.max(vec)]
 
-def compute_riming_id(prob_vec):
-    return np.sum([1,2,3,4,5]*prob_vec)
+def compute_riming_id(prob_vec,use_all_probs=False):
+    if use_all_probs:
+        return np.sum([1,2,3,4,5]*prob_vec)
+    else:
+        return np.argmax(prob_vec)+1
 
 def compute_riming_idx(R):
     return 0.5*(np.sin(0.25*np.pi*(R-3))+1)
+
+def get_riming_name(R):
+    if R == 1:
+        return 'unrimed'
+    elif R == 2:
+        return 'rimed'
+    elif R == 3:
+        return 'densely_rimed'
+    elif R == 4:
+        return 'graupel-like'
+    elif R == 5:
+        return 'graupel'
 
 def pad_with_zeros(A, r=1024, c=1024):
    """
@@ -158,16 +173,20 @@ def masc_mat_file_to_dict(fn,pix_size=33.5e-6):
     p1 = pix_size   # to convert [pix] to m
     p2 = p1**2      # to convert [pix**2] to m**2
 
+    #Variables to compute only once
+    riming_id=compute_riming_id(mat['riming_probs'][0]) 
+    riming_deg_level = compute_riming_idx(compute_riming_id(mat['riming_probs'][0],use_all_probs=True))
 
     dict={
         # Time
         'datetime': datenum_to_datetime(mat['tnum'][0][0]), #datetime obj
-        'flake_id': mat['id'][0][0],
+        'flake_id': (fn.split('/')[-1]).split('_cam')[0],
+        'flake_number_tmp':   mat['id'][0][0],                          # Temporary flake number (reset to 1 after reboot)
         'pix_size': pix_size,                                           # Pixel size in m
 
         # Other MASC features   
         'n_roi':                mat['n_roi'][0][0],                     # Number of particles on images, including the main ROI of the feat. above [-] 
-        #'cam':                  mat['cam'][0][0],                      # camera id (0,1,2)   
+        'cam_id':               mat['cam'][0][0],                       # camera id (0,1,2)   
 
 
         ## Features from ROI of Praz et al 2017. Numbered as in Table A1.
@@ -284,7 +303,7 @@ def masc_mat_file_to_dict(fn,pix_size=33.5e-6):
         'roi_height':               mat['height'][0][0],                # ROI y size [pix]                     
 
         # Quality features
-        'Xhi':                  mat['xhi'][0][0],                   # Quality index. As in Praz et al 2017
+        'quality_xhi':              mat['xhi'][0][0],                   # Quality index. As in Praz et al 2017
 
         # Other orientations
         'Dmax_ori':             mat['Dmax_theta'][0][0],            # [°] orientation of Dmax
@@ -300,10 +319,13 @@ def masc_mat_file_to_dict(fn,pix_size=33.5e-6):
         #'riming_prob_3':         mat['riming_probs'][0][2],
         #'riming_prob_4':         mat['riming_probs'][0][3],
         #'riming_prob_5':         mat['riming_probs'][0][4],
-        'riming_id':      np.round(compute_riming_id(mat['riming_probs'][0])),                       # 1 to 5 
-        'riming_deg_level':      compute_riming_idx(compute_riming_id(mat['riming_probs'][0])),      # 0 to 1
+        'riming_id':             riming_id,                       # 1 to 5 
+        'riming_id_prob':        round(mat['riming_probs'][0][riming_id-1],2), 
+        'riming_deg_level':      round(riming_deg_level,2),       # 0 to 1
+        'riming_name':           get_riming_name(riming_id),      # Unrimed, rimed, densely_rimed, graupel-like, graupel
+
         'melting_id':            mat['melting_ID'][0][0],                                            # 0 or 1    
-        'melting_prob':          mat['melting_probs'][0][0],                                         # 0 to 1
+        'melting_prob':          round(mat['melting_probs'][0][0],2),                                # 0 to 1
         
         # Hydrometeor classification 
         # 1 = small particle (SP)
@@ -313,9 +335,9 @@ def masc_mat_file_to_dict(fn,pix_size=33.5e-6):
         # 5 = graupel (GR)
         # 6 = combination of columnar and planar crystals (CPC) 
         
-        'label_name':           id2name(mat['label_ID'][0][0]),                 # short name of hydro class
-        'label_id':             mat['label_ID'][0][0],                          # Label ID 1 to 6
-        'label_id_prob':        mat['label_probs'][0][mat['label_ID'][0][0]-1]} # Prob of label X
+        'snowflake_class_name':           id2name(mat['label_ID'][0][0]),                           # short name of hydro class
+        'snowflake_class_id':             mat['label_ID'][0][0],                                    # Label ID 1 to 6
+        'snowflake_class_id_prob':        round(mat['label_probs'][0][mat['label_ID'][0][0]-1],2)}  # Prob of label X
 
         # Probability of each class 1-6
         #'label_prob_1':          mat['label_probs'][0][0],
@@ -379,8 +401,9 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
     # Get riming degrees
     probs = mat0['riming_probs'][0]+mat1['riming_probs'][0]+mat2['riming_probs'][0]
     probs = probs/np.sum(probs)
-    riming_id               = np.round(compute_riming_id(probs))             # Index 1 to 5
-    riming_deg_level        = compute_riming_idx(compute_riming_id(probs))   # Index 0 to 1 
+    riming_id               = compute_riming_id(probs)                                          # Index 1 to 5
+    riming_id_prob          = probs[riming_id-1]
+    riming_deg_level        = compute_riming_idx(compute_riming_id(probs,use_all_probs=True))   # Index 0 to 1 
 
     # Melting
     melting_prob =(mat0['melting_probs'][0]+mat1['melting_probs'][0]+mat2['melting_probs'][0])/3.
@@ -398,20 +421,23 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
         'altitude' :alt,  #  m. a. msl
 
         # Flake info
-        'flake_id': mat0['id'][0][0],
-        'pix_size': pix_size,                                # Pixel size [m]
-        'Xhi':      Xhi,                                     # Average quality index
+        'flake_id': (fnames[0].split('/')[-1]).split('_cam')[0],   # Flake ID unique
+        'flake_number_tmp':   mat0['id'][0][0],                    # Temporary flake number (reset to 1 after reboot)
+        'pix_size': pix_size,                                      # Pixel size [m]
+        'quality_xhi_flake':      Xhi,                             # Average quality index
 
         # GLobal info
         'fallspeed': fs,                                     # [m s**-1] fall speed
         'n_roi':  np.mean([mat0['n_roi'][0][0],mat1['n_roi'][0][0],mat2['n_roi'][0][0]]),  # Avg # of particles per cam [-] 
 
         # Dmax
-        'Dmax':    Dmax,                                     # m
+        'Dmax_flake':    Dmax,                               # m
 
         # Riming degree
-        'riming_deg_level':     riming_deg_level,            # 1 to 5 
+        'riming_deg_level':     round(riming_deg_level,2),   # 1 to 5 
         'riming_id':            riming_id,                   # 0 to 1
+        'riming_id_prob':       round(riming_id_prob,2),
+        'riming_name':          get_riming_name(riming_id),
 
         # Mmelting
         'melting_id':     melting_id[0],                   # 0 or 1
@@ -425,15 +451,14 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
         # 4 = aggregate (AG)
         # 5 = graupel (GR)
         # 6 = combination of columnar and planar crystals (CPC) 
-        'label_name':              id2name(label_id),               # label id to label name           
-        'label_id':                label_id,                        # 1 to 6 
-        'label_id_prob':           label_prob,
-        # TODO: add label name
+        'snowflake_class_name':              id2name(label_id),               # label id to label name           
+        'snowflake_class_id':                label_id,                        # 1 to 6 
+        'snowflake_class_id_prob':           round(label_prob,2),
 
         # Placeholder for 3D-GAN products of Leinonen et al 2021
-        '3dgan_mass':    np.nan,        # mass from 3d-gan [kg]
-        '3dgan_vol_ch':  np.nan,        # convex hull  volume from 3d-gan in [m**3]
-        '3dgan_r_g':     np.nan,        # gyration radius  [m]
+        'gan3d_mass':         np.nan,        # mass from 3d-gan [kg]
+        'gan3d_volume':       np.nan,        # convex hull  volume from 3d-gan in [m**3]
+        'gan3d_gyration':     np.nan,        # gyration radius  [m]
 
         # Placeholder for blowing snow detection and classification Schaer et al 2020
         # parameter given is the normalized angle and the mixing index (defined only for mixed BS and precip), both 
@@ -443,7 +468,7 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
 
         'bs_nor_angle': np.nan,           # Normalized angle [-]
         'bs_mix_ind':   np.nan,           # Mixing index [-] 
-        'bs_precip_type': '',           # Precipitation type (blowing_snow, precip, mixed or NA )
+        'bs_precip_type': 'undefined',    # Precipitation type (blowing_snow, precip, mixed or undefined )
 
         # Placeholder for environmental information 
         'env_T':          np.nan,    # Temperature       [°C]
@@ -470,19 +495,6 @@ def triplet_images_reshape(fnames,pix_size=33.5e-6,newshape=[1024,1024]):
     A0=pad_with_zeros((sio.loadmat(fnames[0]))['roi'][0,0]['data'],r=newshape[0],c=newshape[0])
     A1=pad_with_zeros((sio.loadmat(fnames[1]))['roi'][0,0]['data'],r=newshape[0],c=newshape[0])
     A2=pad_with_zeros((sio.loadmat(fnames[2]))['roi'][0,0]['data'],r=newshape[0],c=newshape[0])
-
-    """
-    if mat0['xhi'][0][0] > 12:
-        plt.subplot(1,3,1)
-        plt.imshow(A0,cmap='gray')
-        plt.subplot(1,3,2)
-        plt.imshow(A1,cmap='gray')
-        plt.subplot(1,3,3)
-        plt.imshow(A2,cmap='gray')
-
-        plt.show()
-        print("Hi")    
-    """
 
     return np.dstack([A0,A1,A2])
 

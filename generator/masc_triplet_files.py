@@ -66,8 +66,8 @@ def find_matched(data_dir, min_files=3):
     return files
 
 
-def valid_file(fn, xhi_min=8.5, max_intens_min=0.03,
-     min_size=8, max_size=2048):
+def valid_file(fn, xhi_min=7, max_intens_min=0.03,
+     min_size=10, max_size=2048):
 
     m = sio.loadmat(fn)
 
@@ -91,18 +91,29 @@ def valid_file(fn, xhi_min=8.5, max_intens_min=0.03,
 
     return True
 
-def valid_triplet(triplet_files, min_size=10, max_ysize_var=1.5):
+def valid_triplet(triplet_files, min_size=12, max_ysize_var=1.5,xhi_low=8.5, xhi_high=9.0):
     mat = [sio.loadmat(triplet_files[i]) for i in range(3)]
 
     def get_size(m):
         shape = m["roi"]["data"][0,0].shape
         return shape[0]
 
+    def get_xhi(m):
+        return m["roi"]["xhi"][0,0][0,0]
+
     sizes = [get_size(m) for m in mat]
     largest = max(sizes)
     smallest = min(sizes)
 
-    return (largest>=min_size) and (largest/smallest<=max_ysize_var)
+    xhis = [get_xhi(m) for m in mat]
+    xhi_min = min(xhis)
+    xhi_max = max(xhis)
+
+    #if (xhi_min <= xhi_low) and (xhi_max >= xhi_high):
+    #    print(triplet_files[0])
+    #    print(xhis)
+
+    return (largest>=min_size) and (largest/smallest<=max_ysize_var) and ( (xhi_min >= xhi_low) or (xhi_max >= xhi_high)) 
 
 
 def filter_triplets(files):
@@ -130,18 +141,6 @@ def create_triplet_dataframes(triplet_files, out_dir,campaign_name='EPFL'):
         c2.append(masc_mat_file_to_dict(triplet[2]))
         tri.append(masc_mat_triplet_to_dict(triplet,campaign=campaign_name))
 
-        """
-        if i == 0:
-            c0=pd.DataFrame(masc_mat_file_to_dict(triplet[0]),index=[0])
-            c1=pd.DataFrame(masc_mat_file_to_dict(triplet[1]),index=[0])
-            c2=pd.DataFrame(masc_mat_file_to_dict(triplet[2]),index=[0])
-            tri=pd.DataFrame(masc_mat_triplet_to_dict(triplet,campaign=campaign_name),index=[0])
-        else:
-            c0 = pd.concat([c0, pd.DataFrame(masc_mat_file_to_dict(triplet[0]),index=[0])], axis=0).reset_index(drop=True)
-            c1 = pd.concat([c1, pd.DataFrame(masc_mat_file_to_dict(triplet[1]),index=[0])], axis=0).reset_index(drop=True)
-            c2 = pd.concat([c2, pd.DataFrame(masc_mat_file_to_dict(triplet[2]),index=[0])], axis=0).reset_index(drop=True)
-            tri= pd.concat([tri,pd.DataFrame(masc_mat_triplet_to_dict(triplet,campaign=campaign_name),index=[0])], axis=0).reset_index(drop=True)
-        """
 
     c0 = pd.DataFrame.from_dict(c0)
     c1 = pd.DataFrame.from_dict(c1)
@@ -196,12 +195,12 @@ def add_gan3d_to_parquet(triplet_parquet,gan3d_folder):
 
     # Read the parquet file
     table = pd.read_parquet(triplet_parquet)
-    flake_uid = table.datetime.apply(lambda x: x.strftime('%Y%m%d%H%M%S'))+'_'+table.flake_id.apply(str)
+    flake_uid = table.datetime.apply(lambda x: x.strftime('%Y%m%d%H%M%S'))+'_'+table.flake_number_tmp.apply(str)
 
     # Get GAN time in proper format and fill the precooked vector
-    mass = np.asarray(table['3dgan_mass'])
-    vol  = np.asarray(table['3dgan_vol_ch'])
-    r_g  = np.asarray(table['3dgan_r_g'])
+    mass = np.asarray(table['gan3d_mass'])
+    vol  = np.asarray(table['gan3d_volume'])
+    r_g  = np.asarray(table['gan3d_gyration'])
 
     for i in range(len(g3d.time)):
         tt = timestamp=datetime.utcfromtimestamp(g3d.time[i]).strftime("%Y%m%d%H%M%S")+'_'+str(g3d.particle_id[i])
@@ -212,9 +211,9 @@ def add_gan3d_to_parquet(triplet_parquet,gan3d_folder):
         except:
             print("Flake id: "+tt+" not in the database") 
 
-    table['3dgan_mass']   =  mass
-    table['3dgan_vol_ch'] =  vol
-    table['3dgan_r_g']    =  r_g
+    table['gan3d_mass']   =  mass
+    table['gan3d_volume'] =  vol
+    table['gan3d_gyration']    =  r_g
 
     # Store table and overwrite
     table = pa.Table.from_pandas(table)
@@ -234,7 +233,7 @@ def add_bs_to_parquet(triplet_parquet,file_bs,verbose=False):
 
     # Read the parquet file
     table = pd.read_parquet(triplet_parquet)
-    flake_uid = table.datetime.apply(lambda x: x.strftime('%Y%m%d%H%M%S'))+'_'+table.flake_id.apply(str)
+    flake_uid = table.datetime.apply(lambda x: x.strftime('%Y%m%d%H%M%S'))+'_'+table.flake_number_tmp.apply(str)
 
     # Read the blowingsnow file
     bs  = blowingsnow(file_bs)
@@ -244,17 +243,13 @@ def add_bs_to_parquet(triplet_parquet,file_bs,verbose=False):
     bs_mix_ind      = np.asarray(table['bs_mix_ind'])
     bs_precip_type  = table['bs_precip_type'].copy()
 
-    # Ugly unefficent loop
-    for i in range(len(flake_uid)):
-        ID = flake_uid[i]
+    # Intersect arrays
+    ind1=np.intersect1d(flake_uid,bs.flake_uid,return_indices=True)[1]
+    ind2=np.intersect1d(flake_uid,bs.flake_uid,return_indices=True)[2]
 
-        try:
-            condi = np.where(bs.flake_uid  == ID)[0][0]
-            bs_nor_angle[i] = bs.df["Normalized_Angle"][condi]
-            bs_mix_ind[i]   = bs.df["Flag_mixed"][condi]
-        except:
-            if verbose: print(ID+' blowing snow not available')
-    
+    # Fill
+    bs_nor_angle[ind1] = bs.df["Normalized_Angle"][ind2]
+    bs_mix_ind[ind1] = bs.df["Flag_mixed"][ind2]
 
     # Fill also a precooked flag
     bs_precip_type[bs_nor_angle > 0.881]='blowing_snow'
@@ -274,7 +269,7 @@ def add_weather_to_parquet(triplet_parquet,file_weather, verbose=False):
     """"
     Add weather data (from pre-compiled minute-scaled pickle) to the triplet file
     """
-    # Read the parquet fileand get the time string
+    # Read the parquet file and get the time string
     table = pd.read_parquet(triplet_parquet)
     flake_uid = table.datetime.round('min') # Round to minute as weather info is in minute
 
@@ -343,7 +338,13 @@ def merge_triplet_dataframes(path,campaigns,out_path,out_name='all'):
             else:
                 df = pd.concat([df, pd.read_parquet(path+campaigns[i]+'_'+db+'.parquet')], axis=0).reset_index(drop=True)
         
-        # Write to file
+        # Write to file ---------------------
+
+        # Add index as column (in first place)
+        df['index'] = df.index 
+        first_col = df.pop("index")
+        df.insert(0, "index", first_col)
+
         print('Writing output')
         table = pa.Table.from_pandas(df)
         pq.write_table(table, out_path+out_name+'_'+db+'.parquet')
@@ -406,13 +407,6 @@ def merge_triplet_image_array(path,campaigns,out_path,out_name='all',chunks_n=16
             if ii%10000 == 0:
                 print(ii)
                 print('Merged')
-        
-
-        """
-        for j in range(n_ii):
-            z1[ii,:,:,:]=zz[j,:,:,:]
-            ii += 1
-        """
 
 
 def process_all(masc_dir,campaign_name='EPFL'):
@@ -437,11 +431,8 @@ def process_all(masc_dir,campaign_name='EPFL'):
 
     print("Hi")
 
-#merge_triplet_image_array(['/home/grazioli/tmp/PLATO_images.zarr','/home/grazioli/tmp/ICEGENESIS_images.zarr'],'dummy')
 
 campaigns=['Davos-2015','APRES3-2016','APRES3-2017','Valais-2016','ICEPOP-2018','PLATO-2019','Davos-2019','Jura-2019','POPE-2020','ICEGENESIS-2021']
-merge_triplet_image_array('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
-
 
 for campaign in campaigns:
     print(campaign)
@@ -461,6 +452,8 @@ for campaign in campaigns:
     print("Adding environmental information")
     add_weather_to_parquet('/data/MASC_DB/'+campaign+'_triplet.parquet',
         '/data/MASC_DB/rawinput/'+campaign+'/Weather/'+campaign+'.pickle',verbose=True) # Add weather
+
+
 
 # Merge
 merge_triplet_dataframes('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
