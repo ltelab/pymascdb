@@ -10,6 +10,8 @@ import os
 os.chdir("/home/ghiggi/Projects/pymascdb")
 #os.chdir("/home/grazioli/CODES/python/pymascdb")
 import numpy as np
+import pandas as pd 
+import xarray as xr
 import matplotlib.pyplot as plt
 import mascdb.api
 from mascdb.api import MASC_DB
@@ -26,19 +28,39 @@ print(mascdb)
 len(mascdb)
 
 ##----------------------------------------------------------------------------.
+### General 
+# mascdb.<mascdb_method> 
+# mascdb.da.<xarray.DataArray methods>
+# mascdb.<cam*,triplet,env,bs,gan3d,full_db>.<pandas.DataFrame methods> # Do not modify original objects !
+# mascdb.<cam*,triplet,env,bs,gan3d,full_db>.sns.<seaborn plot methods>
+
+##----------------------------------------------------------------------------.
 ## Properties 
 ## Property class mascdb
-
-# mascdb.full_db  #  slow !
 mascdb.env   
 mascdb.bs     
 mascdb.gan3d  # Error ... strippa via ... r_g --> r
 
+mascdb.full_db  #  slow !
+
+mascdb.ds_images()
+mascdb.ds_images(CAM_ID=[0,1])
+mascdb.ds_images(campaign=['Valais-2016', 'PLATO-2019'])
+mascdb.ds_images(campaign=['Valais-2016', 'PLATO-2020'])
 ##----------------------------------------------------------------------------.
 # Property plots 
 mascdb.env.sns.scatterplot(x="T", y="DD", hue="P")
 
 mascdb.full_db.sns.scatterplot(x="Dmax", y="perim", hue="CAM_ID")
+
+##----------------------------------------------------------------------------.
+# It's not possible to assign values to mascdb dataframe directly 
+cam0 = mascdb.cam0
+cam0.loc[0] = 1
+print(cam0.loc[0])        # Here the assignement works
+
+mascdb.cam0.loc[0] = 1
+print(mascdb.cam0.loc[0]) # Here nothing is modified
 
 ##----------------------------------------------------------------------------.
 # Filtering 
@@ -53,51 +75,43 @@ mascdb.isel((mascdb.cam0['Dmax'] > 0.02)).cam0.sns.scatterplot(x="Dmax", y="soli
 # Filtering and sorting 
 idx = mascdb.cam0['Dmax'] > 0.02
 mascdb_largeD = mascdb.isel(idx) 
-mascdb_largeD = mascdb_largeD.arrange('cam0.Dmax', decreasing=True) # Show that db is not accepted
+mascdb_largeD = mascdb_largeD.arrange('cam0.Dmax', decreasing=True)  
 mascdb_largeD.plot_triplets(n_triplets = 3, zoom=False)
-mascdb_largeD.plot_triplets(n_triplets = 3, zoom=True)   # TODO: histogram eq? luminance?
+mascdb_largeD.plot_triplets(n_triplets = 3, zoom=True)    
 
 ##----------------------------------------------------------------------------.
-### Histogram equalization & Contrast improvement
-from skimage import exposure
-from skimage.morphology import disk
-from skimage.filters import rank
-# https://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_equalize.html
-# https://scikit-image.org/docs/stable/auto_examples/color_exposure/plot_local_equalize.html
+### Define events (timedelta_thr define the allowed time interval without images)
+timedelta_thr = pd.Timedelta(2,'h')
+timedelta_thr = np.timedelta64(2, 'h')
+mascdb.define_event_id(timedelta_thr=timedelta_thr)
 
-# Select largest particle for example 
-mascdb_largeD.plot_triplets(n_triplets = 1, zoom=True)
-plt.hist(mascdb_largeD.da.isel(TripletID=0).values.flatten())
-np.unique(mascdb_largeD.da.isel(TripletID=0).values.flatten())
-img = mascdb_largeD.da.isel(TripletID=0, CAM_ID= 0).values
+# See some stats on event durations and n_triplets per events 
+mascdb.triplet.sns.scatterplot(x="event_duration", y="event_n_triplets")
 
-# Retrieve img mask 
-img_mask = img == 0
+# Retrieve longest event 
+mascdb.arrange('triplet.event_duration', decreasing=True).triplet
+longest_event_id = mascdb.arrange('triplet.event_duration', decreasing=True).triplet['event_id'].iloc[0]
+idx_longest_event = mascdb.cam0['event_id'] == longest_event_id
 
-# Try various methods
-p2, p98 = np.percentile(img, (2, 98))
-img_rescale = exposure.rescale_intensity(img, in_range=(p2, p98))   # Contrast stretching
+# Retrieve event leading to largest Dmax 
+mascdb.arrange('cam0.Dmax', decreasing=True) # TODO CHECK: WHY THIS WARNING 
+largest_Dmax_event_id = mascdb.arrange('cam0.Dmax', decreasing=True).cam0['event_id'].iloc[0]
+idx_largest_Dmax_event = mascdb.cam0['event_id'] == largest_Dmax_event_id
 
-img_eq =   exposure.equalize_hist(img)*255                          # Histogram Eq
-img_eq = img_eq.astype(np.uint8)
-img_eq[img_mask] = 0
-img_eq1 = rank.equalize(img, selem= disk(30))                       # Local Eq
-img_eq1[img_mask] = 0
-img_adapteq = exposure.equalize_adapthist(img, clip_limit=0.03)*255 # Adaptive Equalization
-img_adapteq = img_adapteq.astype(np.uint8)
-img_adapteq[img_mask] = 0
+# - Subset event and plot some stuffs
+mascdb_event = mascdb.isel(idx_largest_Dmax_event).arrange('triplet.datetime', decreasing=False)
+mascdb_event = mascdb.isel(idx_longest_event).arrange('triplet.datetime', decreasing=False)
+print(mascdb_event)
 
-# Plot 
-l_imgs = [img, img_rescale, img_eq, img_eq1, img_adapteq]
-l_titles = ["Original", "Contrast stretching", "Global Histogram Equalization", 
-            "Local Histogram Equalization", "Adaptive Equalization"]
-fig, axs = plt.subplots(3,2,figsize=(7,10))
-for i, ax in enumerate(axs.flatten()):
-    if i <= 5:
-        ax.imshow(l_imgs[i], cmap="gray", vmin=0, vmax=255)
-        ax.set_title(l_titles[i])
-        ax.set_axis_off()
-plt.show()
+mascdb_event.cam0.sns.scatterplot(x="datetime", y="Dmax")
+mascdb_event.full_db.sns.scatterplot(x="datetime", y="env_T")
+mascdb_event.full_db.sns.scatterplot(x="datetime", y="Dmax", hue="env_T")
+
+mascdb_event.cam0.sns.kdeplot(x="datetime", y="Dmax", shade=True)
+mascdb_event.cam0.sns.kdeplot(x="datetime", y="Dmax", fill=True, thresh=0, levels=100, cmap="mako")
+
+# mascdb_event.full_db.sns.kdeplot(x="datetime", y="Dmax", shade=True)
+# mascdb_event.full_db.sns.kdeplot(x="datetime", y="3dgan_vol_ch", fill=True, thresh=0, levels=100, cmap="mako")
 
 ##----------------------------------------------------------------------------.
 ### Selecting specific dataframe variables 
@@ -112,14 +126,8 @@ mascdb.tail().cam0
 mascdb.head().cam0
 
 ##----------------------------------------------------------------------------.
-### General 
-mascdb.<mascdb_method> 
-mascdb.da.<xarray.DataArray methods>
-mascdb.<cam*,triplet,env,bs,gan3d,full_db>.<pandas.DataFrame methods> # Do not modify original objects !
-mascdb.<cam*,triplet,env,bs,gan3d,full_db>.sns.<seaborn plot methods>
-
-##----------------------------------------------------------------------------.
 ### Image plots 
+# - By default the 'enhancement' is (adaptive) histogram_equalization
 mascdb.plot_flake(CAM_ID=0, random = True, zoom=True)
 mascdb.plot_flake(CAM_ID=0, random = False, zoom=True)
 mascdb.plot_flake(CAM_ID=0, index=0, random = True, zoom=True)
