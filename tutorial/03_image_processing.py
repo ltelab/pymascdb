@@ -18,12 +18,17 @@ import pandas as pd
 import xarray as xr
 import matplotlib.pyplot as plt
 
+from dask.distributed import Client
 from skimage import filters, measure, morphology
 import mascdb.api
 from mascdb.api import MASC_DB
+from mascdb.utils_img import _compute_2Dimage_descriptors 
 
 dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
 #dir_path = "/data/MASC_DB/"
+
+# Initialize dask distributed
+client = Client(processes=False)
 
 ##----------------------------------------------------------------------------.
 ### Create MASC_DB instance 
@@ -72,7 +77,7 @@ plt.show()
 # Compute properties 
 properties = ['area','filled_area', 'perimeter', 'eccentricity', 'equivalent_diameter',
               'euler_number',  'solidity', 'feret_diameter_max',
-              'centroid','orientation',
+              'orientation',
               'minor_axis_length', 'major_axis_length'] # 'axis_major_length','axis_minor_length'] 
 # 'inertia_tensor',
 # 'inertia_tensor_eigvals',
@@ -85,6 +90,7 @@ region_props = measure.regionprops(labels)
 props_dict = measure.regionprops_table(labels, properties = properties) 
 props_dict = {k: v[0] for k,v in props_dict.items()}
 
+props_list = [props_dict[prop] for prop in properties]
 # region_props[0].convex_image            
 # region_props[0].filled_image
 
@@ -111,6 +117,81 @@ for props in region_props:
 
  
 plt.show()
+
+#-----------------------------------------------------------------------------.
+##################################################
+### Compute descriptors for all mascdb images ####
+##################################################
+### Define function to compute descriptors 
+properties = ['area','filled_area', 'perimeter', 'eccentricity', 'equivalent_diameter',
+              'euler_number',  'solidity', 'feret_diameter_max',
+              'orientation',
+              'minor_axis_length', 'major_axis_length'] # 'axis_major_length','axis_minor_length'] 
+
+def _descriptor_fun(img, properties):
+    # Obtain a binary image
+    threshold = filters.threshold_otsu(img)
+    binary_mask = img > threshold
+    # Remove inner holes and other objects 
+    binary_mask = morphology.remove_small_objects(binary_mask, 50)
+    binary_mask = morphology.remove_small_holes(binary_mask, 50)
+    # Labels regions 
+    # --> Background is label 0 
+    labels = measure.label(binary_mask)
+    # Remove spurious stuffs 
+    labels[labels != 1] = 0  # TODO: check if 1 is always the largest
+    # Compute properties 
+    region_props = measure.regionprops(labels)
+    props_dict = measure.regionprops_table(labels, properties = properties) 
+    props_dict = {k: v[0] for k,v in props_dict.items()}
+    props_arr = np.array([props_dict[prop] for prop in properties])
+    return props_arr
+
+# Check it works properly for many images 
+img = mascdb.da.isel(CAM_ID=0, TripletID=0).values
+props_arr = _descriptor_fun(img=img, properties = properties)
+
+# Check that it works for a subset of mascdb 
+da = mascdb.da.isel(TripletID = slice(0,100))
+x = "x"
+y = "y"
+fun_kwargs = {'properties': properties}
+fun = _descriptor_fun
+labels = properties 
+
+
+
+# navigate to http://localhost:8787/status to see the diagnostic dashboard
+
+
+# run descriptors computation (and watch the dashboard to see the progress)
+
+# if dask.client() is not imported and called, a progressbar is displayed in the terminal
+
+da_descriptors = _compute_2Dimage_descriptors(da = da, 
+                                              fun = _descriptor_fun,
+                                              labels = labels, 
+                                              fun_kwargs = fun_kwargs)
+
+cam0_df = da_descriptors.isel(CAM_ID = 0).to_dataset('descriptor').to_pandas()
+
+
+ds_cams = da_descriptors.isel(CAM_ID = 0)   to_dataset("CAM_ID")
+ds_cams[0].to_dataset('descriptor').to_pandas()
+
+# Apply to the full mascdb
+masdb.add_2Dimage_descriptors(fun = _descriptor_fun,
+                              labels = labels, 
+                              fun_kwargs = fun_kwargs)
+
+# Check at start if labels are already columns of cam 
+# force argument 
+
+# TODO
+# import dask client 
+# set client with processes = False ? Or true?  
+# show diagnostic tool 
+
 
 ##----------------------------------------------------------------------------.
 ##----------------------------------------------------------------------------.

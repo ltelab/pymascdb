@@ -7,6 +7,7 @@ Created on Tue Sep 14 11:46:52 2021
 """
 import xarray as xr
 import numpy as np
+from dask.diagnostics import ProgressBar
 from skimage import exposure
 from skimage.morphology import disk
 from skimage.morphology import rectangle
@@ -22,8 +23,87 @@ from skimage.filters import rank
 # skimage.exposure.adjust_sigmoid(image[, ...])
 
 # http://www.janeriksolem.net/histogram-equalization-with-python-and.html
- 
 
+#################################################
+### Workhorse to compute 2D image descriptors ###
+#################################################
+def _compute_2Dimage_descriptors(da, fun, labels, x="x", y="y", fun_kwargs={}):
+    # Checks arguments 
+    if not isinstance(da, xr.DataArray): 
+        raise TypeError("Expecting a xr.DataArray.")
+    if not isinstance(x, str): 
+        raise TypeError("'x' must be a string indicating the width dimension name of the DataArray.")
+    if not isinstance(y, str): 
+        raise TypeError("'y' must be a string indicating the height dimension name of the DataArray.")
+    if not isinstance(labels, (str, list)): 
+        raise TypeError("Descriptor 'labels' must be a str or list of strings.")
+    if isinstance(labels, str):
+        labels = [labels]
+    labels = np.array(labels)
+    if not isinstance(labels[0].item(), str):
+        raise ValueError("Descriptor 'labels' must be a list of strings.")
+    #-----------------------------------------------------------------------.
+    # Retrieve DataArray dimension original order 
+    dims = da.dims   
+    #-----------------------------------------------------------------------.
+    # Check x and y are dimension of the DataArray 
+    if x not in dims :
+        raise ValueError("x={!r} is not a dimension of the DataArray".format(x))
+    if y not in dims :
+        raise ValueError("y={!r} is not a dimension of the DataArray".format(y))
+    #-----------------------------------------------------------------------.
+    ### Retrieve dimensions to eventually stack along a new third dimension 
+    unstacked_dims = list(set(dims).difference([x,y]))
+    # - If only x and y, do nothing
+    if len(unstacked_dims) == 0: 
+        # raise ValueError("Expecting a DataArray with a third dimension in "
+        #                  " addition to {!r} and  {!r}".format(x,y))
+        stack_dict = {}
+        da_stacked = da
+    # - If there is already a third dimension, transpose to the last 
+    elif len(unstacked_dims) == 1:
+        img_id = unstacked_dims[0]
+        stack_dict = {}
+        da_stacked = da.stack(stack_dict).transpose(..., img_id) 
+    # - If there is more than 3 dimensions, stack it all into a new third dimension
+    elif len(unstacked_dims) > 1: 
+        img_id = "img_id"
+        stack_dict = {img_id: unstacked_dims}
+        # Stack all additional dimensions into a 3D array with all img_id in the last dimension 
+        da_stacked = da.stack(stack_dict).transpose(..., img_id)
+    else: 
+        raise NotImplementedError()
+    #-----------------------------------------------------------------------.
+    ### Function checks 
+    # TODO: checks that len(labels) = len(arr)
+    
+    #-----------------------------------------------------------------------.
+    ### Compute descriptors for each 2D image  
+    dask = 'parallelized' # 'allowed'
+    vectorize = True      # because the function work only on 2D image 
+    da_stacked = xr.apply_ufunc(fun, 
+                                da_stacked, 
+                                input_core_dims = [[x, y]],
+                                output_core_dims = [["descriptor"]],  # returned data has one dimension
+                                kwargs = fun_kwargs, 
+                                dask = dask, 
+                                vectorize = vectorize, 
+                                dask_gufunc_kwargs = {'output_sizes': {'descriptor': len(labels)}},                         
+                                output_dtypes = ['float64']) # TODO: automatize
+    
+    # Compute the descriptors
+    with ProgressBar():                        
+        da_stacked = da_stacked.compute()
+    
+    # Add descriptor coordinates
+    da_stacked = da_stacked.assign_coords({"descriptor": labels})    
+
+    #-----------------------------------------------------------------------.
+    # Retrieve dataarray of descriptors 
+    da_descriptors = da_stacked.unstack(stack_dict)
+    
+    #-----------------------------------------------------------------------.
+    return da_descriptors 
 
         
 ##----------------------------------------------------------------------------.
@@ -75,8 +155,8 @@ def apply_2Dimage_fun(da, fun, x="x",y="y", fun_kwargs={}):
     vectorize = True      # because the function work only on 2D image 
     da_stacked = xr.apply_ufunc(fun, 
                                 da_stacked, 
-                                input_core_dims = [['x', 'y']],
-                                output_core_dims = [['x', 'y']],
+                                input_core_dims = [[x, y]],
+                                output_core_dims = [[x, y]],
                                 kwargs=fun_kwargs, 
                                 dask = dask, 
                                 vectorize = vectorize, 
