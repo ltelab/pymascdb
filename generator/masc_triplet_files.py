@@ -66,8 +66,10 @@ def find_matched(data_dir, min_files=3):
     return files
 
 
-def valid_file(fn, xhi_min=7, max_intens_min=0.03,
-     min_size=10, max_size=2048):
+def valid_file(fn, xhi_min=7, 
+                   max_intens_min=0.03,
+                   min_size=8, 
+                   max_size=2048):
 
     m = sio.loadmat(fn)
 
@@ -91,7 +93,14 @@ def valid_file(fn, xhi_min=7, max_intens_min=0.03,
 
     return True
 
-def valid_triplet(triplet_files, min_size=12, max_ysize_var=1.5,xhi_low=8.5, xhi_high=9.0):
+def valid_triplet(triplet_files,
+                  min_size=12,
+                  max_ysize_var=1.4,
+                  max_ysize_delta=50, # Pixels
+                  xhi_low=8.5,
+                  xhi_high=9.0):
+
+    
     mat = [sio.loadmat(triplet_files[i]) for i in range(3)]
 
     def get_size(m):
@@ -109,15 +118,52 @@ def valid_triplet(triplet_files, min_size=12, max_ysize_var=1.5,xhi_low=8.5, xhi
     xhi_min = min(xhis)
     xhi_max = max(xhis)
 
-    #if (xhi_min <= xhi_low) and (xhi_max >= xhi_high):
-    #    print(triplet_files[0])
-    #    print(xhis)
 
-    return (largest>=min_size) and (largest/smallest<=max_ysize_var) and ( (xhi_min >= xhi_low) or (xhi_max >= xhi_high)) 
+    return (largest>=min_size) and (largest-smallest <= max_ysize_delta) and (largest/smallest<=max_ysize_var) and ((xhi_min >= xhi_low) or (xhi_max >= xhi_high)) 
 
 
 def filter_triplets(files):
     return {k: files[k] for k in files if valid_triplet(files[k])}
+
+
+def filter_condensation(df0,
+                        threshold_var=2.5,
+                        Dmax_min=0.001):
+    """
+    Filter condensation based on excessive stability of adjacent descriptors
+    
+    Input:
+        df0: pandas dataframe of one camera
+        threshold_var : minimum allowed variation [%] of some descriptors
+        Dmax_min : minumum Dmax to consider for this filter
+    """
+
+    df0_s = df0.copy() #Save
+    ind=[]
+
+    df0 = df0[['area','perim','Dmax','roi_centroid_X','roi_centroid_Y']]
+
+    # Shift forward
+    diff1 = 100*np.abs(df0.diff()/df0)
+    diff1['mean'] = diff1.mean(axis=1)
+    diff1 = diff1[['mean']]
+
+    # Shift backward
+    diff2 = 100*np.abs(df0.diff(periods=-1)/df0)
+    diff2['mean'] = diff2.mean(axis=1)
+    diff2 = diff2[['mean']]
+
+    df0_1= df0_s[diff1['mean'] < threshold_var]
+    df0_1 = df0_1[df0_1.Dmax > Dmax_min]
+    ind.extend(np.asarray(df0_1.index))
+
+    df0_2= df0_s[diff2['mean'] < threshold_var]
+    df0_2 = df0_2[df0_2.Dmax > Dmax_min]
+    ind.extend(np.asarray(df0_2.index))
+
+    return ind
+
+
 
 def create_triplet_dataframes(triplet_files, out_dir,campaign_name='EPFL'):
     """
@@ -147,6 +193,30 @@ def create_triplet_dataframes(triplet_files, out_dir,campaign_name='EPFL'):
     c2 = pd.DataFrame.from_dict(c2)
     tri = pd.DataFrame.from_dict(tri)
 
+    # Filter possible contaminations from condensation
+    print("Filtering possible condensation")
+    ind=[]
+    ind.extend(filter_condensation(c0))
+    ind.extend(filter_condensation(c1))
+    ind.extend(filter_condensation(c2))
+
+    bad_indexes = list(set(ind))
+    bad_indexes.sort()
+
+    c0.drop(bad_indexes,inplace=True)
+    c0 = c0.reset_index()
+
+    c1.drop(bad_indexes,inplace=True)
+    c1 = c1.reset_index()
+
+    c2.drop(bad_indexes,inplace=True)
+    c2 = c2.reset_index()
+
+    tri.drop(bad_indexes,inplace=True)
+    tri = tri.reset_index()
+
+    print("Removed flakes total: "+str(len(bad_indexes)))
+
     # Write tables
     table = pa.Table.from_pandas(c0)
     pq.write_table(table, out_dir+campaign_name+'_cam0.parquet')
@@ -159,6 +229,13 @@ def create_triplet_dataframes(triplet_files, out_dir,campaign_name='EPFL'):
 
     table = pa.Table.from_pandas(tri)
     pq.write_table(table, out_dir+campaign_name+'_triplet.parquet')
+
+    # Update the triplet files removing the filtered files
+    sorted_keys = sorted(triplet_files)
+    remove_keys=  [sorted_keys[bad_indexes[jj]] for jj in range(len(bad_indexes))]
+
+    return {k: triplet_files[k] for k in triplet_files if k not in remove_keys }
+
 
 def create_triplet_image_array(triplet_files, out_dir,campaign_name='EPFL',dim_in=1024,chunks_n=16):
 
@@ -312,7 +389,10 @@ def add_weather_to_parquet(triplet_parquet,file_weather, verbose=False):
     pq.write_table(table, triplet_parquet)
     
 
-def merge_triplet_dataframes(path,campaigns,out_path,out_name='all'):
+def merge_triplet_dataframes(path,
+                        campaigns,
+                        out_path,
+                        out_name='all'):
 
     """
     Merge triplet dataframes into a single one.
@@ -348,6 +428,50 @@ def merge_triplet_dataframes(path,campaigns,out_path,out_name='all'):
         print('Writing output')
         table = pa.Table.from_pandas(df)
         pq.write_table(table, out_path+out_name+'_'+db+'.parquet')
+
+def add_trainingset_flag(cam_parquet,
+                         trainingset_pkl_path,
+                         cam=None):
+    """
+    Add to a single-cam parquet the information flags (adding columns)
+    indicating if a given cam view was used in a training set for
+    melting, hydro classif or riming degree
+
+    Input
+
+    cam_parquet: parquet file to add the columns to
+    trainingset_pkl_path: path where the pickles of the trainingset flags are stored
+    cam =  'cam0', 'cam1' or 'cam2'
+
+    """
+
+    # Read the parquet file
+    table = pd.read_parquet(cam_parquet)
+    flake_uid = table.datetime.apply(lambda x: x.strftime('%Y.%m.%d_%H.%M.%S'))+'_flake_'+table.flake_number_tmp.apply(str)                   
+
+    # Add hydro columns
+    add = pd.read_pickle(trainingset_pkl_path+'hydro_trainingset_'+cam+'.pkl')
+    is_in = [0] * len(table)
+
+    ind1=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[1]
+    ind2=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[2]
+
+    # Fill
+    is_in[ind1] = 1
+    table['is_'] = is_in
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def merge_triplet_image_array(path,campaigns,out_path,out_name='all',chunks_n=16):
@@ -423,7 +547,7 @@ def process_all(masc_dir,campaign_name='EPFL'):
 
     # Create triplet datasets (descriptors) of each campaign
     print('Creating triplet dataframe')
-    create_triplet_dataframes(triplet_files,'/data/MASC_DB/',campaign_name=campaign_name)
+    triplet_files=create_triplet_dataframes(triplet_files,'/data/MASC_DB/',campaign_name=campaign_name)
 
     # Create triplet array of images using Zarr
     print('Creating database of images (zarr)')
@@ -433,6 +557,8 @@ def process_all(masc_dir,campaign_name='EPFL'):
 
 
 campaigns=['Davos-2015','APRES3-2016','APRES3-2017','Valais-2016','ICEPOP-2018','PLATO-2019','Davos-2019','Jura-2019','POPE-2020','ICEGENESIS-2021']
+
+campaigns=['Jura-2019']
 
 for campaign in campaigns:
     print(campaign)
