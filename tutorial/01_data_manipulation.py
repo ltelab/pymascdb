@@ -85,11 +85,24 @@ mascdb.from_campaign(campaign=['Valais-2016','PLATO-2020'])
 mascdb.exclude_campaign(campaign='PLATO-2019')   
 mascdb.exclude_campaign(campaign='PLATO-2020')   
 
-mascdb.select_flakes('aggregate') # select_class ?
-mascdb.select_rimed('medium')
-mascdb.select_melting(0)
+mascdb.select_melting_class('dry')  
+mascdb.select_melting_class('melted')  
+
+mascdb.select_riming_class('medium')
+mascdb.select_riming_class('rimed').triplet['riming_name'] # TODO CHANGE to riming_class_name/id
+mascdb.select_riming_class(['rimed', 'densely_rimed']).triplet['riming_name'] 
+mascdb.select_riming_class([2,3]).triplet['riming_id']
+mascdb.select_riming_class(2).triplet['riming_id']
+mascdb.select_riming_class(5)
+ 
+mascdb.select_snowflake_class("rimed")
+mascdb.select_snowflake_class(10) 
+mascdb.select_snowflake_class(1).triplet['snowflake_class_id']
+
+mascdb.select_snowflake_class('aggregate').triplet['snowflake_class_name']
+mascdb.select_snowflake_class(['columnar_crystal', 'planar_crystal']).triplet['snowflake_class_name']
    
-mascdb.select_rimed('medium').select_max(cam0.Dmax, n=5).plot_triplets()
+mascdb.select_riming_class('medium').select_max(cam0.Dmax, n=5).plot_triplets()
 
 """
  - Example to filter on blowing snow / precip

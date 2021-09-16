@@ -15,8 +15,9 @@ import mascdb.pd_sns_accessor
 from mascdb.utils_event import _define_event_id
 from mascdb.utils_event import _get_timesteps_duration
  
-from mascdb.aux import get_riming_name_dict
-from mascdb.aux import get_label_name_dict
+from mascdb.aux import get_snowflake_class_name_dict
+from mascdb.aux import get_riming_class_name_dict
+from mascdb.aux import get_melting_class_name_dict
   
 from mascdb.utils_img import xri_zoom
 from mascdb.utils_img import xri_contrast_stretching 
@@ -241,7 +242,7 @@ class MASC_DB:
         # - Check dir_path
         if dir_path == self._dir_path:
             if force: 
-                print("- Overwriting existing MASCDB at {}".format(dir_path))
+                print("- Overwriting existing 'source' MASCDB at {}".format(dir_path))
                 shutil.rmtree(dir_path)
             else:
                 raise ValueError("If you want to overwrite the existing MASCDB at {},"
@@ -410,20 +411,105 @@ class MASC_DB:
                                                                            valid_campaigns.tolist()))
         idx = np.isin(campaigns_arr, campaign, invert=True)
         return self.isel(idx) 
-      
-    # def select_flake(self, names, method='Praz2017'): 
-    #     if not isinstance(names,(int, str, list):
-    #         raise TypeError("'names' must be (a list of) integer or string.")
-    #     valid_names = list(get_label_name_dict().keys())   # name 
-    #     valid_names = list(get_label_name_dict().values()) # id
-        
-    # def select_rimed(self, id, method='Praz2017'): 
-    #     valid_rimed = list(get_riming_name_dict().keys())   # name 
-    #     valid_rimed = list(get_riming_name_dict().values()) # id
-        
-    # def select_melting(self, id): 
-    #     valid_ids = 
+     
+    def select_snowflake_class(self, values, method='Praz2017'): 
+        if not isinstance(values,(int, str, list, np.ndarray)):
+            raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
+        # Convert to numpy array object 
+        if isinstance(values, (int,str)):
+            values = np.array([values])
+        else: 
+            values = np.array(values)
+        # If values are integers --> Assume it provide the class id
+        if isinstance(values[0].item(), int):
+            valid_names = list(get_snowflake_class_name_dict().values()) # id
+            column = 'snowflake_class_id'    
+        # If values are str --> Assume it provide the class name
+        elif isinstance(values[0].item(), str):
+            valid_names = list(get_snowflake_class_name_dict().keys())   # name
+            column = 'snowflake_class_name'
+        else:
+            raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
+        #---------------------------------------------------------------------.
+        # Retrieve triplet column values 
+        arr = self.triplet[column].values
+        # Check values are valid 
+        unvalid_values = values[np.isin(values, valid_names, invert=True)]
+        if len(unvalid_values) > 0: 
+            raise ValueError("{} is not a {} of the current mascdb. "
+                             "Current mascdb has {} values {}".format(unvalid_values.tolist(),
+                                                                      column, column,
+                                                                      valid_names))
+        #---------------------------------------------------------------------.
+        # Subset the mascdb
+        idx = np.isin(arr, values)
+        return self.isel(idx) 
+
+    def select_riming_class(self, values, method='Praz2017'): 
+        if not isinstance(values,(int, str, list, np.ndarray)):
+            raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
+        # Convert to numpy array object 
+        if isinstance(values, (int,str)):
+            values = np.array([values])
+        else: 
+            values = np.array(values)
+        # If values are integers --> Assume it provide the class id
+        if isinstance(values[0].item(), int):
+            valid_names = list(get_riming_class_name_dict().values()) # id
+            column = 'riming_class_id'    
+        # If values are str --> Assume it provide the class name
+        elif isinstance(values[0].item(), str):
+            valid_names = list(get_riming_class_name_dict().keys())   # name
+            column = 'riming_class_name'
+        else:
+            raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
+        #---------------------------------------------------------------------.
+        # Retrieve triplet column values 
+        arr = self.triplet[column].values
+        # Check values are valid 
+        unvalid_values = values[np.isin(values, valid_names, invert=True)]
+        if len(unvalid_values) > 0: 
+            raise ValueError("{} is not a {} of the current mascdb. "
+                             "Current mascdb has {} values {}".format(unvalid_values.tolist(),
+                                                                      column, column,
+                                                                      valid_names))
+        #---------------------------------------------------------------------.
+        # Subset the mascdb
+        idx = np.isin(arr, values)
+        return self.isel(idx)     
  
+    def select_melting_class(self, values, method='Praz2017'): 
+        if not isinstance(values,(int, str, list, np.ndarray)):
+            raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
+        # Convert to numpy array object 
+        if isinstance(values, (int,str)):
+            values = np.array([values])
+        else: 
+            values = np.array(values)
+        # If values are integers --> Assume it provide the class id
+        if isinstance(values[0].item(), int):
+            valid_names = list(get_melting_class_name_dict().values()) # id
+            column = 'melting_class_id'    
+        # If values are str --> Assume it provide the class name
+        elif isinstance(values[0].item(), str):
+            valid_names = list(get_melting_class_name_dict().keys())   # name
+            column = 'melting_class_name'
+        else:
+            raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
+        #---------------------------------------------------------------------.
+        # Retrieve triplet column values 
+        arr = self.triplet[column].values
+        # Check values are valid 
+        unvalid_values = values[np.isin(values, valid_names, invert=True)]
+        if len(unvalid_values) > 0: 
+            raise ValueError("{} is not a {} of the current mascdb. "
+                             "Current mascdb has {} values {}".format(unvalid_values.tolist(),
+                                                                      column, column,
+                                                                      valid_names))
+        #---------------------------------------------------------------------.
+        # Subset the mascdb
+        idx = np.isin(arr, values)
+        return self.isel(idx)  
   
     ##------------------------------------------------------------------------.
     ################
