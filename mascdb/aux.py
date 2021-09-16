@@ -9,7 +9,7 @@ IMPORTANT: keep up to date with eventual name change of variables
 
 """
 
-def get_label_name_dict(method='Praz2017'):
+def get_snowflake_class_name_dict(method='Praz2017'):
     """
     Get hydrometeor class ID from label name according to a given hydrometeor classif method.
 
@@ -25,50 +25,28 @@ def get_label_name_dict(method='Praz2017'):
         DESCRIPTION.
 
     """
-
-
     if method == 'Praz2017':
-        dict ={
-            'small_particle':1,
-            'columnar_crystal':2,
-            'planar_crystal':3,
-            'aggregate':4,
-            'graupel':5,
-            'columnar_planar_combination':6,    
-        }
+        dict = {
+                'small_particle':1,
+                'columnar_crystal':2,
+                'planar_crystal':3,
+                'aggregate':4,
+                'graupel':5,
+                'columnar_planar_combination':6,    
+               }
     else:
-        warnings.warn("Dictionary not available for given hydro-class method: " + method)
+        raise ValueError("Snowflake class dictionary not available for method {}.".format(method))
 
     return dict
 
 
-def get_label_id_dict(method='Praz2017'):    
-    """
-    Get hydrometeor label name form class ID
-    according to a given hydrometeor classif method
-
-    Input:
-
-        method: hydro class method. Default Praz2017 based on
-        https://amt.copernicus.org/articles/10/1335/2017/
-
-
-    """
-    if method == 'Praz2017':
-        dict ={
-            1:'small_particle',
-            2:'columnar_crystal',
-            3:'planar_crystal',
-            4:'aggregate',
-            5:'graupel',
-            6:'columnar_planar_combination',    
-        }
-    else:
-        warnings.warn("Dictionary not available for given hydro-class method: "+method)
-
+def get_snowflake_class_id_dict(method='Praz2017'):    
+    # TODO : doc string as above 
+    dict = get_snowflake_class_name_dict(method=method)
+    dict = {v: k for k, v in dict.items()} 
     return dict
 
-def get_riming_name_dict(method='Praz2017'):
+def get_riming_class_name_dict(method='Praz2017'):
     """
     Get riming class ID from riming name
     according to a given hydrometeor classif method
@@ -78,49 +56,43 @@ def get_riming_name_dict(method='Praz2017'):
         method: hydro class method. Default Praz2017 based on
         https://amt.copernicus.org/articles/10/1335/2017/
 
-
     """
-
     if method == 'Praz2017':
-        dict ={
-            'unrimed':1,
-            'rimed':2,
-            'densely_rimed':3,
-            'greupel-like':4,
-            'graupel':5
-        }
+        dict = {
+                'unrimed':1,
+                'rimed':2,
+                'densely_rimed':3,
+                'greupel-like':4,
+                'graupel':5
+               }
     else:
-        warnings.warn("Dictionary not available for given  method: "+method)
+        raise ValueError("Riming class dictionary not available for method {}.".format(method))
 
     return dict
 
-def get_riming_id_dict(method='Praz2017'):
-    """
-    Get riming name from riming id
-    according to a given hydrometeor classif method
-
-    Input:
-
-        method: hydro class method. Default Praz2017 based on
-        https://amt.copernicus.org/articles/10/1335/2017/
-
-
-    """
-
+def get_riming_class_id_dict(method='Praz2017'):
+    # TODO : doc string as above 
+    dict = get_riming_class_name_dict(method=method)
+    dict = {v: k for k, v in dict.items()} 
+    return dict
+ 
+def get_melting_class_name_dict(method='Praz2017'):
+    # TODO : doc string as above (and adapt class names ;) 
     if method == 'Praz2017':
-        dict ={
-            1:'unrimed',
-            2:'rimed',
-            3:'densely_rimed',
-            4:'graupel-like',
-            5:'graupel'
-        }
+        dict = {
+                'dry': 0,
+                'melting':1,
+               }
     else:
-        warnings.warn("Dictionary not available for given method: "+method)
+        raise ValueError("Melting class dictionary not available for method {}.".format(method))
 
     return dict
 
-
+def get_melting_class_id_dict(method='Praz2017'):
+    # TODO : doc string as above 
+    dict = get_melting_class_name_dict(method=method)
+    dict = {v: k for k, v in dict.items()} 
+    return dict
 
 def get_units():
     """
@@ -205,9 +177,9 @@ def get_units():
              'Dmax_ori':           'deg',
              'Dmax_90':            'm',
              'D90_r':              '-',
-             'riming_id':          'class',
-             'riming_id_prob':     '-',
-             'riming_name':        'class string',
+             'riming_class_id':          'class',
+             'riming_class_id_prob':     '-',
+             'riming_class_name':        'class string',
              'riming_deg_level':   '-',
              'melting_id':         'boolean',
              'melting_prob':       '-',
@@ -272,12 +244,13 @@ def get_vars_location():
     return variables 
 
 def get_vars_class(): 
-    variables = ['riming_name',
-                 'riming_id',
-                 'riming_id_prob', 
+    variables = ['riming_class_name',
+                 'riming_class_id',
+                 'riming_class_id_prob', 
                  'riming_deg_level', 
-                 'melting_id',
-                 'melting_prob', 
+                 'melting_class_id',
+                 'melting_class_name',
+                 'melting_class_prob', 
                  'snowflake_class_name', 
                  'snowflake_class_id',
                  'snowflake_class_id_prob',
@@ -285,15 +258,16 @@ def get_vars_class():
     return variables
 
 def get_vars_class_ids(): 
-   variables = ['riming_id',
-                'melting_id',   
-                'snowflake_class_id',
+   variables = ['snowflake_class_id',
+                'riming_class_id',
+                'melting_class_id',   
                ]
    return variables
 
 def get_vars_class_names():
-    variables = ['riming_name',
-                'snowflake_class_name', 
+    variables = ['snowflake_class_name', 
+                 'riming_class_name',
+                 'melting_class_name', 
                 ]
     return variables
 
