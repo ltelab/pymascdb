@@ -59,6 +59,7 @@ def get_riming_class_name_dict(method='Praz2017'):
     """
     if method == 'Praz2017':
         dict = {
+                'undefined':0,
                 'unrimed':1,
                 'rimed':2,
                 'densely_rimed':3,
@@ -181,7 +182,8 @@ def get_units():
              'riming_class_id_prob':     '-',
              'riming_class_name':        'class string',
              'riming_deg_level':   '-',
-             'melting_id':         'boolean',
+             'melting_class_id':         'boolean',
+             'melting_class_name': 'class_string',
              'melting_prob':       '-',
              'snowflake_class_name':'class string',
              'snowflake_class_id':  'class',
@@ -192,7 +194,8 @@ def get_units():
              'latitude':           'deg_north',
              'longitude':          'deg_east',
              'altitude':           'm',
-             'quality_xhi_flake':  '-',
+             'flake_quality_xhi':  '-',
+             'flake_Dmax':         'm',
 
 
              'gan3d_mass':         'kg',
@@ -250,7 +253,7 @@ def get_vars_class():
                  'riming_deg_level', 
                  'melting_class_id',
                  'melting_class_name',
-                 'melting_class_prob', 
+                 'melting_prob', 
                  'snowflake_class_name', 
                  'snowflake_class_id',
                  'snowflake_class_id_prob',
@@ -297,7 +300,7 @@ def get_vars_cam_descriptors():
                 'rect_aspect_ratio', 'rect_eccentricity', 'solidity', 'convexity',
                 'hull_n_angles', 'p_circ_r', 'frac_dim_boxcounting',
                 'frac_dim_theoretical', 'nb_holes', 'skel_N_ends', 'skel_N_junc',
-                'skel_perim_ratio', 'skel_area_ratio', 'sym_P0', 'sym_P1', 'sym_P2',
+                'skel_perim_ratio', 'skel_area_ratio', 'sym_P1', 'sym_P2',
                 'sym_P3', 'sym_P4', 'sym_P5', 'sym_P6', 'sym_Pmax_id',
                 'sym_P6_max_ratio', 'sym_mean', 'sym_std', 'sym_std_mean_ratio',
                 'intensity_mean', 'intensity_max', 'contrast', 'intensity_std',

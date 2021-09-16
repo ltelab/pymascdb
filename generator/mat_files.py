@@ -86,9 +86,9 @@ def digits_dictionary():
              'Dmax_ori':           1,
              'Dmax_90':            5,
              'D90_r':              2,
-             'riming_id_prob':     2,
+             'riming_class_id_prob':  2,
              'riming_deg_level':   2,
-             'melting_id':         0,
+             'melting_class_id':   0,
              'melting_prob':       2,
              'snowflake_class_id_prob': 2,
 
@@ -96,8 +96,8 @@ def digits_dictionary():
              'latitude':           4,
              'longitude':          4,
              'altitude':           1,
-             'quality_xhi_flake':  1,
-
+             'flake_quality_xhi':  1,
+             'flake_Dmax':         1,
 
              'gan3d_mass':         9,
              'gan3d_vol_ch':       1,
@@ -216,6 +216,12 @@ def get_riming_name(R):
     elif R == 5:
         return 'graupel'
 
+def get_melting_name(M):
+    if M == 0:
+        return 'dry'
+    elif M == 1:
+        return 'melting'
+
 def pad_with_zeros(A, r=1024, c=1024):
    """
    Roughly center the image A into a r x c grid
@@ -327,22 +333,6 @@ def masc_mat_file_to_dict(fn,pix_size=33.5e-6):
         mat['E_out']['b'][0,0][0,0]*p1,     # Outer ell min dim [m] --same center as fitted one, orientation as inner      19. I, II, III
         'ell_out_area':   mat['E_out']['a'][0,0][0,0]*mat['E_out']['b'][0,0][0,0]*np.pi*p2,  #[m**2]                       20. -
         
-        #  Various ratios among ellipses as given in Praz et al 
-        #'ell_in_fit_A_r': mat['E_in']['a'][0,0][0,0]/mat['E']['a'][0,0][0,0],    # [-]      21. -
-        #'ell_in_fit_B_r': mat['E_in']['b'][0,0][0,0]/mat['E']['b'][0,0][0,0],    # [-]      22. -                    
-        #'ell_in_fit_area_r': 
-        #(mat['E_in']['a'][0,0][0,0]*mat['E_in']['b'][0,0][0,0])/(mat['E']['a'][0,0][0,0]*mat['E']['b'][0,0][0,0]),         # [-]      23. I,III
-        
-        #'ell_in_out_A_r': mat['E_in']['a'][0,0][0,0]/mat['E_out']['a'][0,0][0,0],    # [-]      24. -
-        #'ell_in_out_B_r': mat['E_in']['b'][0,0][0,0]/mat['E_out']['b'][0,0][0,0],    # [-]      25. -                    
-        #'ell_in_out_area_r': 
-        #(mat['E_in']['a'][0,0][0,0]*mat['E_in']['b'][0,0][0,0])/(mat['E_out']['a'][0,0][0,0]*mat['E_out']['b'][0,0][0,0]),         # [-]      26. II
-
-        #'ell_fit_out_A_r': mat['E']['a'][0,0][0,0]/mat['E_out']['a'][0,0][0,0],    # [-]      27. -
-        #'ell_fit_out_B_r': mat['E']['b'][0,0][0,0]/mat['E_out']['b'][0,0][0,0],    # [-]      28. -                    
-        #'ell_fit_out_area_r': 
-        #(mat['E']['a'][0,0][0,0]*mat['E']['b'][0,0][0,0])/(mat['E_out']['a'][0,0][0,0]*mat['E_out']['b'][0,0][0,0]),         # [-]      29. II
-
         # C3: particle shape
         'roundness':            mat['roundness'][0][0],                   # area / circum. circle ratio [-]                     30. III
         'p_circ_out_r':         mat['perim'][0][0]/(2.*np.pi*mat['C_out']['r'][0,0][0,0]), # perim /circum p ratio [-]          31. II, III
@@ -418,18 +408,14 @@ def masc_mat_file_to_dict(fn,pix_size=33.5e-6):
         'D90_r':                mat['D90']['AR'][0,0][0,0],                      # Axis ratio of D90 and D0 
 
         # Riming probabilities for each class 1-5
-        #'riming_prob_1':         mat['riming_probs'][0][0],
-        #'riming_prob_2':         mat['riming_probs'][0][1],
-        #'riming_prob_3':         mat['riming_probs'][0][2],
-        #'riming_prob_4':         mat['riming_probs'][0][3],
-        #'riming_prob_5':         mat['riming_probs'][0][4],
-        'riming_id':             riming_id,                       # 1 to 5 
-        'riming_id_prob':        round(mat['riming_probs'][0][riming_id-1],2), 
+        'riming_class_id':       riming_id,                       # 1 to 5 
+        'riming_class_id_prob':  round(mat['riming_probs'][0][riming_id-1],2), 
         'riming_deg_level':      round(riming_deg_level,2),       # 0 to 1
-        'riming_name':           get_riming_name(riming_id),      # Unrimed, rimed, densely_rimed, graupel-like, graupel
+        'riming_class_name':     get_riming_name(riming_id),      # Unrimed, rimed, densely_rimed, graupel-like, graupel
 
-        'melting_id':            mat['melting_ID'][0][0],                                            # 0 or 1    
-        'melting_prob':          round(mat['melting_probs'][0][0],2),                                # 0 to 1
+        'melting_class_id':      mat['melting_ID'][0][0],                                            # 0 or 1    
+        'melting_prob':          mat['melting_probs'][0][0],                                        # 0 to 1
+        'melting_class_name':    get_melting_name(mat['melting_ID'][0][0]),
         
         # Hydrometeor classification 
         # 1 = small particle (SP)
@@ -443,14 +429,12 @@ def masc_mat_file_to_dict(fn,pix_size=33.5e-6):
         'snowflake_class_id':             mat['label_ID'][0][0],                                    # Label ID 1 to 6
         'snowflake_class_id_prob':        round(mat['label_probs'][0][mat['label_ID'][0][0]-1],2)}  # Prob of label X
 
-        # Probability of each class 1-6
-        #'label_prob_1':          mat['label_probs'][0][0],
-        #'label_prob_2':          mat['label_probs'][0][1],
-        #'label_prob_3':          mat['label_probs'][0][2],               
-        #'label_prob_4':          mat['label_probs'][0][3],
-        #'label_prob_5':          mat['label_probs'][0][4],
-        #'label_prob_6':          mat['label_probs'][0][5]}
-
+    # If melting then riming is undefined
+    if mat['melting_ID'][0][0] == 1:
+        dict['riming_class_id']       = 0
+        dict['riming_class_name']     = 'undefined'
+        dict['riming_class_id_prob']  =  np.nan
+        dict['riming_deg_level']      =  np.nan
         
     return dict
 
@@ -527,25 +511,26 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
         # Flake info
         'flake_id': (fnames[0].split('/')[-1]).split('_cam')[0],   # Flake ID unique
         'flake_number_tmp':   mat0['id'][0][0],                    # Temporary flake number (reset to 1 after reboot)
-        'pix_size': pix_size,                                      # Pixel size [m]
-        'quality_xhi_flake':      Xhi,                             # Average quality index
+        'flake_quality_xhi':      Xhi,                             # Average quality index
 
         # GLobal info
         'fallspeed': fs,                                     # [m s**-1] fall speed
         'n_roi':  np.mean([mat0['n_roi'][0][0],mat1['n_roi'][0][0],mat2['n_roi'][0][0]]),  # Avg # of particles per cam [-] 
 
         # Dmax
-        'Dmax_flake':    Dmax,                               # m
+        'flake_Dmax':    Dmax,                               # m
 
         # Riming degree
         'riming_deg_level':     round(riming_deg_level,2),   # 1 to 5 
-        'riming_id':            riming_id,                   # 0 to 1
-        'riming_id_prob':       round(riming_id_prob,2),
-        'riming_name':          get_riming_name(riming_id),
+        'riming_class_id':      riming_id,                   # 0 to 1
+        'riming_class_id_prob': round(riming_id_prob,2),
+        'riming_class_name':    get_riming_name(riming_id),
 
         # Mmelting
-        'melting_id':     melting_id[0],                   # 0 or 1
-        'melting_prob':   melting_prob[0],
+        'melting_class_id': melting_id[0],                   # 0 or 1
+        'melting_prob':     melting_prob[0],
+        'melting_class_name':    get_melting_name(melting_id[0]),
+
         # --
 
         # Hydrometeor classification 
@@ -581,6 +566,13 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
         'env_FF':         np.nan,    # Wind speed        [m/s]
         'env_RH':         np.nan     # Relative Humidity [%]
     }
+
+    # If melting then riming is undefined
+    if dict['melting_class_id'] == 1:
+        dict['riming_class_id']       = 0
+        dict['riming_class_name']     = 'undefined'
+        dict['riming_class_id_prob']  =  np.nan
+        dict['riming_deg_level']      =  np.nan
 
     return dict
 
