@@ -13,6 +13,8 @@ import zarr
 from numcodecs import Blosc
 
 from mat_files import masc_mat_file_to_dict,masc_mat_triplet_to_dict,triplet_images_reshape
+from mat_files import digits_dictionary
+
 from weather_data import blowingsnow
 
 sys.path.insert(1,'/home/grazioli/CODES/python/py-masc-3D-GAN-eval')
@@ -97,8 +99,8 @@ def valid_triplet(triplet_files,
                   min_size=12,
                   max_ysize_var=1.4,
                   max_ysize_delta=50, # Pixels
-                  xhi_low=8.5,
-                  xhi_high=9.0):
+                  xhi_low=8,
+                  xhi_high=8.5):
 
     
     mat = [sio.loadmat(triplet_files[i]) for i in range(3)]
@@ -293,6 +295,7 @@ def add_gan3d_to_parquet(triplet_parquet,gan3d_folder):
     table['gan3d_gyration']    =  r_g
 
     # Store table and overwrite
+    table=table.round(decimals=digits_dictionary())
     table = pa.Table.from_pandas(table)
     pq.write_table(table, triplet_parquet)
 
@@ -339,6 +342,7 @@ def add_bs_to_parquet(triplet_parquet,file_bs,verbose=False):
     table['bs_precip_type'] = bs_precip_type
 
     # Store table and overwrite
+    table=table.round(decimals=digits_dictionary())
     table = pa.Table.from_pandas(table)
     pq.write_table(table, triplet_parquet)
 
@@ -385,6 +389,7 @@ def add_weather_to_parquet(triplet_parquet,file_weather, verbose=False):
     table['env_RH']  = RH
     
     # Store table and overwrite
+    table=table.round(decimals=digits_dictionary())
     table = pa.Table.from_pandas(table)
     pq.write_table(table, triplet_parquet)
     
@@ -426,6 +431,8 @@ def merge_triplet_dataframes(path,
         df.insert(0, "index", first_col)
 
         print('Writing output')
+
+        df=df.round(decimals=digits_dictionary())
         table = pa.Table.from_pandas(df)
         pq.write_table(table, out_path+out_name+'_'+db+'.parquet')
 
@@ -449,29 +456,41 @@ def add_trainingset_flag(cam_parquet,
     table = pd.read_parquet(cam_parquet)
     flake_uid = table.datetime.apply(lambda x: x.strftime('%Y.%m.%d_%H.%M.%S'))+'_flake_'+table.flake_number_tmp.apply(str)                   
 
-    # Add hydro columns
+    # 1 Add hydro columns
     add = pd.read_pickle(trainingset_pkl_path+'hydro_trainingset_'+cam+'.pkl')
     is_in = [0] * len(table)
 
     ind1=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[1]
-    ind2=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[2]
 
     # Fill
     is_in[ind1] = 1
-    table['is_'] = is_in
+    table['hl_snowflake'] = is_in
 
+    # 2 Add melting columns
+    add = pd.read_pickle(trainingset_pkl_path+'melting_trainingset_'+cam+'.pkl')
+    is_in = [0] * len(table)
 
+    ind1=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[1]
 
+    # Fill
+    is_in[ind1] = 1
+    table['hl_melting'] = is_in
 
+    # 3 Add riming columns
+    add = pd.read_pickle(trainingset_pkl_path+'riming_trainingset_'+cam+'.pkl')
+    is_in = [0] * len(table)
 
+    ind1=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[1]
 
+    # Fill
+    is_in[ind1] = 1
+    table['hl_riming'] = is_in
 
+    # Overwrite
+    table = pa.Table.from_pandas(df)
+    pq.write_table(table, cam_parquet)
 
-
-
-
-
-
+    return(None)
 
 
 def merge_triplet_image_array(path,campaigns,out_path,out_name='all',chunks_n=16):
@@ -558,7 +577,6 @@ def process_all(masc_dir,campaign_name='EPFL'):
 
 campaigns=['Davos-2015','APRES3-2016','APRES3-2017','Valais-2016','ICEPOP-2018','PLATO-2019','Davos-2019','Jura-2019','POPE-2020','ICEGENESIS-2021']
 
-campaigns=['Jura-2019']
 
 for campaign in campaigns:
     print(campaign)
@@ -579,9 +597,12 @@ for campaign in campaigns:
     add_weather_to_parquet('/data/MASC_DB/'+campaign+'_triplet.parquet',
         '/data/MASC_DB/rawinput/'+campaign+'/Weather/'+campaign+'.pickle',verbose=True) # Add weather
 
+    # 4: Add training of melting, riming, hydroclass
+    print("Adding flags of data eventually used for manual training")
+    for cam in ['cam0','cam1','cam2']:
+        add_trainingset_flag('/data/MASC_DB/'+campaign+'_'+cam+'.parquet','/data/MASC_DB/rawinput/aux/',cam=cam)
 
-
-# Merge
+#  --- Merge
 merge_triplet_dataframes('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
 merge_triplet_image_array('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
 
