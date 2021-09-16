@@ -7,10 +7,114 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt 
 
-"""
-TODO: add function to obtain lat, lon, alt for each campaign
+def digits_dictionary():
+    """
+    Dictionary containing the number of decimal places to be used for various variables
+    """
+    dict= {  'index':         0,
+             'pix_size':      7,
+             'quality_xhi':   1,
 
-"""
+             'n_roi'   :      0,
+             'area'    :      9,
+             'perim'   :      5,
+             'Dmean'   :      5,
+             'Dmax'    :      5,   
+             'eq_radius':     5,
+             'area_porous':   9,
+             'area_porous_r': 3,
+             'ell_fit_A':     5,
+             'ell_fit_B':     5,
+             'ell_fit_area':  9,
+             'ell_fit_ori':   1,
+             'ell_fit_ecc':   2,
+             'compactness':   2,
+             'ell_in_A':      5,
+             'ell_in_B':      5,
+             'ell_in_area':   9,
+             'ell_out_A':     5,
+             'ell_out_B':     5,
+             'ell_out_area':  9,
+             'roundness':     2,
+             'p_circ_out_r':  2,
+             'rectangularity':2,
+             'bbox_width':    5,
+             'bbox_len':      5,
+             'rect_perim_ratio':  2,
+             'rect_aspect_ratio': 2,
+             'rect_eccentricity': 2,
+             'solidity':          2,
+             'convexity':         2,
+             'hull_n_angles':     0,
+             'p_circ_r':          2,
+             'frac_dim_boxcounting': 2,
+             'frac_dim_theoretical': 2,
+             'nb_holes':             0,
+             'skel_N_ends':       0,
+             'skel_N_junc' :      0,
+             'skel_perim_ratio':  2,
+             'skel_area_ratio':   3,
+             'sym_P1':            2,
+             'sym_P2':            2,
+             'sym_P3':            2,
+             'sym_P4':            2,
+             'sym_P5':            2,
+             'sym_P6':            2,
+             'sym_Pmax_id':       0,
+             'sym_P6_max_ratio':  2,
+             'sym_mean':          1,
+             'sym_std':           1,
+             'sym_std_mean_ratio': 2,
+             'intensity_mean':     2,
+             'intensity_max':      2,
+             'contrast':           2,
+             'intensity_std':      1,
+             'hist_entropy':       1,
+             'local_std':          1,
+             'local_intens':       2,
+             'lap_energy':         1,
+             'wavs':               1,
+             'complexity':         2,
+             'har_energy':         6,
+             'har_contrast':       1,
+             'har_corr':           2,
+             'har_hom':            3,
+             'roi_centroid_X':     0,
+             'roi_centroid_Y':     0,
+             'roi_width':          0,
+             'roi_height':         0,
+             'Dmax_ori':           1,
+             'Dmax_90':            5,
+             'D90_r':              2,
+             'riming_id_prob':     2,
+             'riming_deg_level':   2,
+             'melting_id':         0,
+             'melting_prob':       2,
+             'snowflake_class_id_prob': 2,
+
+             'fallspeed':          3,
+             'latitude':           4,
+             'longitude':          4,
+             'altitude':           1,
+             'quality_xhi_flake':  1,
+
+
+             'gan3d_mass':         9,
+             'gan3d_vol_ch':       1,
+             'gan3d_gyration':     5,
+
+             'bs_nor_angle':       3,
+             'bs_mix_ind':         2,
+
+             'env_T':              1,
+             'env_P':              1,
+             'env_DD':             1,
+             'env_FF':             1,
+             'env_RH':             1
+    }
+
+    return dict
+
 
 def lat_lon_alt(campaign):
     """
@@ -263,7 +367,7 @@ def masc_mat_file_to_dict(fn,pix_size=33.5e-6):
         'skel_area_ratio':  mat['skel']['A_ratio'][0,0][0,0],     # Skeleton length to area ratio [pix**-1]                     47. -
 
         # C5: rotational symmetry
-        'sym_P0':       mat['Sym']['P0'][0,0][0,0],                   # Standardized distance to centroid Fourier power spectrum comp. P0 48. -
+        #'sym_P0':       mat['Sym']['P0'][0,0][0,0],                   # Standardized distance to centroid Fourier power spectrum comp. P0 48. -
         'sym_P1':       mat['Sym']['P1'][0,0][0,0],                   # Standardized distance to centroid Fourier power spectrum comp. P1 49. I
         'sym_P2':       mat['Sym']['P2'][0,0][0,0],                   # Standardized distance to centroid Fourier power spectrum comp. P2 50. II
         'sym_P3':       mat['Sym']['P3'][0,0][0,0],                   # Standardized distance to centroid Fourier power spectrum comp. P3 51. I, II, III

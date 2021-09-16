@@ -169,7 +169,6 @@ def get_units():
              'skel_N_junc' :      '-',
              'skel_perim_ratio':  '-',
              'skel_area_ratio':   'pix**-1',
-             'sym_P0':            '-',
              'sym_P1':            '-',
              'sym_P2':            '-',
              'sym_P3':            '-',
@@ -221,7 +220,7 @@ def get_units():
 
 
              'gan3d_mass':         'kg',
-             'gan3d_vol_ch':       'm**3',
+             'gan3d_volume':       'm**3',
              'gan3d_gyration':     'm',
 
              'bs_nor_angle':       '-',
