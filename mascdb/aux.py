@@ -11,16 +11,21 @@ IMPORTANT: keep up to date with eventual name change of variables
 
 def get_label_name_dict(method='Praz2017'):
     """
-    Get hydrometeor class ID from label name
-    according to a given hydrometeor classif method
+    Get hydrometeor class ID from label name according to a given hydrometeor classif method.
 
-    Input:
+    Parameters
+    ----------
+    method : str, optional
+        hydro class method. 
+        The default is 'Praz2017' based on https://amt.copernicus.org/articles/10/1335/2017/.
 
-        method: hydro class method. Default Praz2017 based on
-        https://amt.copernicus.org/articles/10/1335/2017/
-
+    Returns
+    -------
+    dict : TYPE
+        DESCRIPTION.
 
     """
+
 
     if method == 'Praz2017':
         dict ={
@@ -32,13 +37,12 @@ def get_label_name_dict(method='Praz2017'):
             'columnar_planar_combination':6,    
         }
     else:
-        warnings.warn("Dictionary not available for given hydro-class method: "+method)
+        warnings.warn("Dictionary not available for given hydro-class method: " + method)
 
     return dict
 
 
-def get_label_id_dict(method='Praz2017'):
-    
+def get_label_id_dict(method='Praz2017'):    
     """
     Get hydrometeor label name form class ID
     according to a given hydrometeor classif method
@@ -266,3 +270,74 @@ def get_vars_location():
                  'altitude',
                 ]
     return variables 
+
+def get_vars_class(): 
+    variables = ['riming_name',
+                 'riming_id',
+                 'riming_id_prob', 
+                 'riming_deg_level', 
+                 'melting_id',
+                 'melting_prob', 
+                 'snowflake_class_name', 
+                 'snowflake_class_id',
+                 'snowflake_class_id_prob',
+                 ]
+    return variables
+
+def get_vars_class_ids(): 
+   variables = ['riming_id',
+                'melting_id',   
+                'snowflake_class_id',
+               ]
+   return variables
+
+def get_vars_class_names():
+    variables = ['riming_name',
+                'snowflake_class_name', 
+                ]
+    return variables
+
+
+def get_vars_cam_info(): 
+    variables = ['index', 
+                 'datetime',
+                 'flake_id', 
+                 'flake_number_tmp',
+                 'pix_size',
+                 'cam_id',
+                 'quality_xhi'
+                 # event_id
+                 # event_duration 
+                ]
+    return variables 
+
+def get_vars_cam_descriptors(): 
+    # TODO: Or to infer from self.cam0.columns - get_vars_cam_info() - get_vars_class()
+    # --> So that works if people add stuff ... 
+    variables = ['n_roi', 'area', 'perim', 'Dmean', 'Dmax', 'eq_radius',
+                'area_porous', 'area_porous_r', 'ell_fit_A', 'ell_fit_B',
+                'ell_fit_area', 'ell_fit_ori', 'ell_fit_a_r', 'ell_fit_ecc',
+                'compactness', 'ell_in_A', 'ell_in_B', 'ell_in_area', 'ell_out_A',
+                'ell_out_B', 'ell_out_area', 'roundness', 'p_circ_out_r',
+                'rectangularity', 'bbox_width', 'bbox_len', 'rect_perim_ratio',
+                'rect_aspect_ratio', 'rect_eccentricity', 'solidity', 'convexity',
+                'hull_n_angles', 'p_circ_r', 'frac_dim_boxcounting',
+                'frac_dim_theoretical', 'nb_holes', 'skel_N_ends', 'skel_N_junc',
+                'skel_perim_ratio', 'skel_area_ratio', 'sym_P0', 'sym_P1', 'sym_P2',
+                'sym_P3', 'sym_P4', 'sym_P5', 'sym_P6', 'sym_Pmax_id',
+                'sym_P6_max_ratio', 'sym_mean', 'sym_std', 'sym_std_mean_ratio',
+                'intensity_mean', 'intensity_max', 'contrast', 'intensity_std',
+                'hist_entropy', 'local_std', 'local_intens', 'lap_energy', 'wavs',
+                'complexity', 'har_energy', 'har_contrast', 'har_corr', 'har_hom',
+                'roi_centroid_X', 'roi_centroid_Y', 'roi_width', 'roi_height',
+                'Dmax_ori', 'Dmax_90', 'D90_r', 
+                ]
+    return variables 
+  
+ 
+
+
+    
+    
+       
+ 

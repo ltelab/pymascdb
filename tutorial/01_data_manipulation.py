@@ -74,6 +74,28 @@ mascdb1.cam0.sns.scatterplot(x="Dmax", y="solidity")
 mascdb.isel(idx).cam0.sns.scatterplot(x="Dmax", y="solidity") 
 mascdb.isel((mascdb.cam0['Dmax'] > 0.02)).cam0.sns.scatterplot(x="Dmax", y="solidity") 
 
+
+mascdb.select_max('cam0.Dmax', n=5)
+mascdb.select_min('cam0.Dmax', n=5)
+
+mascdb.from_campaign(campaign='PLATO-2020')
+mascdb.from_campaign(campaign='PLATO-2019')
+mascdb.from_campaign(campaign=['Valais-2016','PLATO-2019'])
+mascdb.from_campaign(campaign=['Valais-2016','PLATO-2020'])
+mascdb.exclude_campaign(campaign='PLATO-2019')   
+mascdb.exclude_campaign(campaign='PLATO-2020')   
+
+mascdb.select_flakes('aggregate') # select_class ?
+mascdb.select_rimed('medium')
+mascdb.select_melting(0)
+   
+mascdb.select_rimed('medium').select_max(cam0.Dmax, n=5).plot_triplets()
+
+"""
+ - Example to filter on blowing snow / precip
+ - Example to filter quality_xhi
+ 
+"""
 ##----------------------------------------------------------------------------.
 # Filtering and sorting 
 idx = mascdb.cam0['Dmax'] > 0.02

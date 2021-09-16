@@ -15,6 +15,9 @@ import mascdb.pd_sns_accessor
 from mascdb.utils_event import _define_event_id
 from mascdb.utils_event import _get_timesteps_duration
  
+from mascdb.aux import get_riming_name_dict
+from mascdb.aux import get_label_name_dict
+  
 from mascdb.utils_img import xri_zoom
 from mascdb.utils_img import xri_contrast_stretching 
 from mascdb.utils_img import xri_hist_equalization 
@@ -331,18 +334,18 @@ class MASC_DB:
     ############ 
     ### Sort ###
     ############
-    def arrange(self, variable, decreasing=True):
-        # Check variable type 
-        if not isinstance(variable, str):
-            raise TypeError("'variable' must be a string.")
+    def arrange(self, expression, decreasing=True):
+        # Check expression type 
+        if not isinstance(expression, str):
+            raise TypeError("'expression' must be a string.")
         #------------------------------.
         # Retrieve db name and column 
-        split_variable = variable.split(".")
-        db_name = split_variable[0]
-        db_column = split_variable[1]
+        split_expression = expression.split(".")
+        db_name = split_expression[0]
+        db_column = split_expression[1]
         # Check valid format 
-        if len(split_variable) != 2:
-            raise ValueError("An unvalid 'variable' has been specified.\n"
+        if len(split_expression) != 2:
+            raise ValueError("An unvalid 'expression' has been specified.\n"
                              "The expected format is <cam*/triplet/env/bs>.<column_name>.")
         # Check valid db 
         valid_db = ['cam0', 'cam1','cam2','triplet','bs','env','gan3d']
@@ -363,7 +366,65 @@ class MASC_DB:
         #------------------------------.
         # Return sorted object
         return self.isel(idx)
-            
+    
+    def select_max(self, expression, n=10):
+        return self.arrange(expression, decreasing=True).isel(np.arange(min(n, self._n_triplets)))
+
+    def select_min(self, expression, n=10):
+        return self.arrange(expression, decreasing=False).isel(np.arange(min(n, self._n_triplets)))   
+    
+    ##------------------------------------------------------------------------.
+    ################
+    ### Filters ####
+    ################
+    def from_campaign(self, campaign):
+        if not isinstance(campaign, (list, str)): 
+            raise TypeError("'campaign' must be a string or a list of strings.")
+        if isinstance(campaign, str): 
+            campaign = [campaign]
+        # Convert to numpy array with str type (not object...)
+        campaign = np.array(campaign).astype(str)
+        campaigns_arr = self.triplet['campaign'].values.astype(str)
+        valid_campaigns = np.unique(campaigns_arr)
+        unvalid_campaigns_arg = campaign[np.isin(campaign, valid_campaigns, invert=True)]
+        if len(unvalid_campaigns_arg) > 0: 
+            raise ValueError("{} is not a campaign of the current mascdb. "
+                             "Valid campaign names are {}".format(unvalid_campaigns_arg.tolist(),
+                                                                  valid_campaigns.tolist()))
+        idx = np.isin(campaigns_arr, campaign)
+        return self.isel(idx) 
+    
+    def exclude_campaign(self, campaign):
+        if not isinstance(campaign, (list, str)): 
+            raise TypeError("'campaign' must be a string or a list of strings.")
+        if isinstance(campaign, str): 
+            campaign = [campaign]
+        # Convert to numpy array with str type (not object...)
+        campaign = np.array(campaign).astype(str)
+        campaigns_arr = self.triplet['campaign'].values.astype(str)
+        valid_campaigns = np.unique(campaigns_arr)
+        unvalid_campaigns_arg = campaign[np.isin(campaign, valid_campaigns, invert=True)]
+        if len(unvalid_campaigns_arg) > 0: 
+            raise ValueError("{} is already not a campaign of the current mascdb. "
+                             "Current mascdb has campaign names {}".format(unvalid_campaigns_arg.tolist(),
+                                                                           valid_campaigns.tolist()))
+        idx = np.isin(campaigns_arr, campaign, invert=True)
+        return self.isel(idx) 
+      
+    # def select_flake(self, names, method='Praz2017'): 
+    #     if not isinstance(names,(int, str, list):
+    #         raise TypeError("'names' must be (a list of) integer or string.")
+    #     valid_names = list(get_label_name_dict().keys())   # name 
+    #     valid_names = list(get_label_name_dict().values()) # id
+        
+    # def select_rimed(self, id, method='Praz2017'): 
+    #     valid_rimed = list(get_riming_name_dict().keys())   # name 
+    #     valid_rimed = list(get_riming_name_dict().values()) # id
+        
+    # def select_melting(self, id): 
+    #     valid_ids = 
+ 
+  
     ##------------------------------------------------------------------------.
     ################
     ### Getters ####
