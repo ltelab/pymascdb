@@ -319,9 +319,9 @@ def add_bs_to_parquet(triplet_parquet,file_bs,verbose=False):
     bs  = blowingsnow(file_bs)
 
     # Fill the precooked vector 
-    bs_nor_angle    = np.asarray(table['bs_nor_angle'])
-    bs_mix_ind      = np.asarray(table['bs_mix_ind'])
-    bs_precip_type  = table['bs_precip_type'].copy()
+    bs_nor_angle    = np.asarray(table['bs_normalized_angle'])
+    bs_mix_ind      = np.asarray(table['bs_mixing_ind'])
+    bs_precip_type  = table['bs_precip_class_name'].copy()
 
     # Intersect arrays
     ind1=np.intersect1d(flake_uid,bs.flake_uid,return_indices=True)[1]
@@ -331,15 +331,25 @@ def add_bs_to_parquet(triplet_parquet,file_bs,verbose=False):
     bs_nor_angle[ind1] = bs.df["Normalized_Angle"][ind2]
     bs_mix_ind[ind1] = bs.df["Flag_mixed"][ind2]
 
+    # Add the class ID
+    bs_class_id = np.asarray([0] * len(table))
+
     # Fill also a precooked flag
     bs_precip_type[bs_nor_angle > 0.881]='blowing_snow'
+    bs_class_id[bs_nor_angle > 0.881]   = 3
+
     bs_precip_type[bs_nor_angle < 0.193]='precip'
+    bs_class_id[bs_nor_angle < 0.193]   = 1
+
     bs_precip_type[bs_mix_ind >= 0.0]='mixed'
+    bs_class_id[bs_mix_ind >= 0.0]   = 2
 
     
-    table['bs_nor_angle']   =  bs_nor_angle
-    table['bs_mix_ind']     =  bs_mix_ind
-    table['bs_precip_type'] = bs_precip_type
+    table['bs_normalized_angle']   =  bs_nor_angle
+    table['bs_mixing_ind']         =  bs_mix_ind
+    table['bs_precip_class_name']  =  bs_precip_type
+    table['bs_class_id']           =  bs_class_id
+    
 
     # Store table and overwrite
     table=table.round(decimals=digits_dictionary())
@@ -451,6 +461,7 @@ def add_trainingset_flag(cam_parquet,
     cam =  'cam0', 'cam1' or 'cam2'
 
     """
+    print('CAM: '+cam)
 
     # Read the parquet file
     table = pd.read_parquet(cam_parquet)
@@ -458,36 +469,39 @@ def add_trainingset_flag(cam_parquet,
 
     # 1 Add hydro columns
     add = pd.read_pickle(trainingset_pkl_path+'hydro_trainingset_'+cam+'.pkl')
-    is_in = [0] * len(table)
+    is_in = np.asarray([0] * len(table))
 
     ind1=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[1]
 
     # Fill
     is_in[ind1] = 1
     table['hl_snowflake'] = is_in
+    print('Found: '+str(len(ind1))+' in training, for hydro' )
 
     # 2 Add melting columns
     add = pd.read_pickle(trainingset_pkl_path+'melting_trainingset_'+cam+'.pkl')
-    is_in = [0] * len(table)
+    is_in = np.asarray([0] * len(table))
 
     ind1=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[1]
 
     # Fill
     is_in[ind1] = 1
     table['hl_melting'] = is_in
+    print('Found: '+str(len(ind1))+' in training, for melting' )
 
     # 3 Add riming columns
     add = pd.read_pickle(trainingset_pkl_path+'riming_trainingset_'+cam+'.pkl')
-    is_in = [0] * len(table)
+    is_in = np.asarray([0] * len(table))
 
     ind1=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[1]
 
     # Fill
     is_in[ind1] = 1
     table['hl_riming'] = is_in
+    print('Found: '+str(len(ind1))+' in training, for riming' )
 
     # Overwrite
-    table = pa.Table.from_pandas(df)
+    table = pa.Table.from_pandas(table)
     pq.write_table(table, cam_parquet)
 
     return(None)
@@ -580,6 +594,7 @@ campaigns=['Davos-2015','APRES3-2016','APRES3-2017','Valais-2016','ICEPOP-2018',
 
 for campaign in campaigns:
     print(campaign)
+    
     # 0: Process data and triplets (basic)
     process_all('/data/'+campaign+'/',campaign_name=campaign)
 

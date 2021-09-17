@@ -555,16 +555,17 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
         # Mixing index closer to 1 indicates more BS.
         # Normalized angle < 0.193 means precip, > 0.881 means BS
 
-        'bs_nor_angle': np.nan,           # Normalized angle [-]
-        'bs_mix_ind':   np.nan,           # Mixing index [-] 
-        'bs_precip_type': 'undefined',    # Precipitation type (blowing_snow, precip, mixed or undefined )
-
         # Placeholder for environmental information 
         'env_T':          np.nan,    # Temperature       [°C]
         'env_P':          np.nan,    # Pressure          [hPa]
         'env_DD':         np.nan,    # Wind direction    [°]
         'env_FF':         np.nan,    # Wind speed        [m/s]
-        'env_RH':         np.nan     # Relative Humidity [%]
+        'env_RH':         np.nan,     # Relative Humidity [%]
+
+        'bs_normalized_angle': np.nan,           # Normalized angle [-]
+        'bs_mixing_ind':   np.nan,               # Mixing index [-] 
+        'bs_precip_class_name': 'undefined'      # Precipitation type (blowing_snow, precip, mixed or undefined )
+
     }
 
     # If melting then riming is undefined
