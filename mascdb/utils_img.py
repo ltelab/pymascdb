@@ -27,7 +27,7 @@ from skimage.filters import rank
 #################################################
 ### Workhorse to compute 2D image descriptors ###
 #################################################
-def _compute_2Dimage_descriptors(da, fun, labels, x="x", y="y", fun_kwargs={}):
+def _compute_2Dimage_descriptors(da, fun, labels, x="x", y="y", fun_kwargs={}, dask="parallelized"):
     # Checks arguments 
     if not isinstance(da, xr.DataArray): 
         raise TypeError("Expecting a xr.DataArray.")
@@ -74,12 +74,11 @@ def _compute_2Dimage_descriptors(da, fun, labels, x="x", y="y", fun_kwargs={}):
     else: 
         raise NotImplementedError()
     #-----------------------------------------------------------------------.
-    ### Function checks 
+    ### Check the function 
     # TODO: checks that len(labels) = len(arr)
     
     #-----------------------------------------------------------------------.
     ### Compute descriptors for each 2D image  
-    dask = 'parallelized' # 'allowed'
     vectorize = True      # because the function work only on 2D image 
     da_stacked = xr.apply_ufunc(fun, 
                                 da_stacked, 
