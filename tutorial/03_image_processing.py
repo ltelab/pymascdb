@@ -27,7 +27,7 @@ from mascdb.utils_img import _compute_2Dimage_descriptors
 dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
 #dir_path = "/data/MASC_DB/"
 
-# Initialize dask distributed
+# Initialize dask distributed client (for parallel processing)
 client = Client(processes=False)
 
 ##----------------------------------------------------------------------------.
@@ -147,11 +147,16 @@ def _descriptor_fun(img, properties):
     props_arr = np.array([props_dict[prop] for prop in properties])
     return props_arr
 
-# Check it works properly for many images 
+# Check it works properly for many images (do it manually)
 img = mascdb.da.isel(CAM_ID=0, TripletID=0).values
 props_arr = _descriptor_fun(img=img, properties = properties)
 
-# Check that it works for a subset of mascdb 
+# Check that it works for a subset of mascdb (first 100, then 1000) to 
+#  ensure no memory leak in the code 
+
+# http://image.dask.org/en/latest/coverage.html for dask-optimized image processing functions
+
+# properties = ["area"]
 da = mascdb.da.isel(TripletID = slice(0,100))
 x = "x"
 y = "y"
@@ -159,45 +164,53 @@ fun_kwargs = {'properties': properties}
 fun = _descriptor_fun
 labels = properties 
 
+da_descriptors = _compute_2Dimage_descriptors(da = mascdb.da.isel(TripletID = slice(0,100)), 
+                                              fun = _descriptor_fun,
+                                              labels = labels, 
+                                              fun_kwargs = fun_kwargs)
 
+da_descriptors = _compute_2Dimage_descriptors(da = mascdb.da.isel(TripletID = slice(0,500)), 
+                                              fun = _descriptor_fun,
+                                              labels = labels, 
+                                              fun_kwargs = fun_kwargs)
 
-# navigate to http://localhost:8787/status to see the diagnostic dashboard
+da_descriptors = _compute_2Dimage_descriptors(da = mascdb.da.isel(TripletID = slice(0,1000)), 
+                                              fun = _descriptor_fun,
+                                              labels = labels, 
+                                              fun_kwargs = fun_kwargs)
 
+#-----------------------------------------------------------------------------.
+## Run descriptors computation  
+# - If the dask.distributed.Client() is called above, navigate to
+#   http://localhost:8787/status to see the diagnostic dashboard
+#   and control the computation progress
 
-# run descriptors computation (and watch the dashboard to see the progress)
-
-# if dask.client() is not imported and called, a progressbar is displayed in the terminal
+# - If the dask.distributed.client() is not called, it will use by default the 
+#   dask.scheduler('threaded') and a progressbar will be displayed in the terminal 
 
 da_descriptors = _compute_2Dimage_descriptors(da = da, 
                                               fun = _descriptor_fun,
                                               labels = labels, 
                                               fun_kwargs = fun_kwargs)
 
-cam0_df = da_descriptors.isel(CAM_ID = 0).to_dataset('descriptor').to_pandas()
+#-----------------------------------------------------------------------------.
+# Apply descriptors manually to mascdb 
+cam0 = da_descriptors.isel(CAM_ID = 0).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
+cam1 = da_descriptors.isel(CAM_ID = 1).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
+cam2 = da_descriptors.isel(CAM_ID = 2).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
+new_mascdb = mascdb.add_cam_columns(cam0=cam0, cam1=cam1, cam2=cam2, force=False, complete=True)
 
+#-----------------------------------------------------------------------------.
+# Apply directly to the full mascdb (when you are sure no memory leaks !)
+new_mascdb = mascdb.compute_2Dimage_descriptors(fun = _descriptor_fun,
+                                                labels = labels, 
+                                                fun_kwargs = fun_kwargs)
 
-ds_cams = da_descriptors.isel(CAM_ID = 0)   to_dataset("CAM_ID")
-ds_cams[0].to_dataset('descriptor').to_pandas()
-
-# Apply to the full mascdb
-masdb.add_2Dimage_descriptors(fun = _descriptor_fun,
-                              labels = labels, 
-                              fun_kwargs = fun_kwargs)
-
-# Check at start if labels are already columns of cam 
-# force argument 
-
-# TODO
-# import dask client 
-# set client with processes = False ? Or true?  
-# show diagnostic tool 
-
-
-##----------------------------------------------------------------------------.
-##----------------------------------------------------------------------------.
-########################### 
-### Remove condensation ###
-########################### 
+##----------------------------------------------------------------------------.    
+ 
+############################ 
+#### Remove condensation ###
+############################ 
 # --> FFT of first image 
 # --> FFT of second image 
 # --> FFT of third image 

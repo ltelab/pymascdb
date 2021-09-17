@@ -46,6 +46,8 @@ cam_id       # LOWERCASE  (0,1,2)
 # - hl_riming
 # - hl_melting
 
+### In aux add campaign list? 
+
 ##----------------------------------------------------------------------------. 
 ############ 
 ### GG #####
@@ -54,18 +56,6 @@ cam_id       # LOWERCASE  (0,1,2)
 ### EVENTS 
 # Number of events per campaign (with minimum duration threshold ... )
 # Total duration of events (with minimum duration threshold ... )(it sums event_id durations)
-
-##----------------------------------
-## SETTERS 
-# - Add columns to df 
-mascdb.add_cam_column 
-mascdb.add_cam_columns
-mascdb.add_triplet_column 
-mascdb.add_triplet_columns
-
-# - Compute descriptors based on fun applied to each image 
-mascdb.compute_image_descriptor(fun, fun_kwargs, force=False)
-mascdb.compute_image_descriptors(fun, fun_kwargs, force=False)
 
 ##----------------------------------------------------------------------------.
 ##################

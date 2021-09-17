@@ -95,6 +95,29 @@ def get_melting_class_id_dict(method='Praz2017'):
     dict = {v: k for k, v in dict.items()} 
     return dict
 
+def get_bs_precip_class_name_dict(method='Schaer2020'):
+    # TODO : doc string as above (and adapt class names ;) 
+    if method == 'Schaer2020':
+        dict = {
+                'undefined': 0,
+                'precip': 1,
+                'mixed': 2, 
+                'blowing_snow': 3,
+               }
+    else:
+        raise ValueError("Precipitation class dictionary not available for method {}.".format(method))
+
+    return dict
+
+def get_bs_precip_class_id_dict(method='Schaer2020'):
+    # TODO : doc string as above 
+    dict = get_bs_precip_class_name_dict(method=method)
+    dict = {v: k for k, v in dict.items()} 
+    return dict
+
+
+
+
 def get_units():
     """
     Get a dictionary with the units of the variables contained in the databases

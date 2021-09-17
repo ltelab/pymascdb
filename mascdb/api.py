@@ -11,14 +11,17 @@ import copy
 import xarray as xr
 import pandas as pd
 import numpy as np
-import mascdb.pd_sns_accessor 
+import mascdb.pd_sns_accessor  # this is required to add pandas sns accessor
 from mascdb.utils_event import _define_event_id
 from mascdb.utils_event import _get_timesteps_duration
  
 from mascdb.aux import get_snowflake_class_name_dict
 from mascdb.aux import get_riming_class_name_dict
 from mascdb.aux import get_melting_class_name_dict
+from mascdb.aux import get_bs_precip_class_name_dict
+from mascdb.aux import get_vars_class
   
+from mascdb.utils_img import _compute_2Dimage_descriptors
 from mascdb.utils_img import xri_zoom
 from mascdb.utils_img import xri_contrast_stretching 
 from mascdb.utils_img import xri_hist_equalization 
@@ -32,6 +35,11 @@ from mascdb.utils_img import xri_local_hist_equalization
 # ysize = out.shape[1]*pix_size # mm
 
 # zarr as a zarr store ... with ID ordered 
+
+## add flake_id as cam_df and triplet_df index !!!
+
+## check add_columns* 
+
 #-----------------------------------------------------------------------------.
 ### In future ###
 ## filter
@@ -41,10 +49,10 @@ from mascdb.utils_img import xri_local_hist_equalization
 # mascdb.sel(label)
 #-----------------------------------------------------------------------------.
 
-#-----------------------------------------------------------------------------.
-##############
-### Checks ###
-##############
+####-----------------------------------------------------------------------------.
+###############
+#### Checks ###
+###############
 def _check_CAM_ID(CAM_ID): 
     "Return CAM_ID integer."
     if not isinstance(CAM_ID, (int, np.int64, list)):
@@ -165,13 +173,25 @@ def _check_isel_idx(idx, vmax):
     # Return idx 
     return idx 
 
-#-----------------------------------------------------------------------------.
+def check_df(df, name=None):
+    if not isinstance(df, pd.DataFrame):
+        if name is not None: 
+            raise TypeError("{} is not a pd.DataFrame".format(name))
+        else: 
+           raise TypeError("Expecting a pd.DataFrame".format(name)) 
+    return df 
+
+
+####-----------------------------------------------------------------------------.
 class MASC_DB:
     """
     Masc database class to read and manipulate the 4 databases of 
     descriptors (one for each cam) as well TODO
 
     """
+    #####################
+    #### Read MASCDB ###
+    ##################### 
     def __init__(self, dir_path):
         """
         TO DO
@@ -198,13 +218,15 @@ class MASC_DB:
         # Save dir_path info 
         self._dir_path = dir_path
     
+    
+    ####----------------------------------------------------------------------.
+    #########################
+    #### Builtins methods ###
+    #########################
     def __len__(self):
         return self._n_triplets
     
-    ##------------------------------------------------------------------------.
-    ####################
-    ## Print method  ###
-    ####################
+  
     def __str__(self):
         print("MASCDB data structure:")
         print("-------------------------------------------------------------------------")
@@ -231,10 +253,10 @@ class MASC_DB:
     def __repr__(self):
         return self.__str__()
         
-    ##------------------------------------------------------------------------.
-    #################
-    ## Save db    ###
-    #################
+    ####----------------------------------------------------------------------.
+    #####################
+    #### Write MASCDB ###
+    ##################### 
     def save(self, dir_path, force=False):
         # - Check there are data to save
         if self._n_triplets == 0: 
@@ -275,10 +297,10 @@ class MASC_DB:
         #---------------------------------------------------------------------.
         return None 
         
-    ##------------------------------------------------------------------------.
-    #################
-    ## Subsetting ###
-    #################
+    ####----------------------------------------------------------------------.
+    ###################
+    #### Subsetting ###
+    ###################
     def isel(self, idx): 
         # Copy new instance 
         self = copy.deepcopy(self)
@@ -331,10 +353,10 @@ class MASC_DB:
         idx = np.arange(self._n_triplets-1,self._n_triplets-n-1, step=-1)
         return self.isel(idx)
      
-    ##------------------------------------------------------------------------.
-    ############ 
-    ### Sort ###
-    ############
+    ####----------------------------------------------------------------------.
+    ################ 
+    #### Sorting ###
+    ################
     def arrange(self, expression, decreasing=True):
         # Check expression type 
         if not isinstance(expression, str):
@@ -366,7 +388,7 @@ class MASC_DB:
             idx = idx[::-1]
         #------------------------------.
         # Return sorted object
-        return self.isel(idx)
+        return self.isel(idx)  
     
     def select_max(self, expression, n=10):
         return self.arrange(expression, decreasing=True).isel(np.arange(min(n, self._n_triplets)))
@@ -374,11 +396,11 @@ class MASC_DB:
     def select_min(self, expression, n=10):
         return self.arrange(expression, decreasing=False).isel(np.arange(min(n, self._n_triplets)))   
     
-    ##------------------------------------------------------------------------.
-    ################
-    ### Filters ####
-    ################
-    def from_campaign(self, campaign):
+    ####----------------------------------------------------------------------.
+    #################
+    #### Filters ####
+    #################
+    def select_campaign(self, campaign):
         if not isinstance(campaign, (list, str)): 
             raise TypeError("'campaign' must be a string or a list of strings.")
         if isinstance(campaign, str): 
@@ -395,7 +417,7 @@ class MASC_DB:
         idx = np.isin(campaigns_arr, campaign)
         return self.isel(idx) 
     
-    def exclude_campaign(self, campaign):
+    def discard_campaign(self, campaign):
         if not isinstance(campaign, (list, str)): 
             raise TypeError("'campaign' must be a string or a list of strings.")
         if isinstance(campaign, str): 
@@ -412,7 +434,7 @@ class MASC_DB:
         idx = np.isin(campaigns_arr, campaign, invert=True)
         return self.isel(idx) 
      
-    def select_snowflake_class(self, values, method='Praz2017'): 
+    def select_snowflake_class(self, values, method='Praz2017', invert = False): 
         if not isinstance(values,(int, str, list, np.ndarray)):
             raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
         # Convert to numpy array object 
@@ -442,10 +464,10 @@ class MASC_DB:
                                                                       valid_names))
         #---------------------------------------------------------------------.
         # Subset the mascdb
-        idx = np.isin(arr, values)
+        idx = np.isin(arr, values, invert=invert)
         return self.isel(idx) 
 
-    def select_riming_class(self, values, method='Praz2017'): 
+    def select_riming_class(self, values, method='Praz2017', invert=False): 
         if not isinstance(values,(int, str, list, np.ndarray)):
             raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
         # Convert to numpy array object 
@@ -475,10 +497,10 @@ class MASC_DB:
                                                                       valid_names))
         #---------------------------------------------------------------------.
         # Subset the mascdb
-        idx = np.isin(arr, values)
+        idx = np.isin(arr, values, invert=invert)
         return self.isel(idx)     
  
-    def select_melting_class(self, values, method='Praz2017'): 
+    def select_melting_class(self, values, method='Praz2017', invert=False): 
         if not isinstance(values,(int, str, list, np.ndarray)):
             raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
         # Convert to numpy array object 
@@ -508,13 +530,58 @@ class MASC_DB:
                                                                       valid_names))
         #---------------------------------------------------------------------.
         # Subset the mascdb
-        idx = np.isin(arr, values)
+        idx = np.isin(arr, values, invert=invert)
         return self.isel(idx)  
-  
-    ##------------------------------------------------------------------------.
-    ################
-    ### Getters ####
-    ################  
+    
+    def select_precip_class(self, values, method='Schaer2020', invert=False): 
+        if not isinstance(values,(int, str, list, np.ndarray)):
+            raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
+        # Convert to numpy array object 
+        if isinstance(values, (int,str)):
+            values = np.array([values])
+        else: 
+            values = np.array(values)
+        # If values are integers --> Assume it provide the class id
+        if isinstance(values[0].item(), int):
+            valid_names = list(get_bs_precip_class_name_dict().values()) # id
+            column = 'bs_precip_class_id'    
+        # If values are str --> Assume it provide the class name
+        elif isinstance(values[0].item(), str):
+            valid_names = list(get_bs_precip_class_name_dict().keys())   # name
+            column = 'bs_precip_class_name'
+        else:
+            raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
+        #---------------------------------------------------------------------.
+        # Retrieve triplet column values 
+        arr = self.triplet[column].values
+        # Check values are valid 
+        unvalid_values = values[np.isin(values, valid_names, invert=True)]
+        if len(unvalid_values) > 0: 
+            raise ValueError("{} is not a {} of the current mascdb. "
+                             "Current mascdb has {} values {}".format(unvalid_values.tolist(),
+                                                                      column, column,
+                                                                      valid_names))
+        #---------------------------------------------------------------------.
+        # Subset the mascdb
+        idx = np.isin(arr, values, invert=invert)
+        return self.isel(idx)  
+       
+    def discard_snowflake_class(self, values, method='Praz2017'):
+        return self.select_snowflake_class(values=values, method=method, invert = True) 
+    
+    def discard_melting_class(self, values, method='Praz2017'):
+        return self.select_melting_class(values=values, method=method, invert = True) 
+    
+    def discard_riming_class(self, values, method='Praz2017'):
+        return self.select_riming_class(values=values, method=method, invert = True) 
+      
+    def discard_precip_class(self, values, method='Schaer2020'):
+        return self.select_precip_class(values=values, method=method, invert = True)
+    
+    ####----------------------------------------------------------------------.
+    #################
+    #### Getters ####
+    #################  
     # The following properties are used to avoid accidental modification in place by the user
     @property
     def da(self):
@@ -563,6 +630,7 @@ class MASC_DB:
     
     @property
     def full_db(self):
+        # TODO: check same order as ds_images ... maybe add cam_id  and campaign args 
         # Add CAM_ID to each cam db 
         l_cams = [self.cam0, self.cam1, self.cam2]
         for i, cam in enumerate(l_cams):
@@ -570,13 +638,7 @@ class MASC_DB:
         # Merge cam(s) db into 
         full_db = pd.concat(l_cams)
         # Add triplet variables to fulldb 
-        # TODO: to remove/modify in future
-        labels_vars = ['riming_deg_level', 'riming_id','riming_id_prob', 
-                       'melting_id',
-                       'melting_prob',  
-                       'snowflake_class_name',       
-                       'snowflake_class_id',
-                       'snowflake_class_id_prob']
+        labels_vars = get_vars_class()
         vars_not_add = ['pix_size','quality_xhi_flake','n_roi', 'Dmax_flake'] + labels_vars
         triplet = self.triplet.drop(columns=vars_not_add)
         full_db = full_db.merge(triplet, how="left")
@@ -625,10 +687,10 @@ class MASC_DB:
             raise NotImplementedError()
         return da_stacked   
     
-    ##------------------------------------------------------------------------.
-    ##############################
-    ### Datetime/Event utils #####
-    ##############################
+    ####----------------------------------------------------------------------.
+    ###################### 
+    #### Event utils #####
+    ###################### 
     def _add_event_n_triplets(self):
         if 'event_id' not in list(self._triplet.columns):
             raise ValueError("First define 'event_id' using mascdb.define_event_id().")
@@ -880,6 +942,267 @@ class MASC_DB:
         #--------------------------------------------------. 
         return p  
      
-    ##------------------------------------------------------------------------.
+    ####-----------------------------------------------------------------------.
+    ####################### 
+    #### MASCDB Updates ###
+    ####################### 
+    def compute_2Dimage_descriptors(self, fun, labels, fun_kwargs = None, force=False,
+                                    dask = "parallelized"):
+        #---------------------------------------------------------------------.
+        # Check if specified labels are already columns of mascdb.cam* 
+        existing_cam_columns = list(self._cam0.columns)
+        overwrited_columns = list(np.array(existing_cam_columns)[np.isin(existing_cam_columns, labels)])
+        if not force: 
+            if len(overwrited_columns) > 0:
+                raise ValueError("Columns {} would be overwrited. "
+                                 "Specify force=True if you want to overwrite existing columns.".format(overwrited_columns))
+                
+        #---------------------------------------------------------------------.
+        # Compute descriptors 
+        da_descriptors = _compute_2Dimage_descriptors(da = self.da, 
+                                                      fun = fun,
+                                                      labels = labels, 
+                                                      fun_kwargs = fun_kwargs,
+                                                      dask = dask)
+        #---------------------------------------------------------------------.
+        # Retrieve cam dataframes 
+        cam0 = da_descriptors.isel(CAM_ID = 0).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
+        cam1 = da_descriptors.isel(CAM_ID = 1).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
+        cam2 = da_descriptors.isel(CAM_ID = 2).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
+        
+        #---------------------------------------------------------------------.
+        # Attach to new mascdb instance
+        new_mascdb = self.add_cam_columns(cam0=cam0, cam1=cam1, cam2=cam2, force=force, complete=True)
+        # Return new mascdb instance
+        return new_mascdb 
 
- 
+
+    def add_cam_columns(self, cam0, cam1, cam2, force=False, complete=True): 
+        """
+        Method allowing to safely add columns to cam dataframes of MASCDB.
+        
+        Parameters
+        ----------
+        cam0 : pd.DataFrame
+            pd.DataFrame with index 'flake_id' .
+        cam1 : pd.DataFrame
+            pd.DataFrame with index 'flake_id' .
+        cam2 : pd.DataFrame
+            pd.DataFrame with index 'flake_id' .
+        force : bool, optional
+            Wheter to overwrite existing column of mascdb. The default is False.
+        complete : vool, optional
+            Wheter to merge only when the cam dataframes have same 'flake_id' of 
+            the current mascdb. The default is True.
+    
+        Returns
+        -------
+        MASCDB class instance
+        
+        """
+        #---------------------------------------------------------------------.
+        # Copy new instance 
+        self = copy.deepcopy(self)
+        #---------------------------------------------------------------------.
+        # Check all cam* are pd.DataFrame 
+        cam0 = check_df(cam0, name='cam0')
+        cam1 = check_df(cam1, name='cam1')
+        cam2 = check_df(cam2, name='cam2')
+        
+        # Check length is the same across all dataframes 
+        n_cam0 = len(cam0)
+        n_cam1 = len(cam1)
+        n_cam2 = len(cam2) 
+        if not n_cam0 == n_cam1: 
+            raise ValueError("cam0 has {} rows, while cam1 has {} rows.".format(n_cam0, n_cam1))
+        if not n_cam0 == n_cam2: 
+            raise ValueError("cam0 has {} rows, while cam2 has {} rows.".format(n_cam0, n_cam2))
+          
+        # Check columns are the same across all dataframes
+        cam0_columns = np.sort(list(cam0.columns))
+        cam1_columns = np.sort(list(cam1.columns))
+        cam2_columns = np.sort(list(cam2.columns))
+        if not np.array_equal(cam0_columns, cam1_columns): 
+            raise ValueError("cam0 and cam1 does not have the same column names.")
+        if not np.array_equal(cam0_columns, cam2_columns): 
+            raise ValueError("cam0 and cam2 does not have the same column names.")
+        
+        #---------------------------------------------------------------------.
+        ### - Check cam flake_id match each others
+        cam0_flake_ids = np.sort(cam0.index.values)
+        cam1_flake_ids = np.sort(cam0.index.values)
+        cam2_flake_ids = np.sort(cam0.index.values)
+        if not np.array_equal(cam0_flake_ids, cam1_flake_ids): 
+            raise ValueError("cam0 and cam1 does not have the same 'flake_id' index.")
+        if not np.array_equal(cam0_flake_ids, cam2_flake_ids): 
+            raise ValueError("cam0 and cam2 does not have the same 'flake_id' index.")
+        
+        #---------------------------------------------------------------------.
+        # Check if column names already exist in mascdb.cam* 
+        existing_cam_columns = list(self._cam0.columns)
+        overwrited_columns = list(np.array(existing_cam_columns)[np.isin(existing_cam_columns, cam0_columns)])
+        if not force: 
+            if len(overwrited_columns) > 0:
+                raise ValueError("Columns {} would be overwrited. "
+                                 "Specify force=True if you want to overwrite existing columns.".format(overwrited_columns))
+        
+        #---------------------------------------------------------------------.
+        # Drop columns that must be overwrited 
+        if len(overwrited_columns) > 0:
+            self._cam0 = self._cam0.drop(columns=overwrited_columns)
+            self._cam1 = self._cam1.drop(columns=overwrited_columns)
+            self._cam2 = self._cam2.drop(columns=overwrited_columns)
+            
+        #---------------------------------------------------------------------.
+        # Ensure columns order is the same across all dataframes 
+        cam0 = cam0[cam0_columns]
+        cam1 = cam1[cam1_columns]
+        cam1 = cam2[cam2_columns]
+           
+        #---------------------------------------------------------------------.
+        ### - Check flake_id match between mascdb and provided cam dataframes 
+        new_flake_ids = cam0_flake_ids
+        existing_flake_ids = self._cam0['flake_id'].values
+        
+        missing_flake_ids = existing_flake_ids[np.isin(existing_flake_ids, new_flake_ids, invert=True)]
+        matching_flake_ids = new_flake_ids[np.isin(new_flake_ids, existing_flake_ids)]
+        non_matching_flake_ids = new_flake_ids[np.isin(new_flake_ids, existing_flake_ids, invert=True)]
+       
+        #----------------------------------------------------------------------. 
+        # Check at least 1 flake_id match 
+        if len(matching_flake_ids) == 0: 
+            raise ValueError("No matching 'flake_id' between current mascdb and provided cam dataframes.")
+        
+        #---------------------------------------------------------------------. 
+        # Check flake_id index and number of rows of new cam correspond to existing one 
+        if complete: 
+            # Check that there are the same flake_id 
+            if len(missing_flake_ids) > 0: 
+                msg = ("There are {} flake_id missing in the provided cam dataframes. \n " 
+                       "If you want to still merge the new columns, specify complete=False. \n "  
+                      "New columns with non-matching rows will be filled by NaN.".format(len(missing_flake_ids)))
+                raise ValueError(msg)
+            # Check number of rows 
+            if self._n_triplets != n_cam0: 
+                msg = ("The provided cam dataframes have {} rows, while "  
+                      "the current mascdb has {} rows. \n "  
+                      "If you want to still merge the new columns, specify complete=False. \n "  
+                      "New columns with non-matching rows will be filled by NaN.".format(n_cam0, self._n_triplets))
+                raise ValueError(msg)
+                
+        #---------------------------------------------------------------------. 
+        # Print a message if some flake_id does not have a match         
+        if len(non_matching_flake_ids) > 0:
+            msg = ("There are {} flake_id in the provided cam dataframes which "
+                   "will not be merged to the mascdb because of non-matching flake_id.".format(len(non_matching_flake_ids)))
+            print(msg)
+            
+        #---------------------------------------------------------------------.
+        # Join data     
+        self._cam0 = self._cam0.merge(cam0, how="left", on='flake_id')
+        self._cam1 = self._cam1.merge(cam1, how="left", on='flake_id')
+        self._cam2 = self._cam2.merge(cam2, how="left", on='flake_id')
+        
+        #---------------------------------------------------------------------.
+        # Return the new mascdb 
+        return self 
+    
+    def add_triplet_columns(self, df, force=False, complete=True): 
+        """
+        Method allowing to safely add columns to cam dataframes of MASCDB.
+        
+        Parameters
+        ----------
+        df : pd.DataFrame
+            pd.DataFrame with index 'flake_id' .
+        force : bool, optional
+            Wheter to overwrite existing column of mascdb. The default is False.
+        complete : vool, optional
+            Wheter to merge only when the provided dataframe has the same 'flake_id' of 
+            the current mascdb triplet dataframe. The default is True.
+    
+        Returns
+        -------
+        MASCDB class instance
+        
+        """
+        #---------------------------------------------------------------------.
+        # Copy new instance 
+        self = copy.deepcopy(self)
+        #---------------------------------------------------------------------.
+        # Check df is pd.DataFrame 
+        df = check_df(df, name='df')
+            
+        # Check length is the same across all dataframes 
+        n_df = len(df)
+        
+        # Check columns are the same across all dataframes
+        df_columns = list(df.columns)
+       
+        #---------------------------------------------------------------------.
+        ### - Check df flake_id match each others
+        df_flake_ids = np.sort(df.index.values)
+                
+        #---------------------------------------------------------------------.
+        # Check if column names already exist in mascdb.triplet 
+        existing_triplet_columns = list(self._triplet.columns)
+        overwrited_columns = list(np.array(existing_triplet_columns)[np.isin(existing_triplet_columns, df_columns)])
+        if not force: 
+            if len(overwrited_columns) > 0:
+                raise ValueError("Columns {} would be overwrited. "
+                                 "Specify force=True if you want to overwrite existing columns.".format(overwrited_columns))
+        
+        #---------------------------------------------------------------------.
+        # Drop columns that must be overwrited 
+        if len(overwrited_columns) > 0:
+            self._triplet = self._triplet.drop(columns=overwrited_columns)
+                            
+        #---------------------------------------------------------------------.
+        ### - Check flake_id match between mascdb and provided dataframes 
+        new_flake_ids = df_flake_ids
+        existing_flake_ids = self._triplet['flake_id'].values
+        
+        missing_flake_ids = existing_flake_ids[np.isin(existing_flake_ids, new_flake_ids, invert=True)]
+        matching_flake_ids = new_flake_ids[np.isin(new_flake_ids, existing_flake_ids)]
+        non_matching_flake_ids = new_flake_ids[np.isin(new_flake_ids, existing_flake_ids, invert=True)]
+       
+        #---------------------------------------------------------------------. 
+        # Check at least 1 flake_id match 
+        if len(matching_flake_ids) == 0: 
+            raise ValueError("No matching 'flake_id' between current mascdb and provided dataframe.")
+        
+        #---------------------------------------------------------------------. 
+        # Check flake_id index and number of rows of new cam correspond to existing one 
+        if complete: 
+            # Check that there are the same flake_id 
+            if len(missing_flake_ids) > 0: 
+                msg = ("There are {} flake_id missing in the provided dataframe. \n " 
+                       "If you want to still merge the new columns, specify complete=False. \n "  
+                      "New columns with non-matching rows will be filled by NaN.".format(len(missing_flake_ids)))
+                raise ValueError(msg)
+            # Check number of rows 
+            if self._n_triplets != n_df: 
+                msg = ("The provided dataframe have {} rows, while "  
+                      "the current mascdb has {} rows. \n "  
+                      "If you want to still merge the new columns, specify complete=False. \n "  
+                      "New columns with non-matching rows will be filled by NaN.".format(n_df, self._n_triplets))
+                raise ValueError(msg)
+                
+        #---------------------------------------------------------------------. 
+        # Print a message if some flake_id does not have a match         
+        if len(non_matching_flake_ids) > 0:
+            msg = ("There are {} flake_id in the provided df dataframe which "
+                   "will not be merged to the mascdb because of non-matching flake_id.".format(len(non_matching_flake_ids)))
+            print(msg)
+        #---------------------------------------------------------------------.
+        # Join data     
+        self._triplet = self._triplet.merge(df, how="left", on='flake_id')
+    
+        #---------------------------------------------------------------------.
+        # Return the new mascdb 
+        return self 
+      
+    
+    
+    
+    
