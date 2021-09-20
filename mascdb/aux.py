@@ -9,6 +9,11 @@ IMPORTANT: keep up to date with eventual name change of variables
 
 """
 
+
+####--------------------------------------------------------------------------.
+#######################
+#### Snowflake class ## 
+#######################
 def get_snowflake_class_name_dict(method='Praz2017'):
     """
     Get hydrometeor class ID from label name according to a given hydrometeor classif method.
@@ -39,13 +44,35 @@ def get_snowflake_class_name_dict(method='Praz2017'):
 
     return dict
 
+def get_snowflake_class_name_colors_dict(method='Praz2017'):
+    if method == 'Praz2017':
+        dict = {'small_particle':'forestgreen', 
+                'columnar_crystal': 'darkblue',
+                'planar_crystal': 'red',  
+                'aggregate': 'orange',  
+                'graupel': 'yellow', 
+               'columnar_planar_combination': 'gray',
+               }
+    else:
+        raise ValueError("Snowflake class dictionary not available for method {}.".format(method))
+    
+    return dict
 
 def get_snowflake_class_id_dict(method='Praz2017'):    
-    # TODO : doc string as above 
     dict = get_snowflake_class_name_dict(method=method)
     dict = {v: k for k, v in dict.items()} 
     return dict
 
+def get_snowflake_class_id_colors_dict(method='Praz2017'):    
+    colors_dict = get_snowflake_class_name_colors_dict(method=method)
+    name_dict = get_snowflake_class_name_dict(method=method)
+    dict = {name_dict[k]: v for k, v in colors_dict.items()} 
+    return dict
+
+####--------------------------------------------------------------------------.
+####################
+#### Riming class ## 
+####################
 def get_riming_class_name_dict(method='Praz2017'):
     """
     Get riming class ID from riming name
@@ -63,7 +90,7 @@ def get_riming_class_name_dict(method='Praz2017'):
                 'unrimed':1,
                 'rimed':2,
                 'densely_rimed':3,
-                'greupel-like':4,
+                'graupel-like':4,
                 'graupel':5
                }
     else:
@@ -71,31 +98,75 @@ def get_riming_class_name_dict(method='Praz2017'):
 
     return dict
 
+def get_riming_class_name_colors_dict(method='Praz2017'):
+    if method == 'Praz2017':
+        dict = {'undefined': "forestgreen",
+                'unrimed': 'darkblue',
+                'rimed': 'red',  
+                'densely_rimed': "orange",
+                'graupel-like': "yellow",
+                'graupel': "gray", 
+                }
+    else:
+        raise ValueError("Riming class dictionary not available for method {}.".format(method))
+    
+    return dict
+    
 def get_riming_class_id_dict(method='Praz2017'):
-    # TODO : doc string as above 
     dict = get_riming_class_name_dict(method=method)
     dict = {v: k for k, v in dict.items()} 
     return dict
- 
+
+def get_riming_class_id_colors_dict(method='Praz2017'):    
+    colors_dict = get_riming_class_name_colors_dict(method=method)
+    name_dict = get_riming_class_name_dict(method=method)
+    dict = {name_dict[k]: v for k, v in colors_dict.items()} 
+    return dict
+
+####--------------------------------------------------------------------------.
+#####################
+#### Melting class ## 
+#####################
 def get_melting_class_name_dict(method='Praz2017'):
     # TODO : doc string as above (and adapt class names ;) 
     if method == 'Praz2017':
-        dict = {
-                'dry': 0,
-                'melting':1,
+        dict = {'undefined': 0,  # TODO: UPDATE 
+                'dry': 1,
+                'melting':2,
                }
     else:
         raise ValueError("Melting class dictionary not available for method {}.".format(method))
 
     return dict
 
+def get_melting_class_name_colors_dict(method='Praz2017'):
+    if method == 'Praz2017':
+        dict = {'undefined': "forestgreen",
+                'dry': 'darkblue',
+                'melting': 'orange',  
+                }
+    else:
+        raise ValueError("Melting class dictionary not available for method {}.".format(method))
+    
+    return dict
+
 def get_melting_class_id_dict(method='Praz2017'):
-    # TODO : doc string as above 
     dict = get_melting_class_name_dict(method=method)
     dict = {v: k for k, v in dict.items()} 
     return dict
 
-def get_bs_precip_class_name_dict(method='Schaer2020'):
+def get_melting_class_id_colors_dict(method='Praz2017'):    
+    # TODO : doc string as above 
+    colors_dict = get_melting_class_name_colors_dict(method=method)
+    name_dict = get_melting_class_name_dict(method=method)
+    dict = {name_dict[k]: v for k, v in colors_dict.items()} 
+    return dict
+
+####--------------------------------------------------------------------------.
+############################
+#### Precipitation Class ###
+############################
+def get_precip_class_name_dict(method='Schaer2020'):
     # TODO : doc string as above (and adapt class names ;) 
     if method == 'Schaer2020':
         dict = {
@@ -109,14 +180,57 @@ def get_bs_precip_class_name_dict(method='Schaer2020'):
 
     return dict
 
-def get_bs_precip_class_id_dict(method='Schaer2020'):
-    # TODO : doc string as above 
-    dict = get_bs_precip_class_name_dict(method=method)
+def get_precip_class_name_colors_dict(method='Praz2017'):
+    if method == 'Schaer2020':
+        dict = {'undefined': "forestgreen",
+                'precip': 'darkblue',
+                'mixed': 'orange',  
+                'blowing_snow': 'yellow',  
+                }
+    else:
+        raise ValueError("Precipitation class dictionary not available for method {}.".format(method))
+    
+    return dict
+
+def get_precip_class_id_dict(method='Schaer2020'):
+    dict = get_precip_class_name_dict(method=method)
     dict = {v: k for k, v in dict.items()} 
     return dict
 
+def get_precip_class_id_colors_dict(method='Schaer2020'):    
+    colors_dict = get_precip_class_name_colors_dict(method=method)
+    name_dict = get_precip_class_name_dict(method=method)
+    dict = {name_dict[k]: v for k, v in colors_dict.items()} 
+    return dict
 
 
+####--------------------------------------------------------------------------.
+####################### 
+#### Campaign Utils ###
+#######################
+def get_campaign_colors_dict():
+    d_c = {'APRES3-2016': "forestgreen",
+           'APRES3-2017': "lightgreen",
+           'Davos-2015': 'darkblue',
+           'Davos-2019': 'lightblue',
+           'Valais-2016': 'turquoise',
+           'ICEPOP-2018': "violet",
+           'PLATO-2019': "pink",
+           'Jura-2019': "orange",
+           'POPE-2020': "yellow", 
+           'ICEGENESIS-2021': "red",
+           }
+    return d_c
+
+def get_campaign_names():
+    # TODO : doc string as above (and adapt class names ;) 
+    l = list(get_campaign_colors_dict().keys())
+    return l
+
+####--------------------------------------------------------------------------.
+##############
+#### Units ###
+##############
 
 def get_units():
     """
@@ -201,16 +315,16 @@ def get_units():
              'Dmax_ori':           'deg',
              'Dmax_90':            'm',
              'D90_r':              '-',
-             'riming_class_id':          'class',
-             'riming_class_id_prob':     '-',
-             'riming_class_name':        'class string',
+             'riming_class_id':    'class',
+             'riming_class_prob': '-',
+             'riming_class_name':  'class string',
              'riming_deg_level':   '-',
-             'melting_class_id':         'boolean',
+             'melting_class_id':   'boolean',
              'melting_class_name': 'class_string',
              'melting_prob':       '-',
              'snowflake_class_name':'class string',
              'snowflake_class_id':  'class',
-             'snowflake_class_id_prob': '-',
+             'snowflake_class_prob': '-',
 
              'fallspeed':          'm s**-1',
              'campaign':           '-',
@@ -227,7 +341,7 @@ def get_units():
 
              'bs_nor_angle':       '-',
              'bs_mix_ind':         '-',
-             'bs_precip_type':     'class string',
+             'bs_precipitation_class': 'class string',
 
              'env_T':              'deg C',
              'env_P':              'hPa',
@@ -236,6 +350,12 @@ def get_units():
              'env_RH':             '%'
              }
     return units
+
+
+####--------------------------------------------------------------------------.
+###########################
+#### Dataframe columns  ###
+###########################
 
 def get_vars_gan3d():
     variables = ['gan3d_mass',
@@ -276,7 +396,7 @@ def get_vars_class():
                  'riming_deg_level', 
                  'melting_class_id',
                  'melting_class_name',
-                 'melting_prob', 
+                 'melting_class_prob', 
                  'snowflake_class_name', 
                  'snowflake_class_id',
                  'snowflake_class_id_prob',
