@@ -18,7 +18,7 @@ from mascdb.utils_event import _get_timesteps_duration
 from mascdb.aux import get_snowflake_class_name_dict
 from mascdb.aux import get_riming_class_name_dict
 from mascdb.aux import get_melting_class_name_dict
-from mascdb.aux import get_bs_precip_class_name_dict
+from mascdb.aux import get_precip_class_name_dict
 from mascdb.aux import get_vars_class
   
 from mascdb.utils_img import _compute_2Dimage_descriptors
@@ -138,9 +138,11 @@ def _check_enhancement(enhancement):
             
 def _check_isel_idx(idx, vmax):
     # Return a numpy array of positional idx 
-    if not isinstance(idx, (int,list, pd.Series, np.ndarray)):
-        raise ValueError("Expecting isel idx to be int, list/pd.Series/np.array of int or boolean.")
+    if not isinstance(idx, (int,list, slice,  pd.Series, np.ndarray)):
+        raise ValueError("isel expect a slice object, an integer or a list/pd.Series/np.array of int or boolean.")
     # Reformat all types to unique format 
+    if isinstance(idx, slice): 
+        idx = np.arange(idx.start, idx.stop, idx.step)
     if isinstance(idx, np.ndarray):
         if idx.dtype.name == 'bool':
             idx = np.where(idx)[0]
@@ -173,7 +175,12 @@ def _check_isel_idx(idx, vmax):
     # Return idx 
     return idx 
 
-def check_df(df, name=None):
+def _check_timedelta(timedelta): 
+    if not isinstance(timedelta, (pd.Timedelta, np.timedelta64)):
+        raise TypeError("'timedelta' must be a pd.Timedelta or np.timedelta64 instance.")
+    return timedelta 
+
+def _check_df(df, name=None):
     if not isinstance(df, pd.DataFrame):
         if name is not None: 
             raise TypeError("{} is not a pd.DataFrame".format(name))
@@ -181,6 +188,8 @@ def check_df(df, name=None):
            raise TypeError("Expecting a pd.DataFrame".format(name)) 
     return df 
 
+def _count_occurence(x): 
+    return [dict(zip(list(x.value_counts().keys()), list(x.value_counts())))]
 
 ####-----------------------------------------------------------------------------.
 class MASC_DB:
@@ -207,16 +216,20 @@ class MASC_DB:
         self._da.name = "MASC Images"
 
         # Read data into dataframes
-        self._cam0    = pd.read_parquet(cam0_fpath)
-        self._cam1    = pd.read_parquet(cam1_fpath)
-        self._cam2    = pd.read_parquet(cam2_fpath)
-        self._triplet = pd.read_parquet(triplet_fpath)
+        self._cam0    = pd.read_parquet(cam0_fpath).convert_dtypes()
+        self._cam1    = pd.read_parquet(cam1_fpath).convert_dtypes()
+        self._cam2    = pd.read_parquet(cam2_fpath).convert_dtypes()
+        self._triplet = pd.read_parquet(triplet_fpath).convert_dtypes()
         
         # Number of triplets 
         self._n_triplets = len(self._triplet)
         
         # Save dir_path info 
         self._dir_path = dir_path
+        
+        # Add default events
+        self._define_events(maximum_interval_without_images = np.timedelta64(4,'h'),
+                            unit="ns")
     
     
     ####----------------------------------------------------------------------.
@@ -331,13 +344,13 @@ class MASC_DB:
         idx = np.random.choice(self._n_triplets, n) 
         return self.isel(idx)
         
-    def first_n(self, n=10):  
+    def first(self, n=1):  
         if n > len(self): 
             raise ValueError("The MASCDB instance has currently only {} triplets.".format(len(self)))
         idx = np.arange(n)
         return self.isel(idx)
     
-    def last_n(self, n=10): 
+    def last(self, n=1): 
         if n > len(self): 
             raise ValueError("The MASCDB instance has currently only {} triplets.".format(len(self)))
         idx = np.arange(self._n_triplets-1,self._n_triplets-n-1, step=-1)
@@ -543,11 +556,11 @@ class MASC_DB:
             values = np.array(values)
         # If values are integers --> Assume it provide the class id
         if isinstance(values[0].item(), int):
-            valid_names = list(get_bs_precip_class_name_dict().values()) # id
+            valid_names = list(get_precip_class_name_dict().values()) # id
             column = 'bs_precip_class_id'    
         # If values are str --> Assume it provide the class name
         elif isinstance(values[0].item(), str):
-            valid_names = list(get_bs_precip_class_name_dict().keys())   # name
+            valid_names = list(get_precip_class_name_dict().keys())   # name
             column = 'bs_precip_class_name'
         else:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
@@ -629,6 +642,96 @@ class MASC_DB:
         return gan3d_db
     
     @property
+    def event(self):
+        # columns = list(self._triplet.columns)
+        # event_columns = [column for column in columns if column.startswith("event_")]
+        event_columns = ['event_id', 'event_duration', 'event_n_triplets',
+                         'campaign', 'datetime', 'latitude', 'longitude','altitude']
+        event_db = self.triplet[event_columns].groupby('event_id').first().reset_index()
+        event_db['start_time'] = self.triplet[["event_id","datetime"]].groupby('event_id').min()
+        event_db['end_time'] = self.triplet[["event_id","datetime"]].groupby('event_id').max()
+        event_db['month'] = event_db.datetime.dt.month
+        event_db['year'] = event_db.datetime.dt.year
+        _ = event_db.drop(columns="datetime", inplace=True)
+        return event_db 
+    
+    ## BUG !!!
+    # df_event = event_db
+    # df_event[['start_time',c_id]].groupby(c_id).min()  
+    # df_event1 = self.event
+    
+    @property
+    def campaign(self): 
+        #----------------------------------------------.
+        # Retrieve data 
+        df_event = self.event     
+        df_triplet = self.triplet    
+        c_id = 'campaign'
+        #----------------------------------------------.
+        # Compute location info  
+        columns = ['latitude','longitude', 'altitude', 'campaign']
+        info_location = df_event[columns].groupby('campaign').first().reset_index()
+        
+        #----------------------------------------------.
+        # Compute number of triplets 
+        # - n_triplet  (sum)
+        n_triplets = df_triplet.groupby(c_id)['flake_id'].count()
+        n_triplets.name = "n_triplets"
+        
+        #----------------------------------------------.
+        ## Compute event summary
+        n_events = df_event[['event_id',c_id]].groupby(c_id).count()
+        n_events.columns = ["n_events"]
+        start_time = df_event[['start_time',c_id]].groupby(c_id).min()  
+        end_time = df_event[['end_time',c_id]].groupby(c_id).max()      
+        event_duration_stats = df_event.groupby(c_id).agg({'event_duration': ['min','mean','max','sum']})
+        event_duration_stats.columns = ["event_duration_min", "event_duration_mean", "event_duration_max", "total_event_duration"]
+        
+        #----------------------------------------------.
+        ### Compute class occurence    
+        snowflake_class_counts = df_triplet[['snowflake_class_name',c_id]].groupby(c_id)['snowflake_class_name'].apply(_count_occurence).apply(lambda x: x[0])     
+        riming_class_counts = df_triplet[['riming_name',c_id]].groupby(c_id)['riming_name'].apply(_count_occurence).apply(lambda x: x[0])     
+        melting_class_counts = df_triplet[['melting_id',c_id]].groupby(c_id)['melting_id'].apply(_count_occurence).apply(lambda x: x[0])     
+        precipitation_class_counts = df_triplet[['bs_precip_type',c_id]].groupby(c_id)['bs_precip_type'].apply(_count_occurence).apply(lambda x: x[0])     
+        snowflake_class_counts.name = "snowflake_class"
+        riming_class_counts.name = "riming_class"
+        melting_class_counts.name = "melting_class"
+        precipitation_class_counts.name = "precipitation_class"
+        
+        ## TODO replace 
+        # snowflake_class_counts = df_triplet[['snowflake_class_name',c_id]].groupby(c_id)['snowflake_class_name'].apply(_count_occurence).apply(lambda x: x[0]) 
+        # riming_class_counts = df_triplet[['riming_class_name',c_id]].groupby(c_id)['riming_class_name'].apply(_count_occurence).apply(lambda x: x[0]) 
+        # melting_class_counts = df_triplet[['melting_class_name',c_id]].groupby(c_id)['melting_class_name'].apply(_count_occurence).apply(lambda x: x[0]) 
+        # precipitation_class_counts = df_triplet[['bs_precipitation_class',c_id]].groupby(c_id)['bs_precipitation_class'].apply(_count_occurence).apply(lambda x: x[0]) 
+        # snowflake_class_counts.name = "snowflake_class"
+        # riming_class_counts.name = "riming_class"
+        # melting_class_counts.name = "melting_class"
+        # precipitation_class_counts.name = "precipitation_class"
+        
+        #----------------------------------------------.
+        ## Compute other time infos 
+        # months_list = df_triplet.groupby(c_id)['datetime'].apply(lambda x: list(np.unique(x.dt.month_name())))
+        # months_list.name = "months"
+        # years_list = df_triplet.groupby(c_id)['datetime'].apply(lambda x: list(np.unique(x.dt.year)))
+        # years_list.name = "years"
+        # years_months_list = df_triplet.groupby(c_id)['datetime'].apply(lambda x: list(np.unique(x.dt.strftime('%Y-%m'))))
+        # years_months_list.name = "years_months"
+        
+        #----------------------------------------------.
+        # Define summary dataframe
+        summary = pd.merge(start_time, end_time, right_index=True, left_index=True)
+        summary = summary.join(info_location)
+        summary = summary.join(n_triplets)
+        summary = summary.join(n_events)
+        summary = summary.join(event_duration_stats)
+        summary = summary.join(snowflake_class_counts)
+        summary = summary.join(riming_class_counts)
+        summary = summary.join(melting_class_counts)
+        summary = summary.join(precipitation_class_counts)
+        #----------------------------------------------.
+        return summary 
+
+    @property
     def full_db(self):
         # TODO: check same order as ds_images ... maybe add cam_id  and campaign args 
         # Add CAM_ID to each cam db 
@@ -694,22 +797,37 @@ class MASC_DB:
     def _add_event_n_triplets(self):
         if 'event_id' not in list(self._triplet.columns):
             raise ValueError("First define 'event_id' using mascdb.define_event_id().")
-        event_triplets = self.triplet.groupby('event_id').size()
+        event_triplets = self._triplet.groupby('event_id').size()
         event_triplets.name = "event_n_triplets"
+        # - Remove existing column to remerge 
+        if "event_n_triplets" in list(self._triplet.columns):
+            _ = self._triplet.drop(columns="event_n_triplets", inplace=True)
+        # - Add column 
         self._triplet = self._triplet.merge(event_triplets, on="event_id")
+        return None
         
-    def _add_event_duration(self):
+    def _add_event_duration(self, unit="ns"):
         if 'event_id' not in list(self._triplet.columns):
             raise ValueError("First define 'event_id' using mascdb.define_event_id().")
-        event_durations = self.triplet.groupby('event_id').apply(lambda x: _get_timesteps_duration(x.datetime, unit="m"))
+        event_durations = self._triplet.groupby('event_id').apply(lambda x: _get_timesteps_duration(x.datetime, unit=unit))
         event_durations.name = "event_duration"
+        # - Remove existing column to remerge
+        if "event_duration" in list(self._triplet.columns):
+            _ = self._triplet.drop(columns="event_duration", inplace=True)
+        # - Add column 
         self._triplet = self._triplet.merge(event_durations, on="event_id")
-        
-    def define_event_id(self, timedelta_thr): 
+        return None
+    
+    def _define_events(self, 
+                      maximum_interval_without_images = np.timedelta64(4,'h'),
+                      unit="ns"):   
+        # This function modify in place       
+        #----------------------------------------------------------.
         # - Extract relevant columns from triplet db
         db = self.triplet[['campaign','datetime']]
         # - Retrieve campaign_ids 
         campaign_ids = np.unique(db['campaign'])
+        #----------------------------------------------------------.
         # - Retrieve event_id column 
         db['event_id'] = -1
         max_event_id = 0
@@ -718,28 +836,124 @@ class MASC_DB:
             idx_campaign = db['campaign'] == campaign_id
             # - Define event_ids for the campaign 
             campaign_event_ids = _define_event_id(timesteps = db.loc[idx_campaign,'datetime'], 
-                                                 timedelta_thr=timedelta_thr)
+                                                  maximum_interval_without_timesteps = maximum_interval_without_images)
             # - Add offset to ensure having an unique event_id across all campaigns 
             campaign_event_ids = campaign_event_ids + max_event_id  
             # - Add event_id to the campaign subset of the database 
             db.loc[idx_campaign, 'event_id'] = campaign_event_ids
             # - Update the current maximum event_id
             max_event_id = max(campaign_event_ids) + 1
-         
+        #----------------------------------------------------------.
         # - Add event_id column to all databases 
         self._cam0['event_id'] = db['event_id']
         self._cam1['event_id'] = db['event_id']
         self._cam2['event_id'] = db['event_id']
         self._triplet['event_id'] = db['event_id']
-        
-        # - Add also duration and n_triplets for each event 
-        self._add_event_duration()
+        #----------------------------------------------------------.
+        # - Add duration and n_triplets for each event to triplet db 
+        self._add_event_duration(unit=unit)
         self._add_event_n_triplets()
+    
+    ##--------------------------------------------------
+    ## Filtering events utils 
+    def select_events_with_more_triplets_than(self, n):
+        # Note: also used in define_events
+        if not isinstance(n, int): 
+            raise TypeError('Expects an integer')
+        if n < 1: 
+            raise ValueError("'n' must be equal or larger than 1.")
+        # If n=1, nothing to subset 
+        if n == 1:
+            return self
+        # Else subset 
+        df_event = self.event 
+        idx_event_ids = df_event['event_n_triplets'] >= n
+        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].values  
+        idx_db_subset = np.isin(self._triplet['event_id'].values, subset_event_ids)
+        return self.isel(idx_db_subset)
+    
+    def select_events_with_less_triplets_than(self, n):
+        if not isinstance(n, int): 
+            raise TypeError('Expects an integer')
+        if n < 1: 
+            raise ValueError("'n' must be equal or larger than 1.")
+        df_event = self.event 
+        idx_event_ids = df_event['event_n_triplets'] <= n
+        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].values  
+        idx_subset = np.isin(self._triplet['event_id'].values, subset_event_ids)
+        return self.isel(idx_subset)
+    
+    def discard_events_with_more_triplets_than(self, n):
+        return self.select_events_with_less_triplets_than(n) 
+    
+    def discard_events_with_less_triplets_than(self, n):
+        return self.select_events_with_more_triplets_than(n) 
         
-    ##------------------------------------------------------------------------.
-    ###########################
-    ### Plotting routines #####
-    ###########################
+    def select_events_with_min_duration(self, timedelta):
+        timedelta = _check_timedelta(timedelta)
+        df_event = self.event
+        idx_event_ids = df_event['event_duration'] >= timedelta
+        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].values  
+        idx_subset = np.isin(self._triplet['event_id'].values, subset_event_ids)
+        return self.isel(idx_subset)
+    
+        # TODO: BUG !!!
+        # df_event[['start_time',c_id]].groupby(c_id).min()  
+        # df_event1 = self.event
+        # df_event1[['start_time',c_id]].groupby(c_id).min() 
+        # a = self.isel(idx_subset)
+        # df_event2 = a.event
+        # df_event2[['start_time',c_id]].groupby(c_id).min() 
+        
+    def select_events_with_max_duration(self, timedelta):
+        timedelta = _check_timedelta(timedelta)
+        df_event = self.event
+        idx_event_ids = df_event['event_duration'] <= timedelta
+        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].values  
+        idx_subset = np.isin(self._triplet['event_id'].values, subset_event_ids)
+        return self.isel(idx_subset)
+    
+    def select_longest_events(self, n=1):
+        longest_event_ids = self.arrange('triplet.event_duration', decreasing=True)._triplet['event_id'].iloc[0:n]
+        idx_longest_events = np.isin(self._triplet['event_id'].values, longest_event_ids)
+        return self.isel(idx_longest_events)
+    
+    def select_shortest_events(self, n=1):
+        shortest_event_ids = self.arrange('triplet.event_duration', decreasing=False)._triplet['event_id'].iloc[0:n]
+        idx_shortest_events = np.isin(self._triplet['event_id'].values, shortest_event_ids)
+        return self.isel(idx_shortest_events)
+        
+    def discard_events_with_max_duration(self, timedelta):
+        return self.select_events_with_min_duration(timedelta) 
+    
+    def discard_events_with_min_duration(self, timedelta):
+        return self.select_events_with_max_duration(timedelta)
+    
+    ##--------------------------------------------------
+    ## Redefine events utils  
+    def redefine_events(self, 
+                        maximum_interval_without_images = np.timedelta64(4,'h'),
+                        minimum_duration = None,
+                        minimum_n_triplets = None,
+                        unit="ns"): 
+        # Copy new instance 
+        self = copy.deepcopy(self)
+        # Define event_id 
+        self._define_events(maximum_interval_without_images=maximum_interval_without_images)
+        #----------------------------------------------------------.
+        # Select only events with min_n_triplets and minimum_event_duration
+        if minimum_n_triplets is not None: 
+            self = self.select_events_with_more_triplets_than(minimum_n_triplets)
+        if minimum_duration is not None: 
+            self = self.select_events_with_min_duration(minimum_duration)
+        #----------------------------------------------------------.
+        # Return the object 
+        return self 
+        
+    ####------------------------------------------------------------------------.
+    #################################
+    #### Image plotting routines ####
+    #################################
 
     def plot_triplets(self, indices=None, random = False, n_triplets = 1,
                       enhancement="histogram_equalization",
@@ -1005,9 +1219,9 @@ class MASC_DB:
         self = copy.deepcopy(self)
         #---------------------------------------------------------------------.
         # Check all cam* are pd.DataFrame 
-        cam0 = check_df(cam0, name='cam0')
-        cam1 = check_df(cam1, name='cam1')
-        cam2 = check_df(cam2, name='cam2')
+        cam0 = _check_df(cam0, name='cam0')
+        cam1 = _check_df(cam1, name='cam1')
+        cam2 = _check_df(cam2, name='cam2')
         
         # Check length is the same across all dataframes 
         n_cam0 = len(cam0)
@@ -1049,9 +1263,9 @@ class MASC_DB:
         #---------------------------------------------------------------------.
         # Drop columns that must be overwrited 
         if len(overwrited_columns) > 0:
-            self._cam0 = self._cam0.drop(columns=overwrited_columns)
-            self._cam1 = self._cam1.drop(columns=overwrited_columns)
-            self._cam2 = self._cam2.drop(columns=overwrited_columns)
+            _ = self._cam0.drop(columns=overwrited_columns, inplace=True)
+            _ = self._cam1.drop(columns=overwrited_columns, inplace=True)
+            _ = self._cam2.drop(columns=overwrited_columns, inplace=True)
             
         #---------------------------------------------------------------------.
         # Ensure columns order is the same across all dataframes 
@@ -1131,7 +1345,7 @@ class MASC_DB:
         self = copy.deepcopy(self)
         #---------------------------------------------------------------------.
         # Check df is pd.DataFrame 
-        df = check_df(df, name='df')
+        df = _check_df(df, name='df')
             
         # Check length is the same across all dataframes 
         n_df = len(df)
@@ -1155,7 +1369,7 @@ class MASC_DB:
         #---------------------------------------------------------------------.
         # Drop columns that must be overwrited 
         if len(overwrited_columns) > 0:
-            self._triplet = self._triplet.drop(columns=overwrited_columns)
+            _ = self._triplet.drop(columns=overwrited_columns, inplace=True)
                             
         #---------------------------------------------------------------------.
         ### - Check flake_id match between mascdb and provided dataframes 
