@@ -8,7 +8,7 @@ Created on Fri Sep  3 11:53:06 2021
 import pandas as pd 
 import numpy as np 
 
-def _define_event_id(timesteps, timedelta_thr):
+def _define_event_id(timesteps, maximum_interval_without_timesteps):
     # Check type validity 
     if not isinstance(timesteps, (list, pd.Series,np.ndarray)):
         raise TypeError("'timesteps' must be a list, pd.Series or np.array with datetime values.")
@@ -24,8 +24,8 @@ def _define_event_id(timesteps, timedelta_thr):
         if not np.issubdtype(timesteps.dtype, np.datetime64):
             raise TypeError("'timesteps' must have np.datetime64 dtype")
             
-    if not isinstance(timedelta_thr, (np.timedelta64, pd.Timedelta)):
-        raise TypeError("'timedelta_thr' must be a np.timedelta64 or pd.Timedelta object.")
+    if not isinstance(maximum_interval_without_timesteps, (np.timedelta64, pd.Timedelta)):
+        raise TypeError("'maximum_interval_without_timesteps' must be a np.timedelta64 or pd.Timedelta object.")
     #-------------------------------------------------------------------------.
     # Check there are timesteps 
     if len(timesteps) == 0: 
@@ -35,7 +35,7 @@ def _define_event_id(timesteps, timedelta_thr):
     if len(timesteps) == 1:
         event_ids = np.array([0])
     else:
-        cont_groups = np.diff(timesteps)  < timedelta_thr
+        cont_groups = np.diff(timesteps)  < maximum_interval_without_timesteps
         cont_groups = np.insert(cont_groups, 0, True)
         event_id = 0
         l_event_id = [] 
