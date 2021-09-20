@@ -21,6 +21,16 @@ cam_id       # LOWERCASE  (0,1,2)
 ### AUX 
 # - Built in function to get verbose explanation of variables
 
+# Class names 
+# 'snowflake_class_id_prob' --> snowflake_class_prob
+# 'riming_id', --> riming_class_id
+# 'riming_id_prob' --> riming_class_prob
+# 'riming_name' --> riming_class_name 
+# 'melting_id', --> melting_class_id
+# 'melting_name', --> melting_class_name
+# 'melting_prob' --> melting_class_prob
+# bs_precip_type --> bs_precipitation_class_name , bs_precipitation_class_id
+
 #### Triplets DB 
 # - Rounding to 3 decimals of triplets  
 # quality_xhi_flake
@@ -48,20 +58,20 @@ cam_id       # LOWERCASE  (0,1,2)
 
 ### In aux add campaign list? 
 
+### Parquet dataframe savings 
+# ... strings column are currently saved as 'object' 
+# ... reading then requires always conversion 
+
 ##----------------------------------------------------------------------------. 
 ############ 
 ### GG #####
 ############ 
-##----------------------------------
-### EVENTS 
-# Number of events per campaign (with minimum duration threshold ... )
-# Total duration of events (with minimum duration threshold ... )(it sums event_id durations)
 
 ##----------------------------------------------------------------------------.
 ##################
 ### TUTORIALS ####
 ##################
-# - To be finalized 
+# - To be finalized !
 
 #################
 ### Optional ####
@@ -75,14 +85,15 @@ mascdb.get_full_db  (cam_id , campaign)
 ds_image, df_descriptors, df_class_ids = mascdb.get_triplet_descriptors_set(sample=1)
 
 ##----------------------------------
-## PLOTS
+## PLOTS SNOWFLAKES
 # -- Minimum size of zoomed image ? To be set? 
 # -- Enhancement on zoomed image? Now on full 1024x1024
 #    If applied on zoomed image, define minimum size if to apply ... 
 # -- Add legend |--| 1 mm over the image 
 # -- Add value of a descriptor in image corner 
-# -- Add sns wrapper 
 
+## PLOTS DATAFRAME
+# -- Add sns wrapper 
 
 ##----------------------------------------------------------------------------.
 ####################
