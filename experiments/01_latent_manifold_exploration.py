@@ -5,293 +5,251 @@ Created on Wed Jun 30 21:15:36 2021
 
 @author: ghiggi
 """
-##----------------------------------------------------------------------------.
-## TODO 
-# It could be interesting to:
-# - Color the manifold for riming degree level
-# - Color the manifold by Campaign to see if the feature manifold (and occurence) is different between campaigns
-# - Derive a manifold only for rimed particles and then use the riming_deg_level to see patterns
-
-##----------------------------------------------------------------------------.
+###########################################
+### MASCDB Latent Manifold Exploration ####
+###########################################
+#-----------------------------------------------------------------------------.
 import os
+
+os.chdir("/home/ghiggi/Projects/pymascdb")
+# os.chdir("/home/grazioli/CODES/python/pymascdb")
 from pathlib import Path
+import umap
+import numpy as np
+import pandas as pd 
+import xarray as xr
 import matplotlib as mpl 
 import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-import umap
+from sklearn.preprocessing import MinMaxScaler
 
-### - Set filepaths  
-dir_path = "/data/MASC_DB/"
-figs_path = "/home/grazioli/tmp/Figs/"
-feature_cam0_fpath = os.path.join(dir_path, "CH_cam0.parquet")
-feature_cam1_fpath = os.path.join(dir_path, "CH_cam1.parquet")
-feature_cam2_fpath = os.path.join(dir_path, "CH_cam2.parquet")
+import mascdb.api
+from mascdb.api import MASC_DB
 
-### - Set columns to remove (not useful for manifold analysis) 
-columns_discarded = ['label_id_prob',
-                     "label_prob_1",
-                     "label_prob_2",
-                     "label_prob_3",
-                     "label_prob_4",
-                     "label_prob_5",
-                     "label_prob_6",
-                     "riming_prob_1",
-                     "riming_prob_2",
-                     "riming_prob_3",
-                     "riming_prob_4",
-                     "riming_prob_5",
-                     "cam",
-                     "datetime",
-                     "flake_id",
-                     "pix_size",
-                     'melting_id',
-                     'melting_prob',
-                     "Campaign",
-                     "label_id",
-                     "label_name",
-                     "riming_deg_level",
-                     'fallspeed', # per evitare di eliminare troppe obs (xke nan)
-                     ]
+dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
+figs_path = "/home/ghiggi/Projects/pymascdb/figs/LatentManifold"
 
+#dir_path = "/data/MASC_DB"
+ 
+##----------------------------------------------------------------------------.
+### Create MASC_DB instance 
+mascdb = MASC_DB(dir_path=dir_path)
+
+##----------------------------------------------------------------------------.
+## TODO 
+# - Dimension reduction for specific snowflake class ... to see patterns 
+# - Dimension reduction for specific rimed class .... to see patterns 
+ 
+##----------------------------------------------------------------------------.
+
+from mascdb.aux import get_vars_cam_descriptors
+from mascdb.aux import get_vars_class_ids
+from mascdb.aux import get_vars_class_names
+
+from mascdb.aux import get_snowflake_class_name_colors_dict
+from mascdb.aux import get_riming_class_name_colors_dict
+from mascdb.aux import get_snowflake_class_id_colors_dict
+from mascdb.aux import get_riming_class_id_colors_dict
+from mascdb.aux import get_campaign_colors_dict
+
+# Define descriptors to use for dimension reduction
+cam_descriptors = get_vars_cam_descriptors()
+cam_descriptors = ['n_roi', 'area','perim','Dmax','area_porous','compactness',
+                   'bbox_width','bbox_len','solidity','nb_holes','complexity']
+ 
 #------------------------------------------------------------------------------
 ### - Define colors for snow particles type
-particles_colors_dict = {'agg':'forestgreen', \
-                         'capcol': 'darkblue',  
-                         'col': 'red',  
-                         'dend': 'orange',  
-                         'graup': 'yellow', 
-                         'smal': 'gray'
-                         }
+riming_class_id_colors_dict = get_riming_class_id_colors_dict()
+snowflake_class_id_colors_dict = get_snowflake_class_id_colors_dict()
+ 
 #----------------------------------------------------------------------------- 
-### - Define feature/columns we want to visualize 
-variables_viz = ['perim','area','Dmax'] 
+### - Define numeric descriptors you want to visualize 
+viz_descriptors = ['perim','Dmax',"roundness","compactness",'nb_holes',] 
 
-#------------------------------------------------------------------------------. 
-#########################
-### - Create Database ###
-#########################
-cam0 = pd.read_parquet(feature_cam0_fpath)
-cam1 = pd.read_parquet(feature_cam1_fpath)
-cam2 = pd.read_parquet(feature_cam2_fpath)
+### - Define categorical class you want to visualize 
+viz_classes = ["snowflake_class_name","campaign"] # [*get_vars_class_names(),"campaign"]
 
-df = cam0   # you might want to also add cam1 and cam2
+### - Define color dictionary for each categorical class 
+colors_dict = {'snowflake_class_name': get_snowflake_class_name_colors_dict(),
+               'campaign': get_campaign_colors_dict(),
+              }
 
-#-----------------------------------------------------------------------------. 
-###################### 
-### Preprocessing ####
-###################### 
-# - Retrieve columns used for dimension reduction
-columns_used_bool = np.isin(df.columns.tolist(), columns_discarded, invert=True)
-columns_used = df.columns[columns_used_bool].tolist()
+####--------------------------------------------------------------------------. 
+###############################
+#### Data preprocessing data ##
+###############################
+# - Subset mascdb for faster dimension reduction example 
+subset_campaigns = ['APRES3-2016', 'Davos-2015', 'Jura-2019', 'ICEGENESIS-2021']
+mascdb_subset = mascdb.select_campaign(subset_campaigns)
+# mascdb_subset = mascdb 
 
-### - Retrieve features we would like to predict (or investigate)
-campaign_name = df['Campaign'].values
-label_id = df['label_id'].values
-label_name = df['label_name'].values
-riming_id = df['riming_id'].values
-riming_deg_level = df['riming_deg_level'].values
+### Explore the manifold using cam0 image descriptors 
+# - Retrieve descriptors to use 
+X = mascdb_subset.cam0[cam_descriptors]
+# - Coerce columns to be of same datatype  
+X = X.astype(float)
+# - Retrieve row where there are missing values in the descriptors
+idx_nan = np.isnan(X).any(axis=1)
+# - Remove rows with NaN values 
+X = X.loc[~idx_nan]
 
-### - Drop columns not used for manifold retrieval 
-df_manifold = df.drop(columns=columns_discarded)
-df_manifold.dtypes # different dtypes !
+### Retrieve variables you want to visualize 
+Y_viz_class = mascdb_subset.triplet[viz_classes].loc[~idx_nan]
+X_viz_numeric = mascdb_subset.cam0[viz_descriptors].loc[~idx_nan]
 
-### - Coerce columns to same datatype (float64)
-df_manifold = df_manifold.astype(float)
-data_matrix = df_manifold.values
+### Standardize data matrix used for dimension reduction 
+scaler = MinMaxScaler()
+scaler.fit(X)
+X_std = scaler.transform(X)
 
-### - Remove missing values 
-idx_NAN = np.isnan(data_matrix).any(axis=1)
-
-df = df[~idx_NAN]
-data_matrix = data_matrix[~idx_NAN,:]
-
-campaign_name = campaign_name[~idx_NAN]
-label_id = label_id[~idx_NAN]
-label_name = label_name[~idx_NAN]
-riming_id = riming_id[~idx_NAN]
-riming_deg_level = riming_deg_level[~idx_NAN]
-
-### - Standardize data 
-scaler = StandardScaler()
-scaler.fit(data_matrix)
-data_matrix_std = scaler.transform(data_matrix)
-
-#-----------------------------------------------------------------------------.
+####--------------------------------------------------------------------------.
 #################################
-### Dimensionality reduction ####
+#### Dimensionality reduction ###
 #################################
 ### - PCA
 pca = PCA(n_components=2)
-pca.fit(data_matrix_std)
-pca_embedding = pca.transform(data_matrix_std)
+pca.fit(X_std)
+pca_embedding = pca.transform(X_std)
 
 ### - UMAP
-reducer = umap.UMAP(n_neighbors=30, min_dist=0.1,)
-umap_embedding = reducer.fit_transform(data_matrix_std)
+reducer = umap.UMAP(n_neighbors=30, min_dist=0.1, verbose=True)
+umap_embedding = reducer.fit_transform(X_std)
 
-#-----------------------------------------------------------------------------.
-######################################
-### Define functions for analysis ####
-######################################
-def cm2inch(*tupl):
-    inch = 2.54
-    if isinstance(tupl[0], tuple):
-        return tuple(i/inch for i in tupl[0])
-    else:
-        return tuple(i/inch for i in tupl)
-    
-def get_c_cmap_from_color_dict(color_dict, labels): 
-    """
-    # Retrieve c and cmap argument for plt.scatter provided a custom color dictionary 
-    # assign_dict_colors = lambda x : campaign_colors_dict[x]
-    # c_names = list(map(assign_dict_colors, experiments))
-    """
-    c_names = [color_dict[x] for x in labels]
-    # Retrieve c integer values 
-    c, c_unique_name = pd.factorize(c_names, sort=False)
-    # Create cmap
-    cmap = mpl.colors.ListedColormap(c_unique_name)
-    # Return object 
-    return[c, cmap]
-    
-def get_legend_handles_from_colors_dict(colors_dict, marker='o'):
-    """
-    Retrieve 'handles' for the matplotlib.pyplot.legend
-    # marker : "s" = filled square, 'o' = filled circle
-    # marker : "PATCH" for filled large rectangles 
-    """
-    import matplotlib as mpl
-    if (marker == 'PATCH'):
-        # PATCH ('filled large rectangle')
-        handles = []
-        for key in colors_dict:
-            data_key = mpl.patches.Patch(facecolor=colors_dict[key], edgecolor=colors_dict[key], label=key)
-            handles.append(data_key)    
-    else:
-        # Classical Markers
-        handles = []
-        for key in colors_dict:
-            data_key = mpl.lines.Line2D([0], [0], linewidth=0, \
-                                        marker=marker, label=key, \
-                                        markerfacecolor=colors_dict[key], \
-                                        markeredgecolor=colors_dict[key], \
-                                        markersize=3)
-            handles.append(data_key)    
-    return(handles)  
-
-
-def minmax(x):
-   return([np.min(x),np.max(x)])       
-
-#------------------------------------------------------------------------------.
-#####################################
-## Dimension reduction with PCA  ####
-#####################################
-
-### - Plot continuous variables 
-for variable in variables_viz:
-    tmp_folderpath =  Path(figs_path,"PCA")
-    tmp_folderpath.mkdir(exist_ok=True) # create dir if does not exist
-    tmp_filename = "PCA_" + str(variable) + ".png"
-    tmp_filepath = Path(tmp_folderpath, tmp_filename)
-    
-    # Plot scatter 
-    plt.figure(figsize=(12,12), dpi=800)
-    plt.style.use('dark_background')
-    plt.scatter(pca_embedding[:, 0], pca_embedding[:, 1],  
-                c=df[[variable]].to_numpy().squeeze(), cmap='Spectral',  
-                marker='.', s=0.8, edgecolors='none')
-    plt.xlim(minmax(pca_embedding[:, 0]))
-    plt.ylim(minmax(pca_embedding[:, 1]))
-    plt.xlabel("PC1")
-    plt.ylabel("PC2")
-    # plt.gca().set_aspect('equal', 'datalim')
-    plt.title('PCA projection', fontsize=12)
-    cbar = plt.colorbar() # aspect= ... for width
-    cbar.set_label(variable, rotation=270)
-    cbar.ax.get_yaxis().labelpad = 15         
-    plt.savefig(tmp_filepath)
-    plt.close()    # to not display in IPython console
-    
-
-### - Plot categorical variables 
-cat_variable = "label_name"
-color_dict = particles_colors_dict
-c, cmap = get_c_cmap_from_color_dict(color_dict, labels=df[cat_variable])  
-
-plt.figure(figsize=cm2inch(12,12), dpi=800)
-plt.style.use('dark_background')
-plt.scatter(pca_embedding[:, 0], pca_embedding[:, 1],  
-            c=c, cmap=cmap,  
-            marker='.', s=0.8, edgecolors='none')
-plt.xlim(minmax(pca_embedding[:, 0]))
-plt.ylim(minmax(pca_embedding[:, 1]))
-plt.xlabel("PC1")
-plt.ylabel("PC2")
-# plt.gca().set_aspect('equal', 'datalim')
-box = plt.gca().get_position() # Shrink axis on the left to create space for the legend
-plt.gca().set_position([box.x0, box.y0, box.width * 0.8, box.height])
-plt.legend(handles=get_legend_handles_from_colors_dict(color_dict),  
-           title="Snow particles",  
-           bbox_to_anchor=(1,0.5), loc="center left")
-plt.title('PCA projection', fontsize=12)       
-plt.savefig(Path(tmp_folderpath, "PCA_Particles.png"))
-plt.close()
-
-#------------------------------------------------------------------------------.
-###########################################
-## Dimension reduction with UMAP in 2D ####
-###########################################
-### - Plot continuous variables 
-for variable in variables_viz:
-    tmp_folderpath =  Path(figs_path,"UMAP")
-    tmp_folderpath.mkdir(exist_ok=True) # create dir if does not exist
-    tmp_filename = "UMAP_" + str(variable) + ".png"
-    tmp_filepath = Path(tmp_folderpath, tmp_filename)
-    
-    # Plot scatter 
-    plt.figure(figsize=(12,12), dpi=800)
-    plt.style.use('dark_background')
-    plt.scatter(umap_embedding[:, 0], umap_embedding[:, 1],  
-                c=df[[variable]].to_numpy().squeeze(), cmap='Spectral',  
-                marker='.', s=0.8, edgecolors='none')
-    plt.xlim(minmax(umap_embedding[:, 0]))
-    plt.ylim(minmax(umap_embedding[:, 1]))
-    plt.xlabel("L1")
-    plt.ylabel("L2")
-    # plt.gca().set_aspect('equal', 'datalim')
-    plt.title('UMAP projection', fontsize=12)
-    cbar = plt.colorbar() # aspect= ... for width
-    cbar.set_label(variable, rotation=270)
-    cbar.ax.get_yaxis().labelpad = 15         
-    plt.savefig(tmp_filepath)
-    plt.close()    # to not display in IPython console
-
-### - Plot categorical variables 
-cat_variable = "label_name"
-color_dict = particles_colors_dict
-c, cmap = get_c_cmap_from_color_dict(color_dict, labels=df[cat_variable])  
-
-plt.figure(figsize=cm2inch(12,12), dpi=800)
-plt.style.use('dark_background')
-plt.scatter(pca_embedding[:, 0], pca_embedding[:, 1],  
-            c=c, cmap=cmap,  
-            marker='.', s=0.8, edgecolors='none')
-plt.xlim(minmax(umap_embedding[:, 0]))
-plt.ylim(minmax(umap_embedding[:, 1]))
-plt.xlabel("L1")
-plt.ylabel("L2")
-# plt.gca().set_aspect('equal', 'datalim')
-box = plt.gca().get_position() # Shrink axis on the left to create space for the legend
-plt.gca().set_position([box.x0, box.y0, box.width * 0.8, box.height])
-plt.legend(handles=get_legend_handles_from_colors_dict(color_dict),  
-           title="Snow particles",  
-           bbox_to_anchor=(1,0.5), loc="center left")
-plt.title('UMAP projection', fontsize=12)       
-plt.savefig(Path(tmp_folderpath, "UMAP_Particles.png"))
-plt.close()
-
+####--------------------------------------------------------------------------.
+#############################################
+#### Dimension reduction plots with PCA  ####
+#############################################
+from mascdb.utils_figs import cm2inch
+from mascdb.utils_figs import get_c_cmap_from_color_dict
+from mascdb.utils_figs import get_legend_handles_from_colors_dict
+from mascdb.utils_figs import minmax
  
+algorithms = ["PCA", "UMAP"]
+  
+for algorithm in algorithms:
+    print(" - Generating manifold plots for:", algorithm)
+    #---------------------------------------------------------------.  
+    # Retrieve latent codes 
+    if algorithm == "PCA":
+        x_latent = pca_embedding[:, 0]
+        y_latent = pca_embedding[:, 1]
+        xlabel = "PC1"
+        ylabel = "PC2"
+        title = 'PCA projection'
+    elif algorithm == "UMAP": 
+        x_latent = umap_embedding[:, 0]
+        y_latent = umap_embedding[:, 1]
+        xlabel = "L1"
+        ylabel = "L2"
+        title = 'UMAP projection'
+    else: 
+        raise NotImplementedError
+    #---------------------------------------------------------------.
+    # Define directory and filepath
+    folderpath =  os.path.join(figs_path, algorithm)
+    if not os.path.exists(folderpath):
+        os.makedirs(folderpath)
+    #---------------------------------------------------------------.  
+    # Define xlim and ylim 
+    xlim = minmax(x_latent)
+    ylim = minmax(y_latent)
+    #---------------------------------------------------------------.  
+    #### - Plot numeric variables 
+    for column in viz_descriptors:
+        #---------------------------------------------------------------.  
+        # Define image filepath
+        tmp_filename = algorithm + "_" + str(column) + ".png"
+        tmp_filepath = os.path.join(folderpath, tmp_filename)
+        #---------------------------------------------------------------.  
+        # - Define title
+        cbar_title = column.title().replace("_", " ")
+        #---------------------------------------------------------------.
+        # - Define figure layout 
+        plt.figure(figsize=cm2inch(12,12), dpi=400)
+        plt.style.use('dark_background')
+        #---------------------------------------------------------------.
+        # - Plot scatterplot 
+        plt.scatter(x_latent,
+                    y_latent,  
+                    c = X[column].values, 
+                    cmap = 'Spectral',  
+                    marker = '.', 
+                    s = 0.8, 
+                    edgecolors = 'none')
+        #---------------------------------------------------------------.
+        # - Set axis labels, limits and title 
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.title(title, fontsize=12)
+        # plt.gca().set_aspect('equal', 'datalim')
+        #---------------------------------------------------------------.
+        # - Plot colorbar 
+        cbar = plt.colorbar() # aspect= ... for width
+        cbar.set_label(cbar_title, rotation=270)
+        cbar.ax.get_yaxis().labelpad = 15   
+        #---------------------------------------------------------------.
+        # - Save figure 
+        plt.savefig(tmp_filepath)
+        plt.close()    # to not display in IPython console
+        
+        #---------------------------------------------------------------.
+    #-------------------------------------------------------------------------.  
+    #### - Plot categorical variables 
+    for column in viz_classes:
+        # Define image filepath
+        tmp_filename = algorithm + "_" + str(column) + ".png"
+        tmp_filepath = os.path.join(folderpath, tmp_filename)
+        #---------------------------------------------------------------.  
+        # - Define title
+        legend_title = column.title().replace("_", " ")
+        #---------------------------------------------------------------.
+        # - Retrieve marker colors 
+        color_dict = colors_dict[column]
+        c, cmap = get_c_cmap_from_color_dict(color_dict, labels=Y_viz_class[column])  
+        
+        #---------------------------------------------------------------.
+        # - Define figure layout 
+        fig, ax = plt.subplots(1, 1, figsize= cm2inch(14,10), dpi=400)
+        plt.style.use('dark_background')
+        #---------------------------------------------------------------.
+        # - Plot scatterplot 
+        ax.scatter(x_latent,
+                    y_latent,  
+                    c = c, cmap = cmap,  
+                    marker = '.', 
+                    s = 0.8, 
+                    edgecolors = 'none')
+        #---------------------------------------------------------------.
+        # - Set axis labels, limits and title 
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_title(title, fontsize = 12)
+        # ax.set_aspect('equal', 'datalim')
+        #---------------------------------------------------------------.
+        # - Create space for legend 
+        box = ax.get_position() # Shrink axis on the bottom to create space for the legend
+        ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height *0.9]) # left, bottom, width, height
+        # - Retrieve legend handles and make pretty labels 
+        handles = get_legend_handles_from_colors_dict(color_dict)
+        labels = [handle.get_label() for handle in handles]
+        labels = [label.title().replace("_", " ") for label in labels]
+        _ = [handle.set_label(label) for label, handle in zip(labels, handles)]      
+        # - Plot legend  
+        ax.legend(handles = handles,  
+                   title = legend_title, 
+                   loc='upper center',
+                   ncol = 3,
+                   bbox_to_anchor=(0.5, -0.12))
+        
+        #---------------------------------------------------------------.
+        # - Save figure  
+        fig.tight_layout()
+        fig.savefig(tmp_filepath)
+        plt.close()  # to not display in IPython console
+        
+        #---------------------------------------------------------------------.     
