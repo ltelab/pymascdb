@@ -396,7 +396,7 @@ def get_vars_class():
                  'riming_deg_level', 
                  'melting_class_id',
                  'melting_class_name',
-                 'melting_class_prob', 
+                 'melting_prob', 
                  'snowflake_class_name', 
                  'snowflake_class_id',
                  'snowflake_class_id_prob',

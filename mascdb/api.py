@@ -53,19 +53,19 @@ from mascdb.utils_img import xri_local_hist_equalization
 ###############
 #### Checks ###
 ###############
-def _check_CAM_ID(CAM_ID): 
-    "Return CAM_ID integer."
-    if not isinstance(CAM_ID, (int, np.int64, list)):
-        raise TypeError("'CAM_ID', if specified, must be an integer or list (of length 1).")
-    if isinstance(CAM_ID, list):
-        if len(CAM_ID) != 1:
-           raise ValueError("Expecting a single value for 'CAM_ID'.")
-        CAM_ID = int(CAM_ID[0])
+def _check_cam_id(cam_id): 
+    "Return cam_id integer."
+    if not isinstance(cam_id, (int, np.int64, list)):
+        raise TypeError("'cam_id', if specified, must be an integer or list (of length 1).")
+    if isinstance(cam_id, list):
+        if len(cam_id) != 1:
+           raise ValueError("Expecting a single value for 'cam_id'.")
+        cam_id = int(cam_id[0])
     # Check value validity
-    if CAM_ID not in [0,1,2]:
-        raise ValueError("Valid values of 'CAM_ID' are [0,1,2].")
-    # Return integer CAM_ID
-    return CAM_ID
+    if cam_id not in [0,1,2]:
+        raise ValueError("Valid values of 'cam_id' are [0,1,2].")
+    # Return integer cam_id
+    return cam_id
 
 def _check_index(index, vmax):
     "Return index integer."
@@ -322,7 +322,7 @@ class MASC_DB:
         idx = _check_isel_idx(idx, vmax=self._n_triplets-1)
         ##--------------------------------------------------------------------.
         # Subset all datasets 
-        self._da = self._da.isel(TripletID=idx)
+        self._da = self._da.isel(flake_id=idx)
         if isinstance(idx[0], bool):
             self._cam0 = self._cam0[idx]  
             self._cam1 = self._cam1[idx]  
@@ -690,9 +690,9 @@ class MASC_DB:
         #----------------------------------------------.
         ### Compute class occurence    
         snowflake_class_counts = df_triplet[['snowflake_class_name',c_id]].groupby(c_id)['snowflake_class_name'].apply(_count_occurence).apply(lambda x: x[0])     
-        riming_class_counts = df_triplet[['riming_name',c_id]].groupby(c_id)['riming_name'].apply(_count_occurence).apply(lambda x: x[0])     
-        melting_class_counts = df_triplet[['melting_id',c_id]].groupby(c_id)['melting_id'].apply(_count_occurence).apply(lambda x: x[0])     
-        precipitation_class_counts = df_triplet[['bs_precip_type',c_id]].groupby(c_id)['bs_precip_type'].apply(_count_occurence).apply(lambda x: x[0])     
+        riming_class_counts = df_triplet[['riming_class_name',c_id]].groupby(c_id)['riming_class_name'].apply(_count_occurence).apply(lambda x: x[0])     
+        melting_class_counts = df_triplet[['melting_class_id',c_id]].groupby(c_id)['melting_class_id'].apply(_count_occurence).apply(lambda x: x[0])     
+        precipitation_class_counts = df_triplet[['bs_precip_class_name',c_id]].groupby(c_id)['bs_precip_class_name'].apply(_count_occurence).apply(lambda x: x[0])     
         snowflake_class_counts.name = "snowflake_class"
         riming_class_counts.name = "riming_class"
         melting_class_counts.name = "melting_class"
@@ -734,20 +734,20 @@ class MASC_DB:
     @property
     def full_db(self):
         # TODO: check same order as ds_images ... maybe add cam_id  and campaign args 
-        # Add CAM_ID to each cam db 
+        # Add cam_id to each cam db 
         l_cams = [self.cam0, self.cam1, self.cam2]
         for i, cam in enumerate(l_cams):
-             cam['CAM_ID'] = i
+             cam['cam_id'] = i
         # Merge cam(s) db into 
         full_db = pd.concat(l_cams)
         # Add triplet variables to fulldb 
         labels_vars = get_vars_class()
-        vars_not_add = ['pix_size','quality_xhi_flake','n_roi', 'Dmax_flake'] + labels_vars
+        vars_not_add = ['flake_quality_xhi','n_roi', 'flake_Dmax'] + labels_vars
         triplet = self.triplet.drop(columns=vars_not_add)
         full_db = full_db.merge(triplet, how="left")
         return full_db
     
-    def ds_images(self, CAM_ID = None, campaign=None, img_id='img_id'):
+    def ds_images(self, cam_id = None, campaign=None, img_id='img_id'):
         #----------------------------------------------------------------------.
         # Subset by campaign 
         if campaign is not None:
@@ -767,8 +767,8 @@ class MASC_DB:
             da = self.da
         #----------------------------------------------------------------------.
         # Subset cam images
-        if CAM_ID is not None:
-            da = da.isel(CAM_ID = CAM_ID)
+        if cam_id is not None:
+            da = da.isel(cam_id = cam_id)
         #----------------------------------------------------------------------.
         ### Retrieve dimensions to eventually stack along a new third dimension 
         dims = list(da.dims)
@@ -983,7 +983,7 @@ class MASC_DB:
         
         #--------------------------------------------------.
         # Subset triplet(s) images 
-        da_subset = self._da.isel(TripletID = indices).transpose(...,'CAM_ID','TripletID')
+        da_subset = self._da.isel(flake_id = indices).transpose(...,'cam_id','flake_id')
         
         #--------------------------------------------------.
         # Apply enhancements 
@@ -1002,11 +1002,12 @@ class MASC_DB:
             
         #--------------------------------------------------.
         # Plot triplet(s)
-        row = "TripletID" if len(indices) > 1 else None
+        row = "flake_id" if len(indices) > 1 else None
         p = da_subset.plot(x='x',y='y',
-                           col="CAM_ID",
+                           col="cam_id",
                            row=row,
                            aspect=1,
+                           yincrease=False,
                            cmap='gray', add_colorbar=False,
                            vmin=0, vmax=255, 
                            **kwargs)
@@ -1019,7 +1020,7 @@ class MASC_DB:
         #--------------------------------------------------. 
         return p       
             
-    def plot_flake(self, CAM_ID=None, index=None, random = False,
+    def plot_flake(self, cam_id=None, index=None, random = False,
                    enhancement="histogram_equalization",
                    zoom=True, ax=None, **kwargs):
         # Check args
@@ -1039,20 +1040,20 @@ class MASC_DB:
                index = list(np.random.choice(n_idxs, 1))[0]
            else:             
                index = 0   
-        if CAM_ID is None: 
+        if cam_id is None: 
             if random:    
-               CAM_ID = np.random.choice([0,1,2], 1)
+               cam_id = np.random.choice([0,1,2], 1)
             else:
-               CAM_ID = 1
+               cam_id = 1
         #--------------------------------------------------.       
-        # Check validty of CAM_ID and index 
-        CAM_ID = _check_CAM_ID(CAM_ID)
+        # Check validty of cam_id and index 
+        cam_id = _check_cam_id(cam_id)
         index = _check_index(index, vmax=n_idxs-1)
         
         #--------------------------------------------------.
         # Subset triplet(s) images 
-        # - If CAM_ID is an integer (instead of list of length 1), then the CAM_ID dimension is dropped)
-        da_img = self._da.isel(TripletID = index, CAM_ID = CAM_ID) 
+        # - If cam_id is an integer (instead of list of length 1), then the cam_id dimension is dropped)
+        da_img = self._da.isel(flake_id = index, cam_id = cam_id) 
         
         #--------------------------------------------------.
         # Apply enhancements 
@@ -1073,13 +1074,14 @@ class MASC_DB:
         # Plot single image 
         # - TODO: 'aspect' cannot be specified without 'size'
         p = da_img.plot(x='x',y='y', ax=ax,
+                        yincrease=False,
                         cmap='gray', add_colorbar=False, 
                         vmin=0, vmax=255,
                         **kwargs)
         #--------------------------------------------------. 
         return p  
 
-    def plot_flakes(self, CAM_ID=None, indices=None, random = False, 
+    def plot_flakes(self, cam_id=None, indices=None, random = False, 
                     n_images = 9, col_wrap = 3,
                     enhancement="histogram_equalization",
                     zoom=True, 
@@ -1087,7 +1089,7 @@ class MASC_DB:
         # Retrieve number of valid index
         n_idxs = len(self._triplet.index) # TODO 
         # TODO: 
-        # - Option to stack to ImageID ... and then sample that ... title will report TripletID and CAM ID
+        # - Option to stack to ImageID ... and then sample that ... title will report flake_id and CAM ID
 
         #--------------------------------------------------.
         # Check args
@@ -1102,26 +1104,26 @@ class MASC_DB:
                indices = list(np.random.choice(n_idxs, n_images))
             else: 
                indices = list(np.arange(0,n_images))
-        if CAM_ID is None: 
+        if cam_id is None: 
             if random:    
-                CAM_ID = np.random.choice([0,1,2], 1)[0]
+                cam_id = np.random.choice([0,1,2], 1)[0]
             else:
-                CAM_ID = 1
+                cam_id = 1
         #-------------------------------------------------- 
-        # Check validity of indices and CAM_ID
+        # Check validity of indices and cam_id
         indices = _check_indices(indices, vmax=n_idxs-1)
-        CAM_ID = _check_CAM_ID(CAM_ID)
+        cam_id = _check_cam_id(cam_id)
         #-------------------------------------------------- 
         # If a single flake is specified, plot it with plot_flake 
         if len(indices) == 1: 
             print("It's recommended to use 'plot_flake()' to plot a single image.")
-            return self.plot_flake(index=indices[0], CAM_ID=CAM_ID, random=random,
+            return self.plot_flake(index=indices[0], cam_id=cam_id, random=random,
                                    enhancement=enhancement, zoom=zoom, *kwargs)
         
         #--------------------------------------------------.
         # Subset triplet(s) images 
-        # - If CAM_ID is an integer (instead of list length 1 ... the CAM_ID dimension is dropped)
-        da_subset = self._da.isel(TripletID = indices, CAM_ID = CAM_ID).transpose(...,'TripletID')
+        # - If cam_id is an integer (instead of list length 1 ... the cam_id dimension is dropped)
+        da_subset = self._da.isel(flake_id = indices, cam_id = cam_id).transpose(...,'flake_id')
         
         #--------------------------------------------------.
         # Apply enhancements 
@@ -1140,10 +1142,11 @@ class MASC_DB:
         
         #--------------------------------------------------.
         # Plot triplet(s)
-        row = "TripletID" if len(indices) > 1 else None
+        row = "flake_id" if len(indices) > 1 else None
         p = da_subset.plot(x='x',y='y', 
                            row=row, col_wrap=col_wrap, 
                            aspect=1, 
+                           yincrease=False,
                            cmap='gray', add_colorbar=False, 
                            vmin=0, vmax=255,
                            **kwargs)
@@ -1180,9 +1183,9 @@ class MASC_DB:
                                                       dask = dask)
         #---------------------------------------------------------------------.
         # Retrieve cam dataframes 
-        cam0 = da_descriptors.isel(CAM_ID = 0).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
-        cam1 = da_descriptors.isel(CAM_ID = 1).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
-        cam2 = da_descriptors.isel(CAM_ID = 2).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
+        cam0 = da_descriptors.isel(cam_id = 0).to_dataset('descriptor').to_pandas().drop(columns='cam_id')
+        cam1 = da_descriptors.isel(cam_id = 1).to_dataset('descriptor').to_pandas().drop(columns='cam_id')
+        cam2 = da_descriptors.isel(cam_id = 2).to_dataset('descriptor').to_pandas().drop(columns='cam_id')
         
         #---------------------------------------------------------------------.
         # Attach to new mascdb instance

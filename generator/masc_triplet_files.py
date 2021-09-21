@@ -98,7 +98,7 @@ def valid_file(fn, xhi_min=7,
 def valid_triplet(triplet_files,
                   min_size=12,
                   max_ysize_var=1.4,
-                  max_ysize_delta=50, # Pixels
+                  max_ysize_delta=60, # Pixels
                   xhi_low=8,
                   xhi_high=8.5):
 
@@ -348,7 +348,7 @@ def add_bs_to_parquet(triplet_parquet,file_bs,verbose=False):
     table['bs_normalized_angle']   =  bs_nor_angle
     table['bs_mixing_ind']         =  bs_mix_ind
     table['bs_precip_class_name']  =  bs_precip_type
-    table['bs_class_id']           =  bs_class_id
+    table['bs_precip_class_id']           =  bs_class_id
     
 
     # Store table and overwrite

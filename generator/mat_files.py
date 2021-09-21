@@ -86,18 +86,18 @@ def digits_dictionary():
              'Dmax_ori':           1,
              'Dmax_90':            5,
              'D90_r':              2,
-             'riming_class_id_prob':  2,
+             'riming_class_prob':  2,
              'riming_deg_level':   2,
              'melting_class_id':   0,
              'melting_prob':       2,
-             'snowflake_class_id_prob': 2,
+             'snowflake_class_prob': 2,
 
              'fallspeed':          3,
              'latitude':           4,
              'longitude':          4,
              'altitude':           1,
              'flake_quality_xhi':  1,
-             'flake_Dmax':         1,
+             'flake_Dmax':         5,
 
              'gan3d_mass':         9,
              'gan3d_vol_ch':       1,
@@ -409,7 +409,7 @@ def masc_mat_file_to_dict(fn,pix_size=33.5e-6):
 
         # Riming probabilities for each class 1-5
         'riming_class_id':       riming_id,                       # 1 to 5 
-        'riming_class_id_prob':  round(mat['riming_probs'][0][riming_id-1],2), 
+        'riming_class_prob':  round(mat['riming_probs'][0][riming_id-1],2), 
         'riming_deg_level':      round(riming_deg_level,2),       # 0 to 1
         'riming_class_name':     get_riming_name(riming_id),      # Unrimed, rimed, densely_rimed, graupel-like, graupel
 
@@ -427,13 +427,13 @@ def masc_mat_file_to_dict(fn,pix_size=33.5e-6):
         
         'snowflake_class_name':           id2name(mat['label_ID'][0][0]),                           # short name of hydro class
         'snowflake_class_id':             mat['label_ID'][0][0],                                    # Label ID 1 to 6
-        'snowflake_class_id_prob':        round(mat['label_probs'][0][mat['label_ID'][0][0]-1],2)}  # Prob of label X
+        'snowflake_class_prob':        round(mat['label_probs'][0][mat['label_ID'][0][0]-1],2)}  # Prob of label X
 
     # If melting then riming is undefined
     if mat['melting_ID'][0][0] == 1:
         dict['riming_class_id']       = 0
         dict['riming_class_name']     = 'undefined'
-        dict['riming_class_id_prob']  =  np.nan
+        dict['riming_class_prob']  =  np.nan
         dict['riming_deg_level']      =  np.nan
         
     return dict
@@ -523,7 +523,7 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
         # Riming degree
         'riming_deg_level':     round(riming_deg_level,2),   # 1 to 5 
         'riming_class_id':      riming_id,                   # 0 to 1
-        'riming_class_id_prob': round(riming_id_prob,2),
+        'riming_class_prob': round(riming_id_prob,2),
         'riming_class_name':    get_riming_name(riming_id),
 
         # Mmelting
@@ -542,7 +542,7 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
         # 6 = combination of columnar and planar crystals (CPC) 
         'snowflake_class_name':              id2name(label_id),               # label id to label name           
         'snowflake_class_id':                label_id,                        # 1 to 6 
-        'snowflake_class_id_prob':           round(label_prob,2),
+        'snowflake_class_prob':           round(label_prob,2),
 
         # Placeholder for 3D-GAN products of Leinonen et al 2021
         'gan3d_mass':         np.nan,        # mass from 3d-gan [kg]
@@ -572,7 +572,7 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
     if dict['melting_class_id'] == 1:
         dict['riming_class_id']       = 0
         dict['riming_class_name']     = 'undefined'
-        dict['riming_class_id_prob']  =  np.nan
+        dict['riming_class_prob']  =  np.nan
         dict['riming_deg_level']      =  np.nan
 
     return dict
