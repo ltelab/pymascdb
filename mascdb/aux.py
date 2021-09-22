@@ -392,14 +392,14 @@ def get_vars_location():
 def get_vars_class(): 
     variables = ['riming_class_name',
                  'riming_class_id',
-                 'riming_class_id_prob', 
+                 'riming_class_prob', 
                  'riming_deg_level', 
                  'melting_class_id',
                  'melting_class_name',
                  'melting_prob', 
                  'snowflake_class_name', 
                  'snowflake_class_id',
-                 'snowflake_class_id_prob',
+                 'snowflake_class_prob',
                  ]
     return variables
 
