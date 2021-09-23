@@ -93,7 +93,7 @@ db.columns.values.tolist()
 #############################################
 ##--------------------------------------------.
 import matplotlib.pyplot as plt
-
+fpath='/data/MASC_DB/MASCdb.zarr/data/'
 #-------------------------------------------------------------------------------.
 ### Create metadata for custom zarr store 
 fpath = os.path.join(dir_path, "MASCdb_orig","MASCdb.zarr")
@@ -105,11 +105,15 @@ arr1 = arr[0:10,:,:,:]
 
 da = xr.DataArray(data=arr1,
                   dims=["flake_id","y","x","cam_id"],
-                  coords=dict(CAM_ID=[0,1,2], TripletID=np.arange(start, end)))
+                  coords=dict(cam_id=[0,1,2]))
 
-
-ds = da.to_dataset(name='campaign_name')
+ds = da.to_dataset(name='data')
+ds.to_zarr("/data/MASC_DB/zarr_metadata.zarr")
+    
+    
 ds.to_zarr(os.path.join("/media/ghiggi/New Volume/Data/MASCDB","Campaign.zarr"))
+
+
 
 l_stores = glob.glob("*.zarr")
 l_ds = [xr.open_zarr(fpath) for fpath in l_stores]

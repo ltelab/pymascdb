@@ -100,11 +100,11 @@ def digits_dictionary():
              'flake_Dmax':         5,
 
              'gan3d_mass':         9,
-             'gan3d_vol_ch':       1,
+             'gan3d_volume':       15,
              'gan3d_gyration':     5,
 
-             'bs_nor_angle':       3,
-             'bs_mix_ind':         2,
+             'bs_normalized_angle':   3,
+             'bs_mixing_ind':         2,
 
              'env_T':              1,
              'env_P':              1,
