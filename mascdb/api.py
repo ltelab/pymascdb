@@ -20,6 +20,8 @@ from mascdb.aux import get_riming_class_name_dict
 from mascdb.aux import get_melting_class_name_dict
 from mascdb.aux import get_precip_class_name_dict
 from mascdb.aux import get_vars_class
+from mascdb.aux import var_units
+from mascdb.aux import var_explanations
   
 from mascdb.utils_img import _compute_2Dimage_descriptors
 from mascdb.utils_img import xri_zoom
@@ -408,6 +410,31 @@ class MASC_DB:
 
     def select_min(self, expression, n=10):
         return self.arrange(expression, decreasing=False).isel(np.arange(min(n, self._n_triplets)))   
+    
+    ####----------------------------------------------------------------------.
+    ##########################
+    #### Data explanation ####
+    ##########################
+    def get_var_units(self,varname):
+        if not isinstance(varname, str):
+            raise TypeError("'varname' must be a string")
+        units = var_units()
+        if varname in units.keys():
+            return units[varname]
+        else:
+            raise ValueError("{} units are not currently available. "
+                             "Units are available for {}".format(varname, list(units.keys())))
+    
+    def get_var_explanation(self,varname):
+        if not isinstance(varname, str):
+            raise TypeError("'varname' must be a string")
+        explanations = var_explanations()
+        if varname in explanations.keys():
+            return explanations[varname]
+        else:
+            raise ValueError("{} verbose explanation is not currently available. "
+                             "Explanations are available for {}".format(varname, list(explanations.keys())))
+    
     
     ####----------------------------------------------------------------------.
     #################

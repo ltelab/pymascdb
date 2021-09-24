@@ -64,6 +64,12 @@ mascdb.env     # atmospheric environment
 mascdb.bs      # blowing snow estimation using Schaer et al., 2019 method
 mascdb.gan3d   # mass & volume estimation using GAN algorithm (Leinonen et al., 2021)
 
+# - Get units and explanation of variables/columns
+mascdb.get_var_units('flake_Dmax')
+mascdb.get_var_explanation('flake_Dmax')
+
+mascdb.get_var_units('snowflake_mood')       #this returns an error
+mascdb.get_var_explanation('flake_religion') # also this
 
 # Event summary information 
 event_summary = mascdb.event     

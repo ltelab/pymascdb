@@ -232,7 +232,7 @@ def get_campaign_names():
 #### Units ###
 ##############
 
-def get_units():
+def var_units():
     """
     Get a dictionary containing the units
     of the pre-computed descriptors of retrievals
@@ -371,7 +371,7 @@ def get_units():
 #### Description ###
 ##############
 
-def get_explanations():
+def var_explanations():
     """
     Get a dictionary containing verbose explanation
     of the pre-computed descriptors of retrievals
