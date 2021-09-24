@@ -16,47 +16,10 @@ cam_id       # LOWERCASE  (0,1,2)
 
 # triplet_id currently do not have dimension values !
 
-# flake_id <--> Triplet_ID ? 
-
 ### AUX 
-# - Built in function to get verbose explanation of variables
-
-# Class names 
-# 'snowflake_class_id_prob' --> snowflake_class_prob
-# 'riming_id', --> riming_class_id
-# 'riming_id_prob' --> riming_class_prob
-# 'riming_name' --> riming_class_name 
-# 'melting_id', --> melting_class_id
-# 'melting_name', --> melting_class_name
-# 'melting_prob' --> melting_class_prob
-# bs_precip_type --> bs_precipitation_class_name , bs_precipitation_class_id
-
-#### Triplets DB 
-# - Rounding to 3 decimals of triplets  
-# quality_xhi_flake
-# melting_prob
-# n_roi       # senza decimali 
-# Dmax_flake  
-# fallspeed   
-# bs_nor_angle
-# bs_mix_ind
-
-#-  Rename in triplet ... flake_*  for best guess values 
-# flake_quality_xhi 
-# flake_Dmax
-
-# - Remove pix_size from triplet 
 
 ### CAM DB 
-# - Appropriate rounding of descriptors  
-
-### Add to cam
-# - columns with 0-1 id for image used for manual classification? 
-# - hl_snowflake
-# - hl_riming
-# - hl_melting
-
-### In aux add campaign list? 
+# - Appropriate rounding of descriptors  --> DONE. To be checked for errors
 
 ### Parquet dataframe savings 
 # ... strings column are currently saved as 'object' 

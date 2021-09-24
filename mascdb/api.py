@@ -416,6 +416,28 @@ class MASC_DB:
     #### Data explanation ####
     ##########################
     def get_var_units(self,varname):
+        """
+        Get units of a given variable
+
+        Parameters
+        ----------
+        varname : str
+            String containing the name (must be one of the columns of MASCDB dataframes)
+            of a MASCDB variable
+            
+        Raises
+        ------
+        TypeError
+            If something else than a string is passed
+        ValueError
+            If the input string does not correspond to available variable list
+
+        Returns
+        -------
+        str
+            Abbreviated units of the variable
+
+        """
         if not isinstance(varname, str):
             raise TypeError("'varname' must be a string")
         units = var_units()
@@ -426,6 +448,30 @@ class MASC_DB:
                              "Units are available for {}".format(varname, list(units.keys())))
     
     def get_var_explanation(self,varname):
+        """
+        Get verbose explanation of a given variable, including DOI of reference paper
+        whenever relevant
+
+        Parameters
+        ----------
+        varname : str
+            String containing the name (must be one of the columns of MASCDB dataframes)
+            of a MASCDB variable
+            
+        Raises
+        ------
+        TypeError
+            If something else than a string is passed
+        ValueError
+            If the input string does not correspond to available variable list
+
+        Returns
+        -------
+        str
+            Verbose explanation of the variable
+            
+        """
+        
         if not isinstance(varname, str):
             raise TypeError("'varname' must be a string")
         explanations = var_explanations()
