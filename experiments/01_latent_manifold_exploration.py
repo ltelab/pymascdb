@@ -10,9 +10,9 @@ Created on Wed Jun 30 21:15:36 2021
 ###########################################
 #-----------------------------------------------------------------------------.
 import os
-
 os.chdir("/home/ghiggi/Projects/pymascdb")
 # os.chdir("/home/grazioli/CODES/python/pymascdb")
+
 from pathlib import Path
 import umap
 import numpy as np
@@ -24,8 +24,19 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
-import mascdb.api
 from mascdb.api import MASC_DB
+from mascdb.aux import get_vars_cam_descriptors
+from mascdb.aux import get_vars_class_ids
+from mascdb.aux import get_vars_class_names
+from mascdb.aux import get_snowflake_class_name_colors_dict
+from mascdb.aux import get_riming_class_name_colors_dict
+from mascdb.aux import get_snowflake_class_id_colors_dict
+from mascdb.aux import get_riming_class_id_colors_dict
+from mascdb.aux import get_campaign_colors_dict
+from mascdb.utils_figs import cm2inch
+from mascdb.utils_figs import get_c_cmap_from_color_dict
+from mascdb.utils_figs import get_legend_handles_from_colors_dict
+from mascdb.utils_figs import minmax
 
 dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
 figs_path = "/home/ghiggi/Projects/pymascdb/figs/LatentManifold"
@@ -44,24 +55,14 @@ mascdb = MASC_DB(dir_path=dir_path)
 ### TODO IMPLEMENT
 # - corr plot of descriptors to choose uncorrelated 
 # - gaussianize descriptors 
+# https://scikit-learn.org/stable/auto_examples/preprocessing/plot_map_data_to_normal.html
 
 ##----------------------------------------------------------------------------.
-
-from mascdb.aux import get_vars_cam_descriptors
-from mascdb.aux import get_vars_class_ids
-from mascdb.aux import get_vars_class_names
-
-from mascdb.aux import get_snowflake_class_name_colors_dict
-from mascdb.aux import get_riming_class_name_colors_dict
-from mascdb.aux import get_snowflake_class_id_colors_dict
-from mascdb.aux import get_riming_class_id_colors_dict
-from mascdb.aux import get_campaign_colors_dict
-
 # Define descriptors to use for dimension reduction
 cam_descriptors = get_vars_cam_descriptors()
 cam_descriptors = ['n_roi', 'area','perim','Dmax','area_porous','compactness',
                    'bbox_width','bbox_len','solidity','nb_holes','complexity']
- 
+
 #------------------------------------------------------------------------------
 ### - Define colors for snow particles type
 riming_class_id_colors_dict = get_riming_class_id_colors_dict()
@@ -124,13 +125,7 @@ umap_embedding = reducer.fit_transform(X_std)
 #############################################
 #### Dimension reduction plots with PCA  ####
 #############################################
-from mascdb.utils_figs import cm2inch
-from mascdb.utils_figs import get_c_cmap_from_color_dict
-from mascdb.utils_figs import get_legend_handles_from_colors_dict
-from mascdb.utils_figs import minmax
- 
 algorithms = ["PCA", "UMAP"]
-  
 for algorithm in algorithms:
     print(" - Generating manifold plots for:", algorithm)
     #---------------------------------------------------------------.  
