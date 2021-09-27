@@ -15,6 +15,7 @@ os.chdir("/home/ghiggi/Projects/pymascdb")
 import numpy as np
 import pandas as pd 
 import xarray as xr
+import seaborn as sns
 import matplotlib.pyplot as plt
 import mascdb.api
 from mascdb.api import MASC_DB
@@ -60,54 +61,70 @@ mascdb.cam0.sns.boxplot(x="Dmax")
 mascdb.cam0.sns.boxenplot(x="Dmax")   
 mascdb.cam0.sns.violinplot(x="Dmax") 
 
-mascdb.cam0.sns.violinplot(x="Dmax", y="label_name") 
-mascdb.cam0.sns.stripplot(x="Dmax", y="label_name") 
+mascdb.cam0.sns.violinplot(x="Dmax", y="snowflake_class_name") 
+mascdb.cam0.sns.stripplot(x="Dmax", y="snowflake_class_name") 
 
-mascdb.cam0.sns.violinplot(x="perim", y="label_name", hue="riming_id") 
+mascdb.cam0.sns.violinplot(x="perim", y="snowflake_class_name", hue="riming_class_id") 
 
 mascdb.cam0.sns.scatterplot(x="Dmax", y="perim")
 
-mascdb.cam0.sns.barplot(x="label_id", y="riming_id")
-mascdb.cam0.sns.catplot(x="label_id", y="riming_id") # problems with '' or None ? 
+mascdb.cam0.sns.barplot(x="snowflake_class_name", y="riming_class_id")
+mascdb.cam0.sns.catplot(x="snowflake_class_name", y="riming_class_id") # problems with '' or None ? 
 
-mascdb.cam0.sns.histplot(x="label_id", y="riming_id")
-mascdb.cam0.sns.histplot(x="label_id", hue="riming_id")
+mascdb.cam0.sns.histplot(x="snowflake_class_name", y="riming_class_id")
+mascdb.cam0.sns.histplot(x="snowflake_class_name", hue="riming_class_id")
 
 # For complex stuff ... first filter to a small number 
-mascdb.cam0.sns.jointplot(x="Dmax", y="perim", kind="kde", hue="label_name") 
+mascdb = mascdb.isel(slice(0,4000))
+mascdb.cam0.sns.jointplot(x="Dmax", y="perim", kind="kde", hue="snowflake_class_name") 
  
+
+cam_descriptors = ['n_roi', 'area','perim','Dmax','area_porous','compactness',
+                   'bbox_width','bbox_len','solidity','nb_holes','complexity']
+ 
+mascdb.cam0.sns.pairplot(vars = cam_descriptors[0:5])
+
+mascdb.cam0.sns.corrplot(vars = cam_descriptors[0:5],
+                         vmin = -1, vmax=1, center=0,
+                         cbar_kws={"shrink": .5},  
+                         linewidths=.5)
+
+mascdb.cam0.sns.kdeplot(x="Dmax",y="perim", 
+                        cmap="rocket")
+
+sns.set_theme(style="white")
+mascdb.cam0.sns.kde_marginals(x="Dmax",y="perim", 
+                              # xlim=(), ylim=(), 
+                              space=0, thresh=0, 
+                              levels=100, cmap="rocket",
+                              hist_color = "#03051A", hist_alpha=1,hist_bins=25)
+
+pal = sns.cubehelix_palette(10, rot=-.25, light=.7)
+mascdb.cam0.sns.kde_ridgeplot(x = "compactness",
+                              group = "snowflake_class_name",
+                              linewidth = 2, 
+                              pal = pal, bw_adjust=.5, height=.7,
+                              aspect=15, hspace=-.0) # increase hspace to superpose
+
+
 #-----------------------------------------------------------------------------.
 ### EDA tools 
 # All this plotting method are implemented ;) Let's then do example in an EDA.ipnyb
 # --> For some plotting method ... we might create a check to not provide too much data or it stucks
-violinplot
-boxplot
-boxenplot
-stripplot
+ 
 pointplot
 swarmplot # heavy computation ? 
  
 lmplot
-pairplot # select first few variables 
 
 scatterplot
 displot # kind
-catplot
-barplot
-
-histplot
-jointplot # heavy computation ? 
-kdeplot   # heavy computation ? 
-
+ 
 relplot(data, x='datetime')  # https://seaborn.pydata.org/examples/timeseries_facets.html
 lineplot(data, x='datetime') # https://seaborn.pydata.org/examples/wide_data_lineplot.html
 relplot(data, x='datetime')  # https://seaborn.pydata.org/examples/faceted_lineplot.html
 
-## TODO: 
-corrplot # https://seaborn.pydata.org/examples/many_pairwise_correlations.html
-kde_ridgeplot  # https://seaborn.pydata.org/examples/kde_ridgeplot.html
-kde_marginals  # https://seaborn.pydata.org/examples/smooth_bivariate_kde.html
-
+# Nice examples
 # https://seaborn.pydata.org/examples/horizontal_boxplot.html
 # https://seaborn.pydata.org/examples/pairgrid_dotplot.html
 # https://seaborn.pydata.org/examples/palette_generation.html           
