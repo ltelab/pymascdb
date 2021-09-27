@@ -11,7 +11,7 @@ import os
 import zarr
 import pandas as pd
 
-dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
+dir_path = "/data/MASC_DB"
 
 #-----------------------------------------------------------------------------.
 ### Plot images / triplets 
@@ -19,10 +19,10 @@ fpath = os.path.join(dir_path,"MASCdb.zarr")
 ds = xr.open_zarr(fpath)
 
 # Stack CAM_ID and Triplet_ID into Image_ID
-ds_stacked = ds.stack(image_ID = ('TripletID','CAM_ID'))
+ds_stacked = ds.stack(image_ID = ('flake_id','cam_id'))
 ds_stacked.isel(image_ID = slice(0,10)) # subset image_ID (by position only !)
-ds_stacked.sel(CAM_ID=0)                # subset CAM_ID   (by label only !)  (This loose CAM_ID info!)
-ds_stacked.sel(TripletID=slice(0,10))   # subset TripletID (by label only !) (This loose TripletID info!)
+ds_stacked.sel(cam_id=0)                # subset CAM_ID   (by label only !)  (This loose CAM_ID info!)
+ds_stacked.sel(flake_id=slice(0,10))   # subset TripletID (by label only !) (This loose TripletID info!)
 
 # Unstack Image_ID
 ds_unstacked = ds_stacked.unstack('image_ID') 

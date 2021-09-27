@@ -10,8 +10,8 @@ Created on Wed Sep 15 11:26:36 2021
 ##########################################
 #-----------------------------------------------------------------------------.
 import os
-os.chdir("/home/ghiggi/Projects/pymascdb")
-# os.chdir("/home/grazioli/CODES/python/pymascdb")
+#os.chdir("/home/ghiggi/Projects/pymascdb")
+os.chdir("/home/grazioli/CODES/python/pymascdb")
 
 import numpy as np
 import pandas as pd 
@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 import mascdb.api
 from mascdb.api import MASC_DB
 
-dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
-#dir_path = "/data/MASC_DB"
+#dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
+dir_path = "/data/MASC_DB"
  
 ##----------------------------------------------------------------------------.
 ###########################
@@ -64,6 +64,12 @@ mascdb.env     # atmospheric environment
 mascdb.bs      # blowing snow estimation using Schaer et al., 2019 method
 mascdb.gan3d   # mass & volume estimation using GAN algorithm (Leinonen et al., 2021)
 
+# - Get units and explanation of variables/columns
+mascdb.get_var_units('flake_Dmax')
+mascdb.get_var_explanation('flake_Dmax')
+
+mascdb.get_var_units('snowflake_mood')       #this returns an error
+mascdb.get_var_explanation('flake_religion') # also this
 
 # Event summary information 
 event_summary = mascdb.event     
@@ -86,7 +92,7 @@ campaign_summary[['precipitation_class']]
 mascdb.full_db  #  slow !
 
 mascdb.ds_images()
-mascdb.ds_images(CAM_ID=[0,1])
+mascdb.ds_images(cam_id=[0,1])
 mascdb.ds_images(campaign=['Valais-2016', 'PLATO-2019'])
 mascdb.ds_images(campaign=['Valais-2016', 'PLATO-2020'])
 
