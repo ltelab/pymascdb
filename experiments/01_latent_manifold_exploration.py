@@ -40,7 +40,11 @@ mascdb = MASC_DB(dir_path=dir_path)
 ## TODO 
 # - Dimension reduction for specific snowflake class ... to see patterns 
 # - Dimension reduction for specific rimed class .... to see patterns 
- 
+
+### TODO IMPLEMENT
+# - corr plot of descriptors to choose uncorrelated 
+# - gaussianize descriptors 
+
 ##----------------------------------------------------------------------------.
 
 from mascdb.aux import get_vars_cam_descriptors
@@ -65,7 +69,7 @@ snowflake_class_id_colors_dict = get_snowflake_class_id_colors_dict()
  
 #----------------------------------------------------------------------------- 
 ### - Define numeric descriptors you want to visualize 
-viz_descriptors = ['perim','Dmax',"roundness","compactness",'nb_holes',] 
+viz_descriptors = ['perim','Dmax',"compactness","area_porous","nb_holes"] 
 
 ### - Define categorical class you want to visualize 
 viz_classes = ["snowflake_class_name","campaign"] # [*get_vars_class_names(),"campaign"]
