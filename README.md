@@ -1,6 +1,6 @@
 # MASC-DB API - An API to query MASC data.
 
-![Snowflake_Latent_Interpolation](./figs/Snowflake_Latent_Interpolation.gif)
+![Snowflake_SOM_Clustering](./figs/SOM_Clustering/MASC_SOM_Cluster.png)
 
 The code in this repository provides an API to query, filter and visualize MASC data.
 
@@ -15,11 +15,12 @@ The folder `tutorials` (will) provide jupyter notebooks describing various featu
 [`eda.ipynb`]: https://nbviewer.jupyter.org/github/deepsphere/deepsphere-weather/blob/outputs/tutorials/interpolation_pooling.ipynb
 
 The folder `experiments` (will) provide examples for:
+- Latent Space Exploration with UMAP / PCA
+- Snowflake clustering with Self-Organizing Maps
+- Snowflake representation learning using Info-GAN 
+- 3D snowflake mass reconstruction 
 - Multinomial logistic classification
 - CNN classification
-- Info-GAN clustering
-- Latent Space Exploration with UMAP / PCA
-- 3D snowflake mass reconstruction 
 
 ## Installation
 
