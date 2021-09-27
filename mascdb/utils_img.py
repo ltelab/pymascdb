@@ -191,7 +191,7 @@ def _center_image(img, nrow, ncol):
     arr[slice(row_incr,row_incr+r), slice(col_incr,col_incr+c)] = img 
     return arr 
 
-def xri_zoom(da, x="x",y="y", squared=False):
+def xri_zoom(da, x="x", y="y", squared=False):
     # Checks arguments 
     if not isinstance(da, xr.DataArray): 
         raise TypeError("Expecting a xr.DataArray.")
@@ -211,6 +211,10 @@ def xri_zoom(da, x="x",y="y", squared=False):
     #-----------------------------------------------------------------------.
     ### Retrieve dimensions to eventually stack along a new third dimension 
     unstacked_dims = list(set(dims).difference([x,y]))
+    
+    ## Enforce (..., y, x) dimension order 
+    da = da.transpose(..., y, x)
+    
     # - If only x and y, do nothing
     if len(unstacked_dims) == 0: 
         # raise ValueError("Expecting a DataArray with a third dimension in "
@@ -262,7 +266,7 @@ def xri_zoom(da, x="x",y="y", squared=False):
     l_zoomed = [_center_image(img, nrow=r_max, ncol=c_max) for img in l_zoomed]
     
     # Assign it to the DataArray (with new x and y dimensions)
-    da_stacked = da_stacked.isel(x=slice(0, c_max), y=slice(0,r_max))
+    da_stacked = da_stacked.isel(y=slice(0,r_max), x=slice(0, c_max))
     if n_imgs == 0: 
         da_stacked.values = l_zoomed[0]
     else:
