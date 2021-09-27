@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Sep 27 09:49:54 2021
-
-@author: ghiggi
-"""
 #-----------------------------------------------------------------------------.
 #############################################
 ### Zarr store metadata/attrs generation  ###
@@ -14,6 +7,7 @@ import numpy as np
 import xarray as xr 
 import os
 import zarr
+import numcodecs
 import dask
 import pandas as pd
 
@@ -26,7 +20,7 @@ cam0_df = pd.read_parquet(cam0_fpath).convert_dtypes()
 flake_ids = cam0_df['flake_id'].values 
 
 # Open zarr array and define dask chunk size 
-chunks = (512,1024,1024,3) # 1.5 MB 
+chunks = (256,1024,1024,3) # 1.5 MB 
 dask_arr = dask.array.from_zarr(zarr_array_fpath, chunks=chunks)
 
 # Define global attributes 
@@ -42,7 +36,7 @@ global_attr = {"title": "MASCDB" ,
 # Create a xr.Dataset 
 ds = xr.Dataset(
     data_vars=dict(
-        data=(["flake_id", "x", "y", "cam_id"], dask_arr),
+        data=(["flake_id", "x", "y", "cam_id"], dask_arr),  # TODO check if in origin is x y or y x 
     ),
     coords=dict(
         cam_id = np.array([0,1,2]),
@@ -51,14 +45,17 @@ ds = xr.Dataset(
     attrs=global_attr,
 )
 ds
-
+ds = ds.transpose('flake_id','y','x','cam_id')
 # ds = ds.isel(flake_id=slice(0,2048))
 
+# Define zarr encoding 
+compressor = numcodecs.blosc.Blosc(cname='zstd', clevel=2, shuffle=numcodecs.blosc.Blosc.BITSHUFFLE)
+encoding =  {"data": {"dtype": "uint8", "compressor": compressor}}
+    
 # Save to zarr 
-p = ds.to_zarr("/ltenas3/MASC_DB/new_zarr.zarr", compute=False)
+p = ds.to_zarr("/ltenas3/MASC_DB/MASCdb.zarr", encoding=encoding, compute=False)
 
 from dask.diagnostics import ProgressBar
 with ProgressBar():                        
     _ = p.compute()
- 
  
