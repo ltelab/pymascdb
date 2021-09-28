@@ -262,6 +262,7 @@ class MASC_DB:
         self._cam1    = pd.read_parquet(cam1_fpath).set_index('flake_id', drop=False)
         self._cam2    = pd.read_parquet(cam2_fpath).set_index('flake_id', drop=False)
         self._triplet = pd.read_parquet(triplet_fpath).set_index('flake_id', drop=False)
+       
         # - Ensure categorical/object columns are encoded as string 
         self._cam0 = _convert_object_to_string(self._cam0)
         self._cam1 = _convert_object_to_string(self._cam1)
@@ -277,7 +278,6 @@ class MASC_DB:
         # Add default events
         self._define_events(maximum_interval_without_images = np.timedelta64(4,'h'),
                             unit="ns")
-        print(self._triplet)
     
     ####----------------------------------------------------------------------.
     #########################
@@ -474,7 +474,7 @@ class MASC_DB:
             raise ValueError("{!r} is not a column of {!r}. Valid columns are {}".format(db_column, db_name, valid_columns))
         #------------------------------.
         # Retrieve sorting idx 
-        idx = db[db_column].values.argsort()
+        idx = db[db_column].to_numpy().argsort()
         if decreasing: 
             idx = idx[::-1]
         #------------------------------.
@@ -555,7 +555,7 @@ class MASC_DB:
             campaign = [campaign]
         # Convert to numpy array with str type (not object...)
         campaign = np.array(campaign).astype(str)
-        campaigns_arr = self.triplet['campaign'].values.astype(str)
+        campaigns_arr = self._triplet['campaign'].to_numpy().astype(str)
         valid_campaigns = np.unique(campaigns_arr)
         unvalid_campaigns_arg = campaign[np.isin(campaign, valid_campaigns, invert=True)]
         if len(unvalid_campaigns_arg) > 0: 
@@ -572,7 +572,7 @@ class MASC_DB:
             campaign = [campaign]
         # Convert to numpy array with str type (not object...)
         campaign = np.array(campaign).astype(str)
-        campaigns_arr = self.triplet['campaign'].values.astype(str)
+        campaigns_arr = self._triplet['campaign'].to_numpy().astype(str)
         valid_campaigns = np.unique(campaigns_arr)
         unvalid_campaigns_arg = campaign[np.isin(campaign, valid_campaigns, invert=True)]
         if len(unvalid_campaigns_arg) > 0: 
@@ -602,7 +602,7 @@ class MASC_DB:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
         #---------------------------------------------------------------------.
         # Retrieve triplet column values 
-        arr = self.triplet[column].values
+        arr = self._triplet[column].to_numpy()
         # Check values are valid 
         unvalid_values = values[np.isin(values, valid_names, invert=True)]
         if len(unvalid_values) > 0: 
@@ -635,7 +635,7 @@ class MASC_DB:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
         #---------------------------------------------------------------------.
         # Retrieve triplet column values 
-        arr = self.triplet[column].values
+        arr = self._triplet[column].to_numpy()
         # Check values are valid 
         unvalid_values = values[np.isin(values, valid_names, invert=True)]
         if len(unvalid_values) > 0: 
@@ -668,7 +668,7 @@ class MASC_DB:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
         #---------------------------------------------------------------------.
         # Retrieve triplet column values 
-        arr = self.triplet[column].values
+        arr = self._triplet[column].to_numpy()
         # Check values are valid 
         unvalid_values = values[np.isin(values, valid_names, invert=True)]
         if len(unvalid_values) > 0: 
@@ -701,7 +701,7 @@ class MASC_DB:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
         #---------------------------------------------------------------------.
         # Retrieve triplet column values 
-        arr = self.triplet[column].values
+        arr = self._triplet[column].to_numpy()
         # Check values are valid 
         unvalid_values = values[np.isin(values, valid_names, invert=True)]
         if len(unvalid_values) > 0: 
@@ -889,7 +889,7 @@ class MASC_DB:
             if isinstance(campaign, str): 
                 campaign = [campaign]
             campaign = np.array(campaign).astype(str)
-            db_campaigns = self.triplet['campaign'].values.astype(str)
+            db_campaigns = self._triplet['campaign'].to_numpy().astype(str)
             valid_campaigns = np.unique(db_campaigns)
             unvalid_campaigns_arg = campaign[np.isin(campaign, valid_campaigns, invert=True)]
             if len(unvalid_campaigns_arg) > 0: 
@@ -1003,8 +1003,8 @@ class MASC_DB:
         # Else subset 
         df_event = self.event 
         idx_event_ids = df_event['event_n_triplets'] >= n
-        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].values  
-        idx_db_subset = np.isin(self._triplet['event_id'].values, subset_event_ids)
+        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].to_numpy()  
+        idx_db_subset = np.isin(self._triplet['event_id'].to_numpy(), subset_event_ids)
         return self.isel(idx_db_subset)
     
     def select_events_with_less_triplets_than(self, n):
@@ -1014,8 +1014,8 @@ class MASC_DB:
             raise ValueError("'n' must be equal or larger than 1.")
         df_event = self.event 
         idx_event_ids = df_event['event_n_triplets'] <= n
-        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].values  
-        idx_subset = np.isin(self._triplet['event_id'].values, subset_event_ids)
+        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].to_numpy()  
+        idx_subset = np.isin(self._triplet['event_id'].to_numpy(), subset_event_ids)
         return self.isel(idx_subset)
     
     def discard_events_with_more_triplets_than(self, n):
@@ -1028,8 +1028,8 @@ class MASC_DB:
         timedelta = _check_timedelta(timedelta)
         df_event = self.event
         idx_event_ids = df_event['event_duration'] >= timedelta
-        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].values  
-        idx_subset = np.isin(self._triplet['event_id'].values, subset_event_ids)
+        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].to_numpy()  
+        idx_subset = np.isin(self._triplet['event_id'].to_numpy(), subset_event_ids)
         return self.isel(idx_subset)
     
         # TODO: BUG !!!
@@ -1044,18 +1044,18 @@ class MASC_DB:
         timedelta = _check_timedelta(timedelta)
         df_event = self.event
         idx_event_ids = df_event['event_duration'] <= timedelta
-        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].values  
-        idx_subset = np.isin(self._triplet['event_id'].values, subset_event_ids)
+        subset_event_ids = df_event.loc[idx_event_ids, 'event_id'].to_numpy()  
+        idx_subset = np.isin(self._triplet['event_id'].to_numpy(), subset_event_ids)
         return self.isel(idx_subset)
     
     def select_longest_events(self, n=1):
         longest_event_ids = self.arrange('triplet.event_duration', decreasing=True)._triplet['event_id'].iloc[0:n]
-        idx_longest_events = np.isin(self._triplet['event_id'].values, longest_event_ids)
+        idx_longest_events = np.isin(self._triplet['event_id'].to_numpy(), longest_event_ids)
         return self.isel(idx_longest_events)
     
     def select_shortest_events(self, n=1):
         shortest_event_ids = self.arrange('triplet.event_duration', decreasing=False)._triplet['event_id'].iloc[0:n]
-        idx_shortest_events = np.isin(self._triplet['event_id'].values, shortest_event_ids)
+        idx_shortest_events = np.isin(self._triplet['event_id'].to_numpy(), shortest_event_ids)
         return self.isel(idx_shortest_events)
         
     def discard_events_with_max_duration(self, timedelta):
@@ -1381,9 +1381,9 @@ class MASC_DB:
         
         #---------------------------------------------------------------------.
         ### - Check cam flake_id match each others
-        cam0_flake_ids = np.sort(cam0.index.values)
-        cam1_flake_ids = np.sort(cam0.index.values)
-        cam2_flake_ids = np.sort(cam0.index.values)
+        cam0_flake_ids = np.sort(cam0.index.values.astype(str))
+        cam1_flake_ids = np.sort(cam0.index.values.astype(str))
+        cam2_flake_ids = np.sort(cam0.index.values.astype(str))
         if not np.array_equal(cam0_flake_ids, cam1_flake_ids): 
             raise ValueError("cam0 and cam1 does not have the same 'flake_id' index.")
         if not np.array_equal(cam0_flake_ids, cam2_flake_ids): 
@@ -1414,7 +1414,7 @@ class MASC_DB:
         #---------------------------------------------------------------------.
         ### - Check flake_id match between mascdb and provided cam dataframes 
         new_flake_ids = cam0_flake_ids
-        existing_flake_ids = self._cam0['flake_id'].values
+        existing_flake_ids = self._cam0['flake_id'].to_numpy().astype(str)
         
         missing_flake_ids = existing_flake_ids[np.isin(existing_flake_ids, new_flake_ids, invert=True)]
         matching_flake_ids = new_flake_ids[np.isin(new_flake_ids, existing_flake_ids)]
@@ -1493,7 +1493,7 @@ class MASC_DB:
        
         #---------------------------------------------------------------------.
         ### - Check df flake_id match each others
-        df_flake_ids = np.sort(df.index.values)
+        df_flake_ids = np.sort(df.index.values.astype(str))
                 
         #---------------------------------------------------------------------.
         # Check if column names already exist in mascdb.triplet 
@@ -1512,7 +1512,7 @@ class MASC_DB:
         #---------------------------------------------------------------------.
         ### - Check flake_id match between mascdb and provided dataframes 
         new_flake_ids = df_flake_ids
-        existing_flake_ids = self._triplet['flake_id'].values
+        existing_flake_ids = self._triplet['flake_id'].to_numpy().astype(str)
         
         missing_flake_ids = existing_flake_ids[np.isin(existing_flake_ids, new_flake_ids, invert=True)]
         matching_flake_ids = new_flake_ids[np.isin(new_flake_ids, existing_flake_ids)]
