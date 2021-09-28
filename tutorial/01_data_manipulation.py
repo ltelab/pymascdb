@@ -132,7 +132,7 @@ df['env_Twb'] = wet_bulb_t(df["env_T"].to_numpy(), df["env_RH"].to_numpy())
 new_mascdb = mascdb.add_triplet_columns(df['env_Twb'], force=False, complete=True)
 new_mascdb.triplet
 
-
+# TODO 
 df = df.iloc[0:100]
 n = mascdb.add_triplet_columns(df['env_Twb'], force=False, complete=False)
 n.triplet
@@ -223,7 +223,7 @@ mascdb.sel(['0','2015.02.10_11.55.15_flake_9'])  # This clearly does not work
 #### Sorting  ##
 ################
 # Sort by snowflake diameter 
-mascdb_largeD = mascdb.arrange('cam0.Dmax', decreasing=True)    # TODO: Avoid warning 
+mascdb_largeD = mascdb.arrange('cam0.Dmax', decreasing=True)     
 mascdb_largeD.cam0['Dmax']
 mascdb_largeD.plot_triplets(n_triplets = 3)
 
@@ -241,16 +241,18 @@ mascdb_smallD.plot_triplets(n_triplets = 3, zoom=False)
 ############################ 
 # expression = 'triplet.env_T
 
-mascdb.select_max('cam0.Dmax', n=5)   # TODO: Avoid warning 
+mascdb.select_max('cam0.Dmax', n=5)    
 mascdb.select_min('cam0.Dmax', n=5)
 
-mascdb.select_min('triplet.env_T', n=5)  # BUG 
+mascdb.select_min('triplet.env_T', n=5)   
 mascdb.select_min('env.T', n=5)
 
 mascdb.select_max('triplet.bs_normalized_angle', n=5)
 mascdb.select_min('triplet.bs_mixing_ind', n=5)
+mascdb.select_min('bs.mixing_ind', n=5)
 
-mascdb.select_min('gan3d.volume', n=5) # How it deal with NaN? 
+
+mascdb.select_min('gan3d.volume', n=5)  
 mascdb.select_min('gan3d.mass', n=5)
  
 # Select based on complex conditions 
@@ -318,7 +320,6 @@ mascdb.select_riming_class('medium').select_max(cam0.Dmax, n=5).plot_triplets()
 
 mascdb.select_precip_class('rain')
 mascdb.select_precip_class('precip')
-mascdb.select_precip_class('rain')
 mascdb.discard_precip_class('blowing_snow')
 mascdb.discard_precip_class(['blowing_snow','undefined'])
 mascdb.discard_precip_class(['blowing_snow','rain'])
@@ -482,7 +483,7 @@ mascdb_short_events.triplet.sns.boxplot(x="bs_precip_type", y="event_n_triplets"
 mascdb_few_triplets = mascdb.select_events_with_less_triplets_than(10)
 mascdb_few_triplets.event
 
-mascdb_few_triplets.triplet.sns.boxplot(x="bs_precip_type", y="event_n_triplets") # TODO: this is strange 
+mascdb_few_triplets.triplet.sns.boxplot(x="bs_precip_class_id", y="event_n_triplets") # TODO: this is strange 
 mascdb_few_triplets.triplet.sns.boxplot(x="bs_precip_class_id")
 
 # See some stats on event durations and n_triplets per events 
@@ -490,7 +491,7 @@ mascdb.triplet.sns.scatterplot(x="event_duration", y="event_n_triplets")
 
 ### Dmax analysis  
 # Retrieve event leading to largest Dmax 
-mascdb.arrange('cam0.Dmax', decreasing=True) # TODO CHECK: WHY THIS WARNING 
+mascdb.arrange('cam0.Dmax', decreasing=True)  
 largest_Dmax_event_id = mascdb.arrange('cam0.Dmax', decreasing=True).cam0['event_id'].iloc[0]
 idx_largest_Dmax_event = mascdb.cam0['event_id'] == largest_Dmax_event_id
 mascdb_event = mascdb.isel(idx_largest_Dmax_event).arrange('triplet.datetime', decreasing=False)
