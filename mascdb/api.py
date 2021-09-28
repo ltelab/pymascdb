@@ -160,7 +160,7 @@ def _check_isel_idx(idx, vmax):
             idx = np.array(idx.values)
             
     if isinstance(idx, np.ndarray):
-        if idx.dtype.name == ['bool','boolean']:
+        if idx.dtype.name in ['bool','boolean']:
             idx = np.where(idx)[0]
         if idx.dtype.name != 'int64':
             raise ValueError("Expecting idx np.array to be of 'bool' or 'int64' type.")
@@ -225,6 +225,13 @@ def _check_df(df, name=None):
 def _count_occurence(x): 
     return [dict(zip(list(x.value_counts().keys()), list(x.value_counts())))]
 
+def _convert_object_to_string(df):
+    idx_object = df.dtypes.values == "object"
+    columns = df.columns[np.where(idx_object)]
+    for column in columns:
+        df[column] = df[column].astype('string')
+    return df 
+
 ####-----------------------------------------------------------------------------.
 class MASC_DB:
     """
@@ -251,11 +258,16 @@ class MASC_DB:
         self._da.name = "MASC Images"
   
         # Read data into dataframes
-        self._cam0    = pd.read_parquet(cam0_fpath).convert_dtypes().set_index('flake_id', drop=False)
-        self._cam1    = pd.read_parquet(cam1_fpath).convert_dtypes().set_index('flake_id', drop=False)
-        self._cam2    = pd.read_parquet(cam2_fpath).convert_dtypes().set_index('flake_id', drop=False)
-        self._triplet = pd.read_parquet(triplet_fpath).convert_dtypes().set_index('flake_id', drop=False)
-
+        self._cam0    = pd.read_parquet(cam0_fpath).set_index('flake_id', drop=False)
+        self._cam1    = pd.read_parquet(cam1_fpath).set_index('flake_id', drop=False)
+        self._cam2    = pd.read_parquet(cam2_fpath).set_index('flake_id', drop=False)
+        self._triplet = pd.read_parquet(triplet_fpath).set_index('flake_id', drop=False)
+        # - Ensure categorical/object columns are encoded as string 
+        self._cam0 = _convert_object_to_string(self._cam0)
+        self._cam1 = _convert_object_to_string(self._cam1)
+        self._cam2 = _convert_object_to_string(self._cam2)
+        self._triplet = _convert_object_to_string(self._triplet)
+        
         # Number of triplets 
         self._n_triplets = len(self._triplet)
         
@@ -462,7 +474,7 @@ class MASC_DB:
             raise ValueError("{!r} is not a column of {!r}. Valid columns are {}".format(db_column, db_name, valid_columns))
         #------------------------------.
         # Retrieve sorting idx 
-        idx = db[db_column].to_numpy().argsort()
+        idx = db[db_column].values.argsort()
         if decreasing: 
             idx = idx[::-1]
         #------------------------------.
