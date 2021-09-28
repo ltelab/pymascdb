@@ -9,19 +9,30 @@ Created on Fri Aug 27 09:52:51 2021
 ############ 
 ### JGR ####
 ############
-### AUX 
-
 ### CAM DB 
 # - Appropriate rounding of descriptors  --> DONE. To be checked for errors
 
-### Parquet dataframe savings 
-# ... strings column are currently saved as 'object' 
-# ... reading then requires always conversion 
+## PLOTS SNOWFLAKES
+# -- Add flake_ids to plot_flake, plot_flakes, plot_triplets? 
+# -- Add legend |--| 1 mm over the image 
+# -- Add value of a descriptor in image corner 
 
-##----------------------------------------------------------------------------. 
+# add option to report mm ... 
+# pix_size = self._triplet.loc[index].pix_size*1e3  # mm
+# xsize = out.shape[0]*pix_size # mm
+# ysize = out.shape[1]*pix_size # mm
+
+### TO DECIDE: 
+# get_vars_class --> get_vars_labels ? # include prob and riming_deg_level?
+# mascdb.labels  # this return columns of get_vars_class()
+
+# Default event definition: currently time interval of 4h without images ... to reduce ??
+               
+##----------------------------------------------------------------------------.
 ############ 
-### GG #####
-############ 
+### GG  ####
+############
+# Working example of computing descriptors on full dataset 
 
 ##----------------------------------------------------------------------------.
 ##################
@@ -45,28 +56,11 @@ ds_image, df_descriptors, df_class_ids = mascdb.get_triplet_descriptors_set(samp
 # -- Minimum size of zoomed image ? To be set? 
 # -- Enhancement on zoomed image? Now on full 1024x1024
 #    If applied on zoomed image, define minimum size if to apply ... 
-# -- Add legend |--| 1 mm over the image 
-# -- Add value of a descriptor in image corner 
-
-## PLOTS DATAFRAME
-# -- Add sns wrapper 
 
 ##----------------------------------------------------------------------------.
-####################
-### TODO CHECKS ####
-####################
-### 1
-# Retrieve the event leading to largest Dmax 
-timedelta_thr = np.timedelta64(2, 'h')
-mascdb.define_event_id(timedelta_thr=timedelta_thr)
-mascdb.arrange('cam0.Dmax', decreasing=True)        # TODO CHECK WHY THIS RAISE WARNING
 
-event_id = mascdb.arrange('cam0.Dmax', decreasing=True).cam0['event_id']
-idx_event = mascdb.cam0['event_id'] == event_id[0]
-mascdb_event = mascdb.isel(idx_event).arrange('cam0.datetime', decreasing=False)
-print(mascdb_event)
 
-##----------------------------------------------------------------------------.
+
 
 
 
