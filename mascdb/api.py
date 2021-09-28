@@ -237,17 +237,32 @@ def _convert_object_to_string(df):
 ####-----------------------------------------------------------------------------.
 class MASC_DB:
     """
-    Masc database class to read and manipulate the 4 databases of 
-    descriptors (one for each cam) as well TODO
+    
+    Masc database class to read and manipulate the 4 parquet databases of 
+    descriptors as well as the zarr database of greyscale images of mascdb.
+    
+    TODO: add DOI / ref
 
     """
+    
     #####################
     #### Read MASCDB ###
     ##################### 
     def __init__(self, dir_path):
         """
-        TO DO
-        
+        Initialize MASC_DB object
+
+        Parameters
+        ----------
+        dir_path : str
+            Full path with trailing '/' to the location of MASC_DB files.
+            4 files are expected at that path: MASCdb_cam?.parquet (0,1,2),
+            MASCdb_triplet.parquet as well as the zarr store MASCdb.zarr
+
+        Returns
+        -------
+        None.
+
         """
         zarr_store_fpath = os.path.join(dir_path,"MASCdb.zarr")
         cam0_fpath = os.path.join(dir_path, "MASCdb_cam0.parquet")
@@ -320,6 +335,24 @@ class MASC_DB:
     #### Write MASCDB ###
     ##################### 
     def save(self, dir_path, force=False):
+        """
+        
+        Save MASC_DB object to disc into 4 parquet files and one Zarr store
+
+        Parameters
+        ----------
+        dir_path : str
+            Destination path, where to store the database
+        force :  Bool, default False
+           If True and if dir_path is the same as source path of MASC_DB object,
+           it will  try to overwrite it
+           
+
+        Returns
+        -------
+        None.
+
+        """
         # - Check there are data to save
         if self._n_triplets == 0: 
             raise ValueError("Nothing to save. No data left in the MASCDB.")
@@ -364,6 +397,20 @@ class MASC_DB:
     #### Subsetting ###
     ###################
     def isel(self, idx): 
+        """
+        TODO
+
+        Parameters
+        ----------
+        idx : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         #---------------------------------------------------------------------.
         # Check valid (integer) idx 
         idx = _check_isel_idx(idx, vmax=self._n_triplets-1)
@@ -394,6 +441,21 @@ class MASC_DB:
         return self 
         
     def sel(self, flake_ids): 
+        """
+        
+        TODO
+
+        Parameters
+        ----------
+        flake_ids : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         #---------------------------------------------------------------------.
         # Check valid flake_ids 
         valid_flake_ids = self._da['flake_id'].values
@@ -419,6 +481,22 @@ class MASC_DB:
         return self 
     
     def sample_n(self, n=10):
+        """
+        
+        Sample randomly 'n' flakes in the current MASCDB object
+
+        Parameters
+        ----------
+        n : int,float; optional
+             Number of samples to extract The default is 10.
+
+
+        Returns
+        -------
+        MASC_DB object with n sampled flakes
+
+        """
+        
         if n > len(self): 
             raise ValueError("The MASCDB instance has currently only {} triplets.".format(len(self)))      
         idx = np.random.choice(self._n_triplets, n) 
