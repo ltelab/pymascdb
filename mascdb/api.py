@@ -8,6 +8,7 @@ Created on Wed Sep  1 21:56:51 2021
 import os
 import shutil
 import copy
+import dask
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -142,40 +143,71 @@ def _check_isel_idx(idx, vmax):
     # Return a numpy array of positional idx 
     if not isinstance(idx, (int,list, slice,  pd.Series, np.ndarray)):
         raise ValueError("isel expect a slice object, an integer or a list/pd.Series/np.array of int or boolean.")
-    # Reformat all types to unique format 
-    if isinstance(idx, slice): 
-        idx = np.arange(idx.start, idx.stop, idx.step)
-    if isinstance(idx, np.ndarray):
-        if idx.dtype.name == 'bool':
-            idx = np.where(idx)[0]
-        elif idx.dtype.name == 'int64':
-            idx = np.array(idx)
-        else:
-            raise ValueError("Expecting idx np.array to be of 'bool' or 'int64' type.")
-    if isinstance(idx, pd.Series):
-        if idx.dtype.name == 'bool':
-            idx = np.where(idx)[0]
-        else: 
-            idx = np.array(idx)
+    # Reformat all types to unique format (numpy array of integers)
     if isinstance(idx, int): 
         idx = np.array([idx])
     if isinstance(idx, list): 
         idx = np.array(idx)
-        if idx.dtype.name == 'bool':
-            idx = np.where(idx)[0]
-        elif idx.dtype.name == 'int64':
-            idx = np.array(idx)
-        else:
+        if idx.dtype.name not in ['bool','int64']:
             raise ValueError("Expecting values in the idx list to be of 'bool' or 'int' type.")
+    if isinstance(idx, slice): 
+        idx = np.arange(idx.start, idx.stop, idx.step)
+        
+    if isinstance(idx, pd.Series):
+        if idx.dtype.name in ['bool','boolean']:
+            idx = np.where(idx.values)[0]
+        else: 
+            idx = np.array(idx.values)
+            
+    if isinstance(idx, np.ndarray):
+        if idx.dtype.name == ['bool','boolean']:
+            idx = np.where(idx)[0]
+        if idx.dtype.name != 'int64':
+            raise ValueError("Expecting idx np.array to be of 'bool' or 'int64' type.")
+
     #--------------------------------------------------------------------.
     # Check idx validity 
     if np.any(idx > vmax):
         raise ValueError("The maximum positional idx is {}".format(vmax))
     if np.any(idx < 0):
         raise ValueError("The positional idx must be positive integers.")
+        
     #--------------------------------------------------------------------.
     # Return idx 
     return idx 
+
+def _check_sel_ids(ids, valid_ids):
+    # Return a numpy array of str 
+    if not isinstance(ids, (str, list, pd.Series, np.ndarray)):
+        raise ValueError("sel expect a string or a list/pd.Series/np.array of str")
+    if valid_ids.dtype.name == "object":
+        valid_ids = valid_ids.astype(str)
+    # Reformat all types to unique format (numpy array of strings)
+    if isinstance(ids, str): 
+        ids = np.array([ids])
+    if isinstance(ids, list): 
+        ids = np.array(ids)
+        if ids.dtype.name == 'object':
+            ids = ids.astype(str)
+        if not ids.dtype.name.startswith('str'):
+            raise ValueError("Expecting values in the list to be strings.")
+    if isinstance(ids, pd.Series):
+        ids = np.array(ids.values)
+    if isinstance(ids, np.ndarray):
+        if ids.dtype.name == 'object':
+            ids = ids.astype(str)
+        if not ids.dtype.name.startswith('str'):
+            raise ValueError("Expecting values in the np.array to be strings.")
+    #--------------------------------------------------------------------.
+    # Check idx validity 
+    unvalid_ids = ids[np.isin(ids, valid_ids, invert=True)]
+    if len(unvalid_ids) > 0:
+        raise ValueError("The following ids are not valid: {}".format(unvalid_ids.tolist()))
+    if len(ids) == 0: 
+        raise ValueError("THIS SHOULD NOT OCCUR ...")
+    #--------------------------------------------------------------------.    
+    return ids 
+
 
 def _check_timedelta(timedelta): 
     if not isinstance(timedelta, (pd.Timedelta, np.timedelta64)):
@@ -215,14 +247,15 @@ class MASC_DB:
         triplet_fpath = os.path.join(dir_path, "MASCdb_triplet.parquet")
         
         self._da = xr.open_zarr(zarr_store_fpath)['data']
+        self._da['flake_id'] = self._da['flake_id'].astype(str)
         self._da.name = "MASC Images"
-
+  
         # Read data into dataframes
-        self._cam0    = pd.read_parquet(cam0_fpath).convert_dtypes()
-        self._cam1    = pd.read_parquet(cam1_fpath).convert_dtypes()
-        self._cam2    = pd.read_parquet(cam2_fpath).convert_dtypes()
-        self._triplet = pd.read_parquet(triplet_fpath).convert_dtypes()
-        
+        self._cam0    = pd.read_parquet(cam0_fpath).convert_dtypes().set_index('flake_id', drop=False)
+        self._cam1    = pd.read_parquet(cam1_fpath).convert_dtypes().set_index('flake_id', drop=False)
+        self._cam2    = pd.read_parquet(cam2_fpath).convert_dtypes().set_index('flake_id', drop=False)
+        self._triplet = pd.read_parquet(triplet_fpath).convert_dtypes().set_index('flake_id', drop=False)
+
         # Number of triplets 
         self._n_triplets = len(self._triplet)
         
@@ -232,7 +265,7 @@ class MASC_DB:
         # Add default events
         self._define_events(maximum_interval_without_images = np.timedelta64(4,'h'),
                             unit="ns")
-    
+        print(self._triplet)
     
     ####----------------------------------------------------------------------.
     #########################
@@ -317,27 +350,58 @@ class MASC_DB:
     #### Subsetting ###
     ###################
     def isel(self, idx): 
+        #---------------------------------------------------------------------.
+        # Check valid (integer) idx 
+        idx = _check_isel_idx(idx, vmax=self._n_triplets-1)
+        #---------------------------------------------------------------------.
         # Copy new instance 
         self = copy.deepcopy(self)
         #---------------------------------------------------------------------.
-        # Check valid idx 
-        idx = _check_isel_idx(idx, vmax=self._n_triplets-1)
-        ##--------------------------------------------------------------------.
-        # Subset all datasets 
-        self._da = self._da.isel(flake_id=idx)
-        if isinstance(idx[0], bool):
-            self._cam0 = self._cam0[idx]  
-            self._cam1 = self._cam1[idx]  
-            self._cam2 = self._cam2[idx]  
-            self._triplet = self._triplet[idx]  
-        else: 
-            self._cam0 = self._cam0.iloc[idx]
-            self._cam1 = self._cam1.iloc[idx]
-            self._cam2 = self._cam2.iloc[idx]
-            self._triplet = self._triplet.iloc[idx]
+        ### Subset all datasets 
+        # - DataArray
+        with dask.config.set(**{'array.slicing.split_large_chunks': False}):
+            self._da = self._da.isel(flake_id=idx)
+        
+        # - Dataframes
+        # if isinstance(idx[0], bool):
+        #     self._cam0 = self._cam0[idx]  
+        #     self._cam1 = self._cam1[idx]  
+        #     self._cam2 = self._cam2[idx]  
+        #     self._triplet = self._triplet[idx]  
+        # else: 
+        self._cam0 = self._cam0.iloc[idx]
+        self._cam1 = self._cam1.iloc[idx]
+        self._cam2 = self._cam2.iloc[idx]
+        self._triplet = self._triplet.iloc[idx]
         ##--------------------------------------------------------------------.
         # Update number of triplets 
         self._n_triplets = len(self._triplet)
+        ##--------------------------------------------------------------------.
+        return self 
+        
+    def sel(self, flake_ids): 
+        #---------------------------------------------------------------------.
+        # Check valid flake_ids 
+        valid_flake_ids = self._da['flake_id'].values
+        flake_ids = _check_sel_ids(flake_ids, valid_ids = valid_flake_ids)
+        #---------------------------------------------------------------------.
+        # Copy new instance 
+        self = copy.deepcopy(self)
+        #---------------------------------------------------------------------.
+        ### Subset all datasets 
+        # - DataArray
+        with dask.config.set(**{'array.slicing.split_large_chunks': False}):
+            self._da = self._da.sel(flake_id=flake_ids)
+        
+        # - Dataframes
+        self._cam0 = self._cam0.loc[flake_ids]
+        self._cam1 = self._cam1.loc[flake_ids]
+        self._cam2 = self._cam2.loc[flake_ids]
+        self._triplet = self._triplet.loc[flake_ids]
+        ##--------------------------------------------------------------------.
+        # Update number of triplets 
+        self._n_triplets = len(self._triplet)
+        ##--------------------------------------------------------------------.
         return self 
     
     def sample_n(self, n=10):
@@ -425,13 +489,6 @@ class MASC_DB:
             String containing the name (must be one of the columns of MASCDB dataframes)
             of a MASCDB variable
             
-        Raises
-        ------
-        TypeError
-            If something else than a string is passed
-        ValueError
-            If the input string does not correspond to available variable list
-
         Returns
         -------
         str
@@ -457,13 +514,6 @@ class MASC_DB:
         varname : str
             String containing the name (must be one of the columns of MASCDB dataframes)
             of a MASCDB variable
-            
-        Raises
-        ------
-        TypeError
-            If something else than a string is passed
-        ValueError
-            If the input string does not correspond to available variable list
 
         Returns
         -------
@@ -815,7 +865,7 @@ class MASC_DB:
         full_db = pd.concat(l_cams)
         # Add triplet variables to fulldb 
         labels_vars = get_vars_class()
-        vars_not_add = ['flake_quality_xhi','n_roi', 'flake_Dmax'] + labels_vars
+        vars_not_add = ['flake_quality_xhi','flake_n_roi', 'flake_Dmax','flake_id'] + labels_vars
         triplet = self.triplet.drop(columns=vars_not_add)
         full_db = full_db.merge(triplet, how="left")
         return full_db
@@ -876,7 +926,7 @@ class MASC_DB:
         if "event_n_triplets" in list(self._triplet.columns):
             _ = self._triplet.drop(columns="event_n_triplets", inplace=True)
         # - Add column 
-        self._triplet = self._triplet.merge(event_triplets, on="event_id")
+        self._triplet = self._triplet.merge(event_triplets, on="event_id").set_index('flake_id', drop=False)
         return None
         
     def _add_event_duration(self, unit="ns"):
@@ -888,7 +938,7 @@ class MASC_DB:
         if "event_duration" in list(self._triplet.columns):
             _ = self._triplet.drop(columns="event_duration", inplace=True)
         # - Add column 
-        self._triplet = self._triplet.merge(event_durations, on="event_id")
+        self._triplet = self._triplet.merge(event_durations, on="event_id").set_index('flake_id', drop=False)
         return None
     
     def _define_events(self, 
@@ -1389,9 +1439,9 @@ class MASC_DB:
             
         #---------------------------------------------------------------------.
         # Join data     
-        self._cam0 = self._cam0.merge(cam0, how="left", on='flake_id')
-        self._cam1 = self._cam1.merge(cam1, how="left", on='flake_id')
-        self._cam2 = self._cam2.merge(cam2, how="left", on='flake_id')
+        self._cam0 = self._cam0.merge(cam0, how="left", on='flake_id').set_index('flake_id', drop=False)
+        self._cam1 = self._cam1.merge(cam1, how="left", on='flake_id').set_index('flake_id', drop=False)
+        self._cam2 = self._cam2.merge(cam2, how="left", on='flake_id').set_index('flake_id', drop=False)
         
         #---------------------------------------------------------------------.
         # Return the new mascdb 
@@ -1486,7 +1536,7 @@ class MASC_DB:
             print(msg)
         #---------------------------------------------------------------------.
         # Join data     
-        self._triplet = self._triplet.merge(df, how="left", on='flake_id')
+        self._triplet = self._triplet.merge(df, how="left", on='flake_id').set_index('flake_id', drop=False)
     
         #---------------------------------------------------------------------.
         # Return the new mascdb 

@@ -10,8 +10,8 @@ Created on Wed Sep 15 11:26:36 2021
 ##########################################
 #-----------------------------------------------------------------------------.
 import os
-#os.chdir("/home/ghiggi/Projects/pymascdb")
-os.chdir("/home/grazioli/CODES/python/pymascdb")
+os.chdir("/home/ghiggi/Projects/pymascdb")
+# os.chdir("/home/grazioli/CODES/python/pymascdb")
 
 import numpy as np
 import pandas as pd 
@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 import mascdb.api
 from mascdb.api import MASC_DB
 
-#dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
-dir_path = "/data/MASC_DB"
+dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
+# dir_path = "/data/MASC_DB"
  
 ##----------------------------------------------------------------------------.
 ###########################
@@ -68,7 +68,7 @@ mascdb.gan3d   # mass & volume estimation using GAN algorithm (Leinonen et al., 
 mascdb.get_var_units('flake_Dmax')
 mascdb.get_var_explanation('flake_Dmax')
 
-mascdb.get_var_units('snowflake_mood')       #this returns an error
+mascdb.get_var_units('snowflake_mood')       # this returns an error
 mascdb.get_var_explanation('flake_religion') # also this
 
 # Event summary information 
@@ -122,10 +122,10 @@ print(mascdb.cam0['new_column']) # Here nothing is added
 #            should be implemented, let us know 
 
 ### TODO EXAMPLES
-
 # new_mascdb = mascdb.add_cam_columns(cam0, cam1, cam2, force=False, complete=True)
 
 # new_mascdb = mascdb.dd_triplet_columns(df, force=False, complete=True)
+# --> Example wet bulb temperature 
 
 ##----------------------------------------------------------------------------.
 ##################
@@ -144,6 +144,7 @@ mascdb.last().cam0
 mascdb.tail().cam0
 
 # Subset specific rows with boolean indices
+# - Boolean indices must have same length of the database 
 idx = mascdb.cam0['Dmax'] > 0.02
 print(idx)
 mascdb_largeD = mascdb.isel(idx) 
@@ -161,20 +162,22 @@ mascdb.isel(-1)
 mascdb.isel(1.2) 
 mascdb.isel(False)
 mascdb.isel(True)
-mascdb.isel([False])
-mascdb.isel([True])
-mascdb.isel([True, False]) # THIS IS A BUG !!!
 mascdb.isel(None) 
-mascdb.isel([np.nan]) 
 mascdb.isel(np.nan) 
 mascdb.isel(np.inf) 
+mascdb.isel([np.nan]) 
+mascdb.isel([np.inf]) 
 
-# TODO BUGGY 
+# Subsetting with boolean indices with length < len(mascdb)
+# - Proceed with caution using such subsetting procedure !  
+mascdb.isel([False])
+mascdb.isel([True])
+mascdb.isel([True, False])  
+mascdb.isel([False, True])  
 idx = mascdb.cam0['Dmax'] > 0.02
 mascdb.isel(idx[0:2]) 
-mascdb.isel(idx[0:-2]) 
-mascdb.isel([True, False]) # THIS IS A BUG !!!
-
+mascdb.isel(idx[0:100000]) 
+ 
 # Subsetting dataframe columns
 mascdb.cam0['Dmax']
 mascdb.cam0[['Dmax','perim','pix_size']] 
@@ -186,17 +189,26 @@ mascdb.cam0.iloc[1]   # return a pd.Series
 mascdb.cam0.iloc[[1]] # return a pd.Dataframe
 
 # Subsetting dataframe rows by flake_id 
-mascdb.cam0.loc['2015.02.10_11.55.10_flake_4']  # TODO CHECK WITH NEW DATASET 
+mascdb.cam0.loc['2015.02.10_11.55.15_flake_9']   
+mascdb.cam0.loc[['2015.02.10_11.55.15_flake_9','2015.02.10_11.55.16_flake_10']]   
+
+mascdb.cam0.loc[0] # This clearly does not work 
+mascdb.cam0.loc['0'] # This clearly does not work 
 
 # Subsettings mascdb triplets by flake_id 
-# mascdb.sel('2015.02.10_11.55.10_flake_4)   # TODO IMPLEMENT
+mascdb.sel('2015.02.10_11.55.15_flake_9')   
+mascdb.sel(['2015.02.10_11.55.15_flake_9','2015.02.10_11.55.16_flake_10'])
+mascdb.sel('0')     # This clearly does not work 
+mascdb.sel('')      # This clearly does not work 
+mascdb.sel([1,2])   # This clearly does not work 
+mascdb.sel(['0','2015.02.10_11.55.15_flake_9'])  # This clearly does not work 
 
 ##----------------------------------------------------------------------------.
 ################
 #### Sorting  ##
 ################
 # Sort by snowflake diameter 
-mascdb_largeD = mascdb.arrange('cam0.Dmax', decreasing=True) 
+mascdb_largeD = mascdb.arrange('cam0.Dmax', decreasing=True)    # TODO: Avoid warning 
 mascdb_largeD.cam0['Dmax']
 mascdb_largeD.plot_triplets(n_triplets = 3)
 
@@ -212,15 +224,20 @@ mascdb_smallD.plot_triplets(n_triplets = 3, zoom=False)
 ############################ 
 #### - Descriptors-based  ##
 ############################ 
-mascdb.select_max('cam0.Dmax', n=5)
+# expression = 'triplet.env_T
+
+mascdb.select_max('cam0.Dmax', n=5)   # TODO: Avoid warning 
 mascdb.select_min('cam0.Dmax', n=5)
 
-mascdb.select_max('triplet.bs_nor_angle', n=5)
-mascdb.select_min('triplet.mix_ind', n=5)
+mascdb.select_min('triplet.env_T', n=5)  # BUG 
+mascdb.select_min('env.T', n=5)
 
-mascdb.select_min('triplet.gan3d.volume', n=5) # How it deal with NaN? 
-mascdb.select_min('triplet.gan3d.mass', n=5)
+mascdb.select_max('triplet.bs_normalized_angle', n=5)
+mascdb.select_min('triplet.bs_mixing_ind', n=5)
 
+mascdb.select_min('gan3d.volume', n=5) # How it deal with NaN? 
+mascdb.select_min('gan3d.mass', n=5)
+ 
 # Select based on complex conditions 
 idx = (mascdb.cam0['Dmax'] > 0.02) & (mascdb.env['RH'] > 50)
 mascdb1 = mascdb.isel(idx)  

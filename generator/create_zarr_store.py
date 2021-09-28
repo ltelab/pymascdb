@@ -36,7 +36,7 @@ global_attr = {"title": "MASCDB" ,
 # Create a xr.Dataset 
 ds = xr.Dataset(
     data_vars=dict(
-        data=(["flake_id", "x", "y", "cam_id"], dask_arr),  # TODO check if in origin is x y or y x 
+        data=(["flake_id", "y", "x", "cam_id"], dask_arr),  # TODO check if in origin is x y or y x 
     ),
     coords=dict(
         cam_id = np.array([0,1,2]),
