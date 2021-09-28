@@ -26,18 +26,12 @@ def wet_bulb_t(t,rh):
 
     """
     
-    if not isinstance(t,(int, float, list, np.ndarray)):
-        raise TypeError("'t' must be either (list of) integers or float.")
-        
-    if not isinstance(rh,(int, float, list, np.ndarray)):
-        raise TypeError("'rh' must be either (list of) integers or float.")
+    tt = np.asarray(t)
+    rr = np.asarray(rh)
 
-    if isinstance(t,(list,np.ndarray)):
-        if len(t) != len(rh):
-            raise TypeError("'t' and 'rh' must have the same length")
-
-    t_wetbulb = (t * np.arctan(0.152*(rh+8.3136)**(1/2)) + np.arctan(t + rh) - 
-            np.arctan(rh - 1.6763) + 0.00391838 *(rh)**(3/2) * np.arctan(0.0231 * rh) - 4.686
+ 
+    t_wetbulb = (tt * np.arctan(0.152*(rr+8.3136)**(1/2)) + np.arctan(tt + rr) - 
+            np.arctan(rr - 1.6763) + 0.00391838 *(rr)**(3/2) * np.arctan(0.0231 * rr) - 4.686
             )
 
     return t_wetbulb
