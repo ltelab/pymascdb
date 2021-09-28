@@ -337,7 +337,7 @@ def var_units():
         'snowflake_class_name':'class string',
         'snowflake_class_id':  'class',
         'snowflake_class_prob': '-',
-        'fallspeed':          'm s**-1',
+        'flake_fallspeed':      'm s**-1',
         'campaign':           '-',
         'latitude':           'deg_north',
         'longitude':          'deg_east',
@@ -478,7 +478,7 @@ def var_explanations():
              'snowflake_class_id':  'ID of hydrometeor class associated to the ROI or to the triplet of ROIs according to the method of https://doi.org/10.5194/amt-10-1335-2017. (small_particle: 1, columnar_crystal: 2, planar_crystal: 3, aggregate: 4, graupel: 5, columnar_planar_combination: 6)',
              'snowflake_class_prob': 'Probability associated with snowflake_class_id  / snowflake_class_name',
 
-             'fallspeed':          'Fall speed as recorded by the MASC infrared sensors.',
+             'flake_fallspeed':    'Fall speed as recorded by the MASC infrared sensors.',
              'campaign':           'String indicating the name of the masurement campaign where the MASC was deployed',
              'latitude':           'WGS84 latitude',
              'longitude':          'WGS84 longitude',
