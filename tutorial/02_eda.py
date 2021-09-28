@@ -34,23 +34,44 @@ len(mascdb)
 ##----------------------------------------------------------------------------.
 ### Image plots 
 # - By default the 'enhancement' is (adaptive) histogram_equalization
-mascdb.plot_flake(cam_id=0, random = True, zoom=True)
+# - By default random is set to False (plot ordered)
+# - By defaulr zoom is enabled (zoom=True) and image is squared (squared=True)
+# - n_images/n_triplets and random are used only if indices is not provided 
+# 
+# - Plot flakes triplet(s)
+mascdb.plot_triplets(random = True, zoom=True) # by default plot a single triplet 
+mascdb.plot_triplets(indices=[0,10], n_triplets = 1, zoom=True) # --> n_triplet has no effect
+mascdb.plot_triplets(indices=[0,10], n_triplets = 1, zoom=True, enhancement=None)
+mascdb.plot_triplets(random = True, n_triplets = 1, zoom=True) 
+mascdb.plot_triplets(random = True, n_triplets = 3, zoom=True)
+
+# - Plot single flake 
+mascdb.plot_flake(random = True, zoom=True)  # random cam, random indices   
+mascdb.plot_flake(cam_id=0, random = True,  zoom=True)
 mascdb.plot_flake(cam_id=0, random = False, zoom=True)
-mascdb.plot_flake(cam_id=0, index=0, random = True, zoom=True)
+mascdb.plot_flake(cam_id=0,   index=0,   random = True, zoom=True)
 mascdb.plot_flake(cam_id=[0], index=[0], random = True, zoom=True)
 
-mascdb.plot_flakes(cam_id=0, indices=[0], random = True, zoom=True)
-mascdb.plot_flakes(cam_id=0, indices=0, random = True, zoom=True)  
-mascdb.plot_flakes(cam_id=0, indices=None, random = True, n_images = 1, zoom=True)
-mascdb.plot_flakes(cam_id=0, indices=None, random = True, n_images = 2, zoom=True)
-mascdb.plot_flakes(cam_id=[0], indices=None, random = True, n_images = 9, zoom=True) 
-mascdb.plot_flakes(cam_id=0, indices=[1,2], random = True, n_images = 2, zoom=True)
-mascdb.plot_flakes(cam_id=0, indices=[1,2], random = True, n_images = 9, zoom=True)  
+mascdb.plot_flakes(cam_id=0,   indices=0, random = True, zoom=True)
+mascdb.plot_flakes(cam_id=[0], indices=0, random = True, zoom=True)  
+mascdb.plot_flakes(indices=[0], random = True, zoom=True)  
 
-mascdb.plot_triplets(indices=[0,10], random = True, n_triplets = 1, zoom=True)
-mascdb.plot_triplets(indices=[0,10], random = True, n_triplets = 1, zoom=True, enhancement=None)
-mascdb.plot_triplets(indices=None, random = True, n_triplets = 1, zoom=True) #
-mascdb.plot_triplets(indices=None, random = True, n_triplets = 3, zoom=True)
+# - Plot multiple flakes from a single camera 
+mascdb.plot_flakes(random = True, zoom=True)  # By default: single random camera and n_images = 9
+mascdb.plot_flakes(random = True, n_images = 9, zoom=True)  # single random camera and n_images = 9
+
+mascdb.plot_flakes(cam_id=0, indices=[1,2], n_images = 1, zoom=True) # --> 'indices' has high priority over 'n_images' 
+mascdb.plot_flakes(cam_id=0, indices=[1,2], n_images = 9, zoom=True) # --> 'indices' has high priority over 'n_images' 
+mascdb.plot_flakes(cam_id=0,   random = True, n_images = 2, zoom=True)
+mascdb.plot_flakes(cam_id=[0], random = True, n_images = 9, zoom=True) 
+ 
+# - Plot multiple flakes for each specific camera
+mascdb.plot_flakes(cam_id=[0,1], random = True, n_images = 2, col_wrap=2, zoom=True)
+mascdb.plot_flakes(cam_id=[0,1], indices=[0], random = True, zoom=True)   
+mascdb.plot_flakes(cam_id=[0,1], indices=[0,1], col_wrap=2, zoom=True)  
+mascdb.plot_flakes(cam_id=[1,0], indices=[0,1], col_wrap=2, zoom=True)  
+mascdb.plot_flakes(cam_id=[0,1], indices=[0,1,2], col_wrap=3, zoom=True)  
+mascdb.plot_flakes(cam_id=[0,1,2], indices=[0,1,2], col_wrap=3, zoom=True) 
 
 ##----------------------------------------------------------------------------.
 ## Added accessor for seaborn plot routines ;) 
@@ -65,7 +86,7 @@ mascdb.cam0.sns.violinplot(x="Dmax")
 # - plot temperature and Dmax
 mascdb.triplet.sns.jointplot(x="env_T",y="flake_Dmax") # All data --> blowing snow contaminates
 # - let's try the same plot but keeping only "precip"
-mascdb1=mascdb.select_precip_class('precip') #TODO Check if warning still occurs
+mascdb1=mascdb.select_precip_class('precip')  
 mascdb1.triplet.sns.jointplot(x="env_T",y="flake_Dmax") # Better 
 
 # Physically-sound example 2 (wind and Dmax)

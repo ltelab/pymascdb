@@ -10,8 +10,8 @@ Created on Wed Sep 15 11:26:36 2021
 ##########################################
 #-----------------------------------------------------------------------------.
 import os
-#os.chdir("/home/ghiggi/Projects/pymascdb")
-os.chdir("/home/grazioli/CODES/python/pymascdb")
+os.chdir("/home/ghiggi/Projects/pymascdb")
+#os.chdir("/home/grazioli/CODES/python/pymascdb")
 
 import numpy as np
 import pandas as pd 
@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 import mascdb.api
 from mascdb.api import MASC_DB
 
-#dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
-dir_path = "/data/MASC_DB"
+dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
+# dir_path = "/data/MASC_DB"
  
 ##----------------------------------------------------------------------------.
 ###########################
@@ -60,6 +60,8 @@ mascdb.cam2
 mascdb.triplet 
 
 ## Additional dataframes with application-specific informations (contained in mascdb.triplet) 
+mascdb.flake   # flake avg properties across cam images 
+mascdb.labels  # class labels 
 mascdb.env     # atmospheric environment 
 mascdb.bs      # blowing snow estimation using Schaer et al., 2019 method
 mascdb.gan3d   # mass & volume estimation using GAN algorithm (Leinonen et al., 2021)
@@ -117,30 +119,35 @@ print(mascdb.cam0.loc[0])       # Here nothing is assigned
 mascdb.cam0['new_column'] = 1
 print(mascdb.cam0['new_column']) # Here nothing is added
 
-# To add columns to a MASCDB dataframe the following functions must be used  
-# - Warning: this is not rigourously tested yet. If you found buggy or useful behaviour that
-#            should be implemented, let us know 
+### Add columns to a MASCDB dataframe the following functions must be used  
+# ---> mascdb.add_triplet_columns()
+# ---> mascdb.add_cam_columns()
 
-# Calculate wet bulb temperature and add it as a column to triplet
+# - Calculate wet bulb temperature and add it as a column to triplet dataframe
 from mascdb.utils_env import wet_bulb_t # Util to generate wet bulb temp
 
 df = mascdb.triplet
 df['env_Twb'] = wet_bulb_t(df["env_T"].to_numpy(), df["env_RH"].to_numpy())
 
- 
-
 new_mascdb = mascdb.add_triplet_columns(df['env_Twb'], force=False, complete=True)
 new_mascdb.triplet
 
-# TODO 
-df = df.iloc[0:100]
-n = mascdb.add_triplet_columns(df['env_Twb'], force=False, complete=False)
-n.triplet
+# - Add columns only for a partial subset of flake_id 
+df_subset = df.iloc[0:100]
+new_mascdb = mascdb.add_triplet_columns(df_subset['env_Twb'], force=False, complete=True)
+new_mascdb = mascdb.add_triplet_columns(df_subset['env_Twb'], force=False, complete=False)
+new_mascdb.triplet
 
+##----------------------------------------------------------------------------.
+########################
+### Dropping columns ###
+########################
+# - Remove columns from triplet dataframe 
+new_mascdb.drop_triplet_columns("env_Twb").triplet
 
-#new_mascdb = mascdb.add_cam_columns(cam0, cam1, cam2, force=False, complete=True)
-
-# --> Example wet bulb temperature 
+# - Remove columns from triplet dataframe 
+mascdb.cam0
+mascdb.drop_cam_columns("event_id").cam0
 
 ##----------------------------------------------------------------------------.
 ##################
@@ -185,10 +192,11 @@ mascdb.isel([np.inf])
 
 # Subsetting with boolean indices with length < len(mascdb)
 # - Proceed with caution using such subsetting procedure !  
-mascdb.isel([False])
-mascdb.isel([True])
-mascdb.isel([True, False])  
-mascdb.isel([False, True])  
+mascdb.isel([False])  # Empty DBs
+mascdb.isel([True])   # First row (index=0)
+mascdb.isel([True, False])  # First row
+mascdb.isel([False, True])  # Second row 
+
 idx = mascdb.cam0['Dmax'] > 0.02
 mascdb.isel(idx[0:2]) 
 mascdb.isel(idx[0:100000]) 
@@ -324,13 +332,20 @@ mascdb.discard_precip_class('blowing_snow')
 mascdb.discard_precip_class(['blowing_snow','undefined'])
 mascdb.discard_precip_class(['blowing_snow','rain'])
 
+##----------------------------------------------------------------------------.
 ####################### 
 #### - Quality-based ## 
 ####################### 
-### TODO IMPLEMENT 
-"""
- - Example to filter quality_xhi
-"""
+# Select images with  average high quality and plot it 
+idx = (mascdb.triplet['flake_quality_xhi'] > 9)
+mascdb_high_quality_img = mascdb.isel(idx).arrange('triplet.flake_quality_xhi', decreasing=True)
+mascdb_high_quality_img.plot_triplets(n_triplets = 3, zoom=True)
+
+# Select images from specific camera with high quality and plot it 
+idx = (mascdb.cam0['quality_xhi'] > 9)
+mascdb_cam0_high_quality = mascdb.isel(idx).arrange('cam0.quality_xhi', decreasing=True)
+mascdb_cam0_high_quality.plot_flakes(cam_id=0, n_images=9, col_wrap=3, zoom=True)
+mascdb_cam0_high_quality.plot_triplets(n_triplets = 3, zoom=True)
 
 ##----------------------------------------------------------------------------.
 #######################
@@ -367,92 +382,73 @@ mascdb.event
 # mascdb.event
 
 ##-----------------------------------------
-# Filter by number of n_triplet images within an event  ### 
+# Filter by number of n_triplet images within an event   
 # - Select events with more than n triplets
-new_mascdb = mascdb.select_events_with_more_triplets_than(50)
-new_mascdb.triplet[['event_id','event_duration','event_n_triplets']]
-new_mascdb.event 
-np.unique(new_mascdb.event['event_n_triplets'])
+new_mascdb = mascdb.select_events_with_n_triplets(min=50)
+print(new_mascdb.triplet[['event_id','event_n_triplets']])
+print(new_mascdb.event)
+print(np.unique(new_mascdb.event['event_n_triplets']))
 
 # - Select events with less than n triplets
-new_mascdb = mascdb.select_events_with_less_triplets_than(1)
-new_mascdb.triplet[['event_id','event_duration','event_n_triplets']]
-new_mascdb.event 
-np.unique(new_mascdb.event['event_n_triplets'])
-np.unique(new_mascdb.event['event_duration']) # --> When there is only 1 triplet, event_duration is 0 
+new_mascdb = mascdb.select_events_with_n_triplets(max=1)
+print(new_mascdb.triplet[['event_id','event_n_triplets']])
+print(new_mascdb.event)
+print(np.unique(new_mascdb.event['event_n_triplets']))
+print(np.unique(new_mascdb.event['event_duration'])) # When only 1 triplet, event_duration is 0 
 
-# - Discard events with more than n triplets
-new_mascdb = mascdb.discard_events_with_more_triplets_than(1)
-new_mascdb.triplet[['event_id','event_duration','event_n_triplets']]
-new_mascdb.event 
-np.unique(new_mascdb.event['event_n_triplets'])
-
-# - Discard events with less than n triplets
-new_mascdb = mascdb.discard_events_with_less_triplets_than(1)
-new_mascdb.triplet[['event_id','event_duration','event_n_triplets']]
-new_mascdb.event 
-np.unique(new_mascdb.event['event_n_triplets'])
-
-##-----------------------------------------
-## TODO  TODO TODO TODO TODO TODO TODO TODO TODO 
-# TODO --> BETTER NAMES ?
-# - The following with 1 returns the same mascdb, with 2 it include also 2 ...
-# - select_events_with_at_least_n_triplets(2) 
-# - select_events_with_min_triplets(2) 
-# - select_events_with_at_least(n_triplets = 2, duration= np.datetime64(2,'h')
-# - select_events_with_max(n_triplets = 2, duration= np.datetime64(30,'s') 
-
-new_mascdb = mascdb.select_events_with_more_triplets_than(1)   # THIS RETURN ALSO 1 ... should we >
-new_mascdb.triplet[['event_id','event_duration','event_n_triplets']]
-new_mascdb.event 
-np.unique(new_mascdb.event['event_n_triplets'])
+# - Select events with more than n triplets and less than n triplets 
+new_mascdb = mascdb.select_events_with_n_triplets(min=1, max=10)
+print(new_mascdb.triplet[['event_id','event_n_triplets']])
+print(new_mascdb.event)
+print(np.unique(new_mascdb.event['event_n_triplets']))
 
 ##-----------------------------------------
 # Filter by event duration
 # - Less than 10 minutes
-new_mascdb = mascdb.select_events_with_max_duration(np.timedelta64(10,'m'))
-new_mascdb.triplet[['event_id','event_duration','event_n_triplets']]
-new_mascdb.event 
-np.unique(new_mascdb.event['event_n_triplets'])
-np.unique(new_mascdb.event['event_duration'])
+new_mascdb = mascdb.select_events_with_duration(max=np.timedelta64(10,'m'))
+print(new_mascdb.triplet[['event_id','event_duration']])
+print(np.unique(new_mascdb.event['event_n_triplets'])) # The shortest the duration, the less the number of triplets
+ 
 # - Less than 10 seconds
 # --> When there is only 1 triplet, event_duration is 0 
-new_mascdb = mascdb.select_events_with_max_duration(np.timedelta64(10,'s'))
-new_mascdb.triplet[['event_id','event_duration','event_n_triplets']]
-new_mascdb.event 
-np.unique(new_mascdb.event['event_n_triplets'])
-np.unique(new_mascdb.event['event_duration']) 
+new_mascdb = mascdb.select_events_with_duration(max=np.timedelta64(10,'s'))
+print(new_mascdb.triplet[['event_id','event_duration']])
+print(np.unique(new_mascdb.event['event_n_triplets'])) # The shortest the duration, the less the number of triplets
  
 # - More than 2 hours duration 
-new_mascdb = mascdb.select_events_with_min_duration(np.timedelta64(2,'h'))
-new_mascdb.triplet[['event_id','event_duration','event_n_triplets']]
-new_mascdb.event 
+new_mascdb = mascdb.select_events_with_duration(min=np.timedelta64(2,'h'))
+print(new_mascdb.triplet[['event_id','event_duration']])
+print(np.unique(new_mascdb.event['event_n_triplets']))
+ 
 # - More than 1 day duration 
-new_mascdb = mascdb.select_events_with_min_duration(np.timedelta64(1,'d'))
-new_mascdb.triplet[['event_id','event_duration','event_n_triplets']]
-new_mascdb.event 
+new_mascdb = mascdb.select_events_with_duration(min=np.timedelta64(1,'D'))
+print(new_mascdb.triplet[['event_id','event_duration']])
+print(np.unique(new_mascdb.event['event_n_triplets']))
 
 ##-----------------------------------------
 # Select longest or shortest events 
-mascdb.select_longest_events(1)
-mascdb.select_longest_events(2)
-mascdb.select_shortest_events(10)
+mascdb.select_events_longest()
+mascdb.select_events_longest(1)
+
+mascdb.select_events_longest(2)
+
+mascdb.select_events_shortest(10)
 
 ##-----------------------------------------
 ### Redefine events with custom thresholds  
-# - This can filter out images from events 
-#   that do not match minimum_duration and minimum_n_triplets
-maximum_interval_without_images = pd.Timedelta(2,'h')
-maximum_interval_without_images = np.timedelta64(2, 'h')
-minimum_duration = np.timedelta64(2, 'm')
-minimum_n_triplets = 10 
+# - This can filter out images from events that do not match min/max n_triplets and duration
+max_interval_without_images = pd.Timedelta(2,'h')
+max_interval_without_images = np.timedelta64(2, 'h')
+min_duration = np.timedelta64(2, 'm')
+min_n_triplets = 10 
 
-new_mascdb = mascdb.redefine_events(maximum_interval_without_images = maximum_interval_without_images,
-                                    minimum_duration = minimum_duration,
-                                    minimum_n_triplets = minimum_n_triplets)
-new_mascdb.cam0['event_id'] 
-new_mascdb.triplet[['event_id','event_duration','event_n_triplets']]
-new_mascdb.event
+new_mascdb = mascdb.redefine_events(max_interval_without_images = max_interval_without_images,
+                                    min_duration = min_duration,
+                                    min_n_triplets = min_n_triplets) 
+print(new_mascdb.cam0['event_id'])
+print(new_mascdb.campaign[["start_time", "end_time"]])
+print(new_mascdb.triplet[['event_id','event_duration','event_n_triplets']])
+print(new_mascdb.event)
 
 ##----------------------------------------------------------------------------.
 ################### 
@@ -468,24 +464,22 @@ mascdb.env.sns.scatterplot(x="T", y="DD", hue="P")
 
 # mascdb.full_db.sns.scatterplot(x="Dmax", y="perim", hue="CAM_ID")
 
-
 ##----------------------------------------------------------------------------.
 #############################
 #### Data analysis example ##
 #############################
 ### Blowing snow analysis 
 ## Plot precip_type for event  with duration less 1 minute (should be blowing snow no?)
-mascdb_short_events = mascdb.select_events_with_max_duration(np.timedelta64(60,'s'))
-mascdb_short_events.event
-mascdb_short_events.triplet.sns.boxplot(x="bs_precip_type", y="event_n_triplets") # This make sense
+mascdb_short_events = mascdb.select_events_with_duration(max=np.timedelta64(60,'s'))
+print(mascdb_short_events.event)
+mascdb_short_events.triplet.sns.boxplot(x="bs_precip_class_name", y="event_n_triplets") # This make sense
 
 ### Investigate blowing snow occurence 
-mascdb_few_triplets = mascdb.select_events_with_less_triplets_than(10)
-mascdb_few_triplets.event
+mascdb_few_triplets = mascdb.select_events_with_n_triplets(max=10)
+print(mascdb_few_triplets.event)
 
-mascdb_few_triplets.triplet.sns.boxplot(x="bs_precip_class_id", y="event_n_triplets") # TODO: this is strange 
-mascdb_few_triplets.triplet.sns.boxplot(x="bs_precip_class_id")
-
+mascdb_few_triplets.triplet.sns.boxplot(x="bs_precip_class_name", y="event_n_triplets") # This is strange 
+ 
 # See some stats on event durations and n_triplets per events 
 mascdb.triplet.sns.scatterplot(x="event_duration", y="event_n_triplets")
 
