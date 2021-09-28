@@ -215,11 +215,13 @@ def _check_timedelta(timedelta):
     return timedelta 
 
 def _check_df(df, name=None):
-    if not isinstance(df, pd.DataFrame):
+    if not isinstance(df, (pd.DataFrame, pd.Series)):
         if name is not None: 
-            raise TypeError("{} is not a pd.DataFrame".format(name))
+            raise TypeError("{} is not a pd.DataFrame or pd.Series".format(name))
         else: 
-           raise TypeError("Expecting a pd.DataFrame".format(name)) 
+           raise TypeError("Expecting a pd.DataFrame or pd.Series") 
+    if isinstance(df, pd.Series): 
+        df = df.to_frame()
     return df 
 
 def _count_occurence(x): 
@@ -1451,9 +1453,9 @@ class MASC_DB:
             
         #---------------------------------------------------------------------.
         # Join data     
-        self._cam0 = self._cam0.merge(cam0, how="left", on='flake_id').set_index('flake_id', drop=False)
-        self._cam1 = self._cam1.merge(cam1, how="left", on='flake_id').set_index('flake_id', drop=False)
-        self._cam2 = self._cam2.merge(cam2, how="left", on='flake_id').set_index('flake_id', drop=False)
+        self._cam0 = self._cam0.merge(cam0, left_index=True, right_index=True)
+        self._cam1 = self._cam1.merge(cam1, left_index=True, right_index=True)
+        self._cam2 = self._cam2.merge(cam2, left_index=True, right_index=True)
         
         #---------------------------------------------------------------------.
         # Return the new mascdb 
@@ -1548,7 +1550,8 @@ class MASC_DB:
             print(msg)
         #---------------------------------------------------------------------.
         # Join data     
-        self._triplet = self._triplet.merge(df, how="left", on='flake_id').set_index('flake_id', drop=False)
+        self._triplet = self._triplet.merge(df, left_index=True, right_index=True)
+        #  self._triplet.merge(df, how="left", on='flake_id').set_index('flake_id', drop=False)
     
         #---------------------------------------------------------------------.
         # Return the new mascdb 

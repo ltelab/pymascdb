@@ -10,8 +10,8 @@ Created on Wed Sep 15 11:26:36 2021
 ##########################################
 #-----------------------------------------------------------------------------.
 import os
-os.chdir("/home/ghiggi/Projects/pymascdb")
-# os.chdir("/home/grazioli/CODES/python/pymascdb")
+#os.chdir("/home/ghiggi/Projects/pymascdb")
+os.chdir("/home/grazioli/CODES/python/pymascdb")
 
 import numpy as np
 import pandas as pd 
@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 import mascdb.api
 from mascdb.api import MASC_DB
 
-dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
-# dir_path = "/data/MASC_DB"
+#dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
+dir_path = "/data/MASC_DB"
  
 ##----------------------------------------------------------------------------.
 ###########################
@@ -121,10 +121,25 @@ print(mascdb.cam0['new_column']) # Here nothing is added
 # - Warning: this is not rigourously tested yet. If you found buggy or useful behaviour that
 #            should be implemented, let us know 
 
-### TODO EXAMPLES
-# new_mascdb = mascdb.add_cam_columns(cam0, cam1, cam2, force=False, complete=True)
+# Calculate wet bulb temperature and add it as a column to triplet
+from mascdb.utils_env import wet_bulb_t # Util to generate wet bulb temp
 
-# new_mascdb = mascdb.dd_triplet_columns(df, force=False, complete=True)
+df = mascdb.triplet
+df['env_Twb'] = wet_bulb_t(df["env_T"].to_numpy(), df["env_RH"].to_numpy())
+
+ 
+
+new_mascdb = mascdb.add_triplet_columns(df['env_Twb'], force=False, complete=True)
+new_mascdb.triplet
+
+
+df = df.iloc[0:100]
+n = mascdb.add_triplet_columns(df['env_Twb'], force=False, complete=False)
+n.triplet
+
+
+#new_mascdb = mascdb.add_cam_columns(cam0, cam1, cam2, force=False, complete=True)
+
 # --> Example wet bulb temperature 
 
 ##----------------------------------------------------------------------------.
@@ -453,7 +468,6 @@ mascdb.env.sns.scatterplot(x="T", y="DD", hue="P")
 # mascdb.full_db.sns.scatterplot(x="Dmax", y="perim", hue="CAM_ID")
 
 
- 
 ##----------------------------------------------------------------------------.
 #############################
 #### Data analysis example ##
