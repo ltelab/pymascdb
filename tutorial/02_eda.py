@@ -10,8 +10,8 @@ Created on Wed Sep 15 11:28:36 2021
 ##################################################
 #-----------------------------------------------------------------------------.
 import os
-os.chdir("/home/ghiggi/Projects/pymascdb")
-# os.chdir("/home/grazioli/CODES/python/pymascdb")
+#os.chdir("/home/ghiggi/Projects/pymascdb")
+os.chdir("/home/grazioli/CODES/python/pymascdb")
 import numpy as np
 import pandas as pd 
 import xarray as xr
@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 import mascdb.api
 from mascdb.api import MASC_DB
 
-dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
-#dir_path = "/data/MASC_DB"
+#dir_path = "/media/ghiggi/New Volume/Data/MASCDB"
+dir_path = "/data/MASC_DB"
  
 ##----------------------------------------------------------------------------.
 ### Create MASC_DB instance 
@@ -34,18 +34,18 @@ len(mascdb)
 ##----------------------------------------------------------------------------.
 ### Image plots 
 # - By default the 'enhancement' is (adaptive) histogram_equalization
-mascdb.plot_flake(CAM_ID=0, random = True, zoom=True)
-mascdb.plot_flake(CAM_ID=0, random = False, zoom=True)
-mascdb.plot_flake(CAM_ID=0, index=0, random = True, zoom=True)
-mascdb.plot_flake(CAM_ID=[0], index=[0], random = True, zoom=True)
+mascdb.plot_flake(cam_id=0, random = True, zoom=True)
+mascdb.plot_flake(cam_id=0, random = False, zoom=True)
+mascdb.plot_flake(cam_id=0, index=0, random = True, zoom=True)
+mascdb.plot_flake(cam_id=[0], index=[0], random = True, zoom=True)
 
-mascdb.plot_flakes(CAM_ID=0, indices=[0], random = True, zoom=True)
-mascdb.plot_flakes(CAM_ID=0, indices=0, random = True, zoom=True)  
-mascdb.plot_flakes(CAM_ID=0, indices=None, random = True, n_images = 1, zoom=True)
-mascdb.plot_flakes(CAM_ID=0, indices=None, random = True, n_images = 2, zoom=True)
-mascdb.plot_flakes(CAM_ID=[0], indices=None, random = True, n_images = 9, zoom=True) 
-mascdb.plot_flakes(CAM_ID=0, indices=[1,2], random = True, n_images = 2, zoom=True)
-mascdb.plot_flakes(CAM_ID=0, indices=[1,2], random = True, n_images = 9, zoom=True)  
+mascdb.plot_flakes(cam_id=0, indices=[0], random = True, zoom=True)
+mascdb.plot_flakes(cam_id=0, indices=0, random = True, zoom=True)  
+mascdb.plot_flakes(cam_id=0, indices=None, random = True, n_images = 1, zoom=True)
+mascdb.plot_flakes(cam_id=0, indices=None, random = True, n_images = 2, zoom=True)
+mascdb.plot_flakes(cam_id=[0], indices=None, random = True, n_images = 9, zoom=True) 
+mascdb.plot_flakes(cam_id=0, indices=[1,2], random = True, n_images = 2, zoom=True)
+mascdb.plot_flakes(cam_id=0, indices=[1,2], random = True, n_images = 9, zoom=True)  
 
 mascdb.plot_triplets(indices=[0,10], random = True, n_triplets = 1, zoom=True)
 mascdb.plot_triplets(indices=[0,10], random = True, n_triplets = 1, zoom=True, enhancement=None)
@@ -61,6 +61,25 @@ mascdb.cam0.sns.boxplot(x="Dmax")
 mascdb.cam0.sns.boxenplot(x="Dmax")   
 mascdb.cam0.sns.violinplot(x="Dmax") 
 
+# Physically-sound example 1 (temperature and snowflake properties)
+# - plot temperature and Dmax
+mascdb.triplet.sns.jointplot(x="env_T",y="flake_Dmax") # All data --> blowing snow contaminates
+# - let's try the same plot but keeping only "precip"
+mascdb1=mascdb.select_precip_class('precip') #TODO Check if warning still occurs
+mascdb1.triplet.sns.jointplot(x="env_T",y="flake_Dmax") # Better 
+
+# Physically-sound example 2 (wind and Dmax)
+# - We know that high wind conditions hampers the measurement of large snowflakes
+mascdb.triplet.sns.jointplot(x="env_FF",y="flake_Dmax") # Indeed
+
+# Physically-sound example 3 (size and complexity)
+# - Let's take cam0 as example
+mascdb1 = mascdb1.select_snowflake_class('aggregate') # let's get aggregates 
+mascdb1.cam0.sns.histplot(x='Dmax',y='complexity')
+
+
+
+
 mascdb.cam0.sns.violinplot(x="Dmax", y="snowflake_class_name") 
 mascdb.cam0.sns.stripplot(x="Dmax", y="snowflake_class_name") 
 
@@ -75,32 +94,32 @@ mascdb.cam0.sns.histplot(x="snowflake_class_name", y="riming_class_id")
 mascdb.cam0.sns.histplot(x="snowflake_class_name", hue="riming_class_id")
 
 # For complex stuff ... first filter to a small number 
-mascdb = mascdb.isel(slice(0,4000))
-mascdb.cam0.sns.jointplot(x="Dmax", y="perim", kind="kde", hue="snowflake_class_name") 
+mascdb1 = mascdb.isel(slice(0,4000))
+mascdb1.cam0.sns.jointplot(x="Dmax", y="perim", kind="kde", hue="snowflake_class_name") 
  
 
 cam_descriptors = ['n_roi', 'area','perim','Dmax','area_porous','compactness',
                    'bbox_width','bbox_len','solidity','nb_holes','complexity']
  
-mascdb.cam0.sns.pairplot(vars = cam_descriptors[0:5])
+mascdb1.cam0.sns.pairplot(vars = cam_descriptors[0:5])
 
-mascdb.cam0.sns.corrplot(vars = cam_descriptors[0:5],
+mascdb1.cam0.sns.corrplot(vars = cam_descriptors[0:5],
                          vmin = -1, vmax=1, center=0,
                          cbar_kws={"shrink": .5},  
                          linewidths=.5)
 
-mascdb.cam0.sns.kdeplot(x="Dmax",y="perim", 
+mascdb1.cam0.sns.kdeplot(x="Dmax",y="perim", 
                         cmap="rocket")
 
 sns.set_theme(style="white")
-mascdb.cam0.sns.kde_marginals(x="Dmax",y="perim", 
+mascdb1.cam0.sns.kde_marginals(x="Dmax",y="perim", 
                               # xlim=(), ylim=(), 
                               space=0, thresh=0, 
                               levels=100, cmap="rocket",
                               hist_color = "#03051A", hist_alpha=1,hist_bins=25)
 
 pal = sns.cubehelix_palette(10, rot=-.25, light=.7)
-mascdb.cam0.sns.kde_ridgeplot(x = "compactness",
+mascdb1.cam0.sns.kde_ridgeplot(x = "compactness",
                               group = "snowflake_class_name",
                               linewidth = 2, 
                               pal = pal, bw_adjust=.5, height=.7,

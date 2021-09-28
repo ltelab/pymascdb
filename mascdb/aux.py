@@ -255,6 +255,7 @@ def var_units():
         'pix_size':      'm',
         'quality_xhi':   '-',
         'n_roi'   :      '-',
+        'flake_n_roi'   : '-',
         'area'    :      'm**2',
         'perim'   :      'm',
         'Dmean'   :      'm',
@@ -392,7 +393,9 @@ def var_explanations():
              'pix_size':      'Pixel size',
              'quality_xhi':   'Quality index of the ROI. Very good images above values of 9.  Reference is https://doi.org/10.5194/amt-10-1335-2017 (see Appendix B)',
 
-             'n_roi'   :      'Number of ROIs initially identified in the raw image.',
+             'n_roi'   :      'Number of ROIs initially identified in the raw image of one camera. Note that all the processing downstream is referred to only one (the main) ROI',
+             'flake_n_roi'   :'Average value of n_roi (see n_roi definition) over the three cameras ',
+
              'area'    :      'ROI area. Descriptor 1 of https://doi.org/10.5194/amt-10-1335-2017 (see Appendix A)',
              'perim'   :      'ROI perimeter. Descriptor 2 of https://doi.org/10.5194/amt-10-1335-2017 (see Appendix A)',
              'Dmean'   :      'ROI mean diameter. Mean value of x-width and y-height. Descriptor 3 of https://doi.org/10.5194/amt-10-1335-2017 (see Appendix A)',

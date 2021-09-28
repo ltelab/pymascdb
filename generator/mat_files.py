@@ -515,7 +515,7 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
 
         # GLobal info
         'fallspeed': fs,                                     # [m s**-1] fall speed
-        'n_roi':  np.mean([mat0['n_roi'][0][0],mat1['n_roi'][0][0],mat2['n_roi'][0][0]]),  # Avg # of particles per cam [-] 
+        'flake_n_roi':  np.mean([mat0['n_roi'][0][0],mat1['n_roi'][0][0],mat2['n_roi'][0][0]]),  # Avg # of particles per cam [-] 
 
         # Dmax
         'flake_Dmax':    Dmax,                               # m
