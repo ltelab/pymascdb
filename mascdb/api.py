@@ -483,7 +483,7 @@ class MASC_DB:
     def sample_n(self, n=10):
         """
         
-        Sample randomly 'n' flakes in the current MASCDB object
+        Sample randomly 'n' flakes in the current MASC_DB object
 
         Parameters
         ----------
@@ -503,23 +503,86 @@ class MASC_DB:
         return self.isel(idx)
         
     def first(self, n=1):  
+        """
+        
+        Extract first 'n' flakes in the database
+
+        Parameters
+        ----------
+        n : int,float; optional
+             Number of samples to extract The default is 1
+
+
+        Returns
+        -------
+        MASC_DB object containing only the n first flakes of the current database
+
+        """
         if n > len(self): 
             raise ValueError("The MASCDB instance has currently only {} triplets.".format(len(self)))
         idx = np.arange(n)
         return self.isel(idx)
     
     def last(self, n=1): 
+        """
+        
+        Extract last 'n' flakes in the database
+
+        Parameters
+        ----------
+        n : int,float; optional
+             Number of samples to extract The default is 1
+
+
+        Returns
+        -------
+        MASC_DB object containing only the n last flakes of the current database
+
+        """
         if n > len(self): 
             raise ValueError("The MASCDB instance has currently only {} triplets.".format(len(self)))
         idx = np.arange(self._n_triplets-1,self._n_triplets-n-1, step=-1)
         return self.isel(idx)
     
     def head(self, n=10): 
+        """
+        
+        Extract first 'n' flakes in the database or less if the database contains
+        less rows than n
+
+        Parameters
+        ----------
+        n : int,float; optional
+             Number of samples to extract The default is 10
+
+
+        Returns
+        -------
+        MASC_DB object containing only the n first flakes of the current database
+
+        """
+        
         n = min(self._n_triplets, n)
         idx = np.arange(n)
         return self.isel(idx)
     
     def tail(self, n=10):
+        """
+        
+        Extract last 'n' flakes in the database or less if the database contains
+        less rows than n
+
+        Parameters
+        ----------
+        n : int,float; optional
+             Number of samples to extract The default is 10
+
+
+        Returns
+        -------
+        MASC_DB object containing only the n last flakes of the current database
+
+        """
         n = min(self._n_triplets, n)
         idx = np.arange(self._n_triplets-1,self._n_triplets-n-1, step=-1)
         return self.isel(idx)
