@@ -229,14 +229,14 @@ def _convert_object_to_string(df):
 ####-----------------------------------------------------------------------------.
 class MASC_DB:
     """
-    Read MASCDB database from a specific directory 
+    Read MASCDB database from a specific directory.
     
     Parameters
     ----------
     dir_path : str
         Filepath to a directory storing a MASCDB.
-        4 files are expected in the directory:
-            - MASCdb_cam<?>.parquet  (0,1,2),
+        5 files are expected in the directory:
+            - MASCdb_cam<0/1/2>.parquet   
             - MASCdb_triplet.parquet 
             - MASCdb.zarr
     
@@ -331,23 +331,18 @@ class MASC_DB:
     ##################### 
     def save(self, dir_path, force=False):
         """
-        
-        Save MASC_DB object to disc into 4 parquet files and one Zarr store
+        Save MASCDB object to disk into 4 parquet files and one Zarr store.
 
         Parameters
         ----------
         dir_path : str
-            Destination path, where to store the database
+            Directory path where to save the current MASCDB database.
         force :  Bool, default False
-           If True and if dir_path is the same as source path of MASC_DB object,
-           it will  try to overwrite it
+           If dir_path is the same as the source path of MASCDB object, 
+           force=True should allows to overwrite the original source database.
            
-
-        Returns
-        -------
-        None.
-
         """
+        # TODO: if overwriting, put all DataArray in memory first... otherwise deleting on disk remove lazy loaded data
         # - Check there are data to save
         if self._n_triplets == 0: 
             raise ValueError("Nothing to save. No data left in the MASCDB.")
@@ -393,17 +388,16 @@ class MASC_DB:
     ###################
     def isel(self, idx): 
         """
-        TODO
+        Positional-index subsetting of MASCDB DataArray and MASCDB DataFrames.
 
         Parameters
         ----------
-        idx : TYPE
-            DESCRIPTION.
+        idx : (np.ndarray, list, int)
+            List or np.ndarray of integer/boolean values used as positional indices for subsetting.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        MASCDB class instance subsetted (or index-based reordered).
 
         """
         #---------------------------------------------------------------------.
@@ -437,18 +431,16 @@ class MASC_DB:
         
     def sel(self, flake_ids): 
         """
-        
-        TODO
+        Subset MASCDB based on specified flake_ids.
 
         Parameters
         ----------
-        flake_ids : TYPE
-            DESCRIPTION.
+        flake_ids : (np.ndarray, list, str)
+            List or np.ndarray of string specifing flake_id values to subset.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        MASCDB class instance subsetted.
 
         """
         #---------------------------------------------------------------------.
@@ -477,8 +469,7 @@ class MASC_DB:
     
     def sample_n(self, n=10):
         """
-        
-        Sample randomly 'n' flakes in the current MASC_DB object
+        Sample randomly 'n' flakes in the current MASC_DB object.
 
         Parameters
         ----------
@@ -488,7 +479,7 @@ class MASC_DB:
 
         Returns
         -------
-        MASC_DB object with n sampled flakes
+        MASC_DB object with n sampled flakes.
 
         """
         
@@ -499,13 +490,12 @@ class MASC_DB:
         
     def first(self, n=1):  
         """
-        
-        Extract first 'n' flakes in the database
+        Extract first 'n' flakes in the database.
 
         Parameters
         ----------
         n : int,float; optional
-             Number of samples to extract The default is 1
+             Number of samples to extract The default is 1.
 
 
         Returns
@@ -520,8 +510,7 @@ class MASC_DB:
     
     def last(self, n=1): 
         """
-        
-        Extract last 'n' flakes in the database
+        Extract last 'n' flakes in the database.
 
         Parameters
         ----------
@@ -531,7 +520,7 @@ class MASC_DB:
 
         Returns
         -------
-        MASC_DB object containing only the n last flakes of the current database
+        MASC_DB object containing only the n last flakes of the current database.
 
         """
         if n > len(self): 
@@ -541,19 +530,18 @@ class MASC_DB:
     
     def head(self, n=10): 
         """
-        
         Extract first 'n' flakes in the database or less if the database contains
-        less rows than n
+        less rows than n.
 
         Parameters
         ----------
         n : int,float; optional
-             Number of samples to extract The default is 10
+             Number of samples to extract The default is 10.
 
 
         Returns
         -------
-        MASC_DB object containing only the n first flakes of the current database
+        MASC_DB object containing only the n first flakes of the current database.
 
         """
         
@@ -563,19 +551,18 @@ class MASC_DB:
     
     def tail(self, n=10):
         """
-        
-        Extract last 'n' flakes in the database or less if the database contains
-        less rows than n
+        Extract last 'n' flakes in the database or less if the database contains.
+        less rows than n.
 
         Parameters
         ----------
         n : int,float; optional
-             Number of samples to extract The default is 10
+             Number of samples to extract The default is 10.
 
 
         Returns
         -------
-        MASC_DB object containing only the n last flakes of the current database
+        MASC_DB object containing only the n last flakes of the current database.
 
         """
         n = min(self._n_triplets, n)
@@ -587,6 +574,24 @@ class MASC_DB:
     #### Sorting ###
     ################
     def arrange(self, expression, decreasing=True):
+        """
+        Reorder the MASCDB based on the DataFrame column values specified with expression.
+
+        Parameters
+        ----------
+        expression : str
+            Expression specifying the DataFrame and column used to sort the MASCDB.
+            The expression must have the following pattern '<df_name>.<column_name>' .
+            Valid df_names are : ['cam0', 'cam1','cam2','triplet','bs','env','gan3d','flake','labels'] .
+        decreasing : bool, optional
+            Whether to sort MASCDB by increasing or decreasing values of the DataFrame colum.
+            The default is True.
+
+        Returns
+        -------
+        MASCDB class instance sorted.
+
+        """
         # Check expression type 
         if not isinstance(expression, str):
             raise TypeError("'expression' must be a string.")
@@ -631,18 +636,17 @@ class MASC_DB:
     ##########################
     def get_var_units(self,varname):
         """
-        Get units of a given variable
+        Get units of a given variable.
 
         Parameters
         ----------
         varname : str
-            String containing the name (must be one of the columns of MASCDB dataframes)
-            of a MASCDB variable
+            String specifying a single column of the cam or triplet dataframe.
             
         Returns
         -------
         str
-            Abbreviated units of the variable
+            Abbreviated units of the variable.
 
         """
         if not isinstance(varname, str):
@@ -656,19 +660,19 @@ class MASC_DB:
     
     def get_var_explanation(self,varname):
         """
-        Get verbose explanation of a given variable, including DOI of reference paper
-        whenever relevant
+        Get verbose explanation of a given variable.
+        
+        It includes DOI of reference paper whenever relevant.
 
         Parameters
         ----------
         varname : str
-            String containing the name (must be one of the columns of MASCDB dataframes)
-            of a MASCDB variable
+            String specifying a single column of the cam or triplet dataframe.
 
         Returns
         -------
         str
-            Verbose explanation of the variable
+            Verbose explanation of the variable.
             
         """
         
@@ -687,6 +691,19 @@ class MASC_DB:
     #### Filters ####
     #################
     def select_campaign(self, campaign):
+        """
+        Select MASCDB data of specific campaigns.
+        
+        Parameters
+        ----------
+        campaign : (str, list)
+            String or list of string specifying MASCDB campaigns to select.
+        
+        Returns
+        -------
+        MASCDB class instance with data of specific campaigns.
+        
+        """
         if not isinstance(campaign, (list, str)): 
             raise TypeError("'campaign' must be a string or a list of strings.")
         if isinstance(campaign, str): 
@@ -704,6 +721,19 @@ class MASC_DB:
         return self.isel(idx) 
     
     def discard_campaign(self, campaign):
+        """
+        Discard MASCDB data from specific campaigns.
+
+        Parameters
+        ----------
+        campaign : (str, list)
+            String or list of string specifying MASCDB campaigns to discard.
+
+        Returns
+        -------
+        MASCDB class instance with data of specific campaigns.
+    
+        """
         if not isinstance(campaign, (list, str)): 
             raise TypeError("'campaign' must be a string or a list of strings.")
         if isinstance(campaign, str): 
@@ -721,6 +751,27 @@ class MASC_DB:
         return self.isel(idx) 
      
     def select_snowflake_class(self, values, method='Praz2017', invert = False): 
+        """
+        Select MASCDB data with specific snowflake classes.
+
+        Parameters
+        ----------
+        values : (str, int, list)
+            Values specifying the snowflake classes to select.
+            If integers, it assumes snowflake_class_id.
+            If strings, it assumes snowflake_class_name.
+            Valid values can be retrieved by calling 'mascdb.aux.get_snowflake_class_name_dict(method)'.
+        method : str, optional
+            Method used to determine snowflake_class. The default is 'Praz2017'.
+        invert : bool, optional
+            If True, instead of selecting it discard the specified snowflake_class.
+            The default is False.
+
+        Returns
+        -------
+        MASCDB class instance with specific snowflake classes.
+    
+        """
         if not isinstance(values,(int, str, list, np.ndarray)):
             raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
         # Convert to numpy array object 
@@ -730,11 +781,11 @@ class MASC_DB:
             values = np.array(values)
         # If values are integers --> Assume it provide the class id
         if isinstance(values[0].item(), int):
-            valid_names = list(get_snowflake_class_name_dict().values()) # id
+            valid_names = list(get_snowflake_class_name_dict(method=method).values()) # id
             column = 'snowflake_class_id'    
         # If values are str --> Assume it provide the class name
         elif isinstance(values[0].item(), str):
-            valid_names = list(get_snowflake_class_name_dict().keys())   # name
+            valid_names = list(get_snowflake_class_name_dict(method=method).keys())   # name
             column = 'snowflake_class_name'
         else:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
@@ -754,6 +805,27 @@ class MASC_DB:
         return self.isel(idx) 
 
     def select_riming_class(self, values, method='Praz2017', invert=False): 
+        """
+        Select MASCDB data with specific riming classes.
+
+        Parameters
+        ----------
+        values : (str, int, list)
+            Values specifying the riming classes to select.
+            If integers, it assumes riming_class_id.
+            If strings, it assumes riming_class_name.
+            Valid values can be retrieved by calling 'mascdb.aux.get_riming_class_name_dict(method)'.
+        method : str, optional
+            Method used to determine riming_class. The default is 'Praz2017'.
+        invert : bool, optional
+            If True, instead of selecting it discard the specified riming_class.
+            The default is False.
+
+        Returns
+        -------
+        MASCDB class instance with specific riming classes.
+    
+        """
         if not isinstance(values,(int, str, list, np.ndarray)):
             raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
         # Convert to numpy array object 
@@ -763,11 +835,11 @@ class MASC_DB:
             values = np.array(values)
         # If values are integers --> Assume it provide the class id
         if isinstance(values[0].item(), int):
-            valid_names = list(get_riming_class_name_dict().values()) # id
+            valid_names = list(get_riming_class_name_dict(method=method).values()) # id
             column = 'riming_class_id'    
         # If values are str --> Assume it provide the class name
         elif isinstance(values[0].item(), str):
-            valid_names = list(get_riming_class_name_dict().keys())   # name
+            valid_names = list(get_riming_class_name_dict(method=method).keys())   # name
             column = 'riming_class_name'
         else:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
@@ -787,6 +859,27 @@ class MASC_DB:
         return self.isel(idx)     
  
     def select_melting_class(self, values, method='Praz2017', invert=False): 
+        """
+        Select MASCDB data with specific melting classes.
+
+        Parameters
+        ----------
+        values : (str, int, list)
+            Values specifying the melting classes to select.
+            If integers, it assumes melting_class_id.
+            If strings, it assumes melting_class_name.
+            Valid values can be retrieved by calling 'mascdb.aux.get_melting_class_name_dict(method)'.
+        method : str, optional
+            Method used to determine melting_class. The default is 'Praz2017'.
+        invert : bool, optional
+            If True, instead of selecting it discard the specified melting_class_id.
+            The default is False.
+
+        Returns
+        -------
+        MASCDB class instance with specific melting classes.
+    
+        """
         if not isinstance(values,(int, str, list, np.ndarray)):
             raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
         # Convert to numpy array object 
@@ -796,11 +889,11 @@ class MASC_DB:
             values = np.array(values)
         # If values are integers --> Assume it provide the class id
         if isinstance(values[0].item(), int):
-            valid_names = list(get_melting_class_name_dict().values()) # id
+            valid_names = list(get_melting_class_name_dict(method=method).values()) # id
             column = 'melting_class_id'    
         # If values are str --> Assume it provide the class name
         elif isinstance(values[0].item(), str):
-            valid_names = list(get_melting_class_name_dict().keys())   # name
+            valid_names = list(get_melting_class_name_dict(method=method).keys())   # name
             column = 'melting_class_name'
         else:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
@@ -820,6 +913,27 @@ class MASC_DB:
         return self.isel(idx)  
     
     def select_precip_class(self, values, method='Schaer2020', invert=False): 
+        """
+        Select MASCDB data with specific precipitation types.
+
+        Parameters
+        ----------
+        values : (str, int, list)
+            Values specifying the precipitation classes to select.
+            If integers, it assumes bs_precip_class_id.
+            If strings, it assumes bs_precip_class_name.
+            Valid values can be retrieved by calling 'mascdb.aux.get_precip_class_name_dict(method)'.
+        method : str, optional
+            Method used to determine bs_precip_class. The default is 'Schaer2020'.
+        invert : bool, optional
+            If True, instead of selecting it discard the specified bs_precip_class.
+            The default is False.
+
+        Returns
+        -------
+        MASCDB class instance with specific precipitation classes.
+    
+        """
         if not isinstance(values,(int, str, list, np.ndarray)):
             raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
         # Convert to numpy array object 
@@ -853,15 +967,87 @@ class MASC_DB:
         return self.isel(idx)  
        
     def discard_snowflake_class(self, values, method='Praz2017'):
+        """
+        Discard MASCDB data with specific snowflake classes.
+
+        Parameters
+        ----------
+        values : (str, int, list)
+            Values specifying the snowflake classes to discard.
+            If integers, it assumes snowflake_class_id.
+            If strings, it assumes snowflake_class_name.
+            Valid values can be retrieved by calling 'mascdb.aux.get_snowflake_class_name_dict(method)'.
+        method : str, optional
+            Method used to determine snowflake_class. The default is 'Praz2017'.
+
+        Returns
+        -------
+        MASCDB class instance with specific snowflake classes.
+    
+        """
         return self.select_snowflake_class(values=values, method=method, invert = True) 
     
     def discard_melting_class(self, values, method='Praz2017'):
+        """
+        Discard MASCDB data with specific melting classes.
+
+        Parameters
+        ----------
+        values : (str, int, list)
+            Values specifying the melting classes to discard.
+            If integers, it assumes melting_class_id.
+            If strings, it assumes melting_class_name.
+            Valid values can be retrieved by calling 'mascdb.aux.get_melting_class_name_dict(method)'.
+        method : str, optional
+            Method used to determine melting_class. The default is 'Praz2017'.
+
+        Returns
+        -------
+        MASCDB class instance with specific melting classes.
+    
+        """
         return self.select_melting_class(values=values, method=method, invert = True) 
     
     def discard_riming_class(self, values, method='Praz2017'):
+        """
+        Discard MASCDB data with specific riming classes.
+
+        Parameters
+        ----------
+        values : (str, int, list)
+            Values specifying the riming classes to discard.
+            If integers, it assumes riming_class_id.
+            If strings, it assumes riming_class_name.
+            Valid values can be retrieved by calling 'mascdb.aux.get_riming_class_name_dict(method)'.
+        method : str, optional
+            Method used to determine riming_class. The default is 'Praz2017'.
+
+        Returns
+        -------
+        MASCDB class instance with specific riming classes.
+    
+        """
         return self.select_riming_class(values=values, method=method, invert = True) 
       
     def discard_precip_class(self, values, method='Schaer2020'):
+        """
+        Discard MASCDB data with specific precipitation types.
+
+        Parameters
+        ----------
+        values : (str, int, list)
+            Values specifying the precipitation classes to discard.
+            If integers, it assumes bs_precip_class_id.
+            If strings, it assumes bs_precip_class_name.
+            Valid values can be retrieved by calling 'mascdb.aux.get_precip_class_name_dict(method)'.
+        method : str, optional
+            Method used to determine bs_precip_class. The default is 'Schaer2020'.
+
+        Returns
+        -------
+        MASCDB class instance with specific precipitation classes.
+    
+        """
         return self.select_precip_class(values=values, method=method, invert = True)
     
     ####----------------------------------------------------------------------.
@@ -1220,11 +1406,37 @@ class MASC_DB:
         return self.isel(idx_subset)
             
     def select_events_longest(self, n=1):
+        """
+        Select MASCDB data corresponding to the 'n' events with longest duration.
+
+        Parameters
+        ----------
+        n : int, optional
+            The number of events to retrieve. The default is 1.
+
+        Returns
+        -------
+        MASCDB class instance
+
+        """
         longest_event_ids = self.arrange('triplet.event_duration', decreasing=True)._triplet['event_id'].iloc[0:n]
         idx_longest_events = np.isin(self._triplet['event_id'].to_numpy(), longest_event_ids)
         return self.isel(idx_longest_events)
     
     def select_events_shortest(self, n=1):
+        """
+        Select MASCDB data corresponding to the 'n' events with shortest duration.
+
+        Parameters
+        ----------
+        n : int, optional
+            The number of events to retrieve. The default is 1.
+
+        Returns
+        -------
+        MASCDB class instance
+
+        """
         shortest_event_ids = self.arrange('triplet.event_duration', decreasing=False)._triplet['event_id'].iloc[0:n]
         idx_shortest_events = np.isin(self._triplet['event_id'].to_numpy(), shortest_event_ids)
         return self.isel(idx_shortest_events)
@@ -1236,6 +1448,34 @@ class MASC_DB:
                         min_duration = None, max_duration = None,
                         min_n_triplets = None, max_n_triplets = None,
                         unit="ns"): 
+        """
+        Enable selection and custom definition of an 'event'.
+        
+        If <min/max>_<duration/n_triplets> are specified, the MASCDB will likely be subsetted.
+
+        Parameters
+        ----------
+        max_interval_without_images : (np.timedelta64, pd.Timedelta), optional
+            Maximum interval of time without images to consider 
+            consecutive images to belong the same event. 
+            The default is np.timedelta64(4,'h').
+        min_duration : (np.timedelta64, pd.Timedelta), optional
+            Minimum duration of an event to retained. The default is np.timedelta64(0,'ns').
+        max_duration : (np.timedelta64, pd.Timedelta), optional
+            Maximum duration of an event to retained. The default is np.timedelta64(365,'D').
+        min_n_triplets : int, optional
+            Minimum number of triplets within an event to retain the event. The default is 0.
+        max_n_triplets : int, optional
+            Maximum number of triplets within an event to retain the event.. The default is Inf.
+        unit : str, optional
+            Unit of timedelta to consider for events definition. 
+            The default is "ns".
+
+        Returns
+        -------
+        MASCDB class instance with the custom event definition.
+
+        """
         # Copy new instance 
         self = copy.deepcopy(self)
         # Define event_id 
@@ -1264,7 +1504,55 @@ class MASC_DB:
     #################################
     def plot_triplets(self, indices=None, random = False, n_triplets = 1,
                       enhancement="histogram_equalization",
-                      zoom=True, squared=True, **kwargs):
+                      zoom=True, squared=True, 
+                      wspace=0.01, hspace=0.01,
+                      **kwargs):
+        """
+        Plotting routine to display specific triplets of MASC snowflake images.
+        
+        By default:
+        - images are enhanced with histogram_equalization and zoomed.
+        - 'n_triplets' and 'random' are effective only if 'indices' are not specified.
+        - If indices are unspecified, the chosen triplets correspond to the first 'n_triplets' of MASCDB.
+        
+        Parameters
+        ----------
+        indices : (int, list), optional
+            Integer list of rows to display. The default is None.
+        random : bool, optional
+           Specify if the displayed MASCDB triplets must be choosen randomly.
+           It's effective only if 'indices' are not specified.
+           The default is False.
+        n_triplets : int, optional
+           Specify the number of MASCDB triplets to be displayed.   
+           It's effective only if 'indices' are not specified.
+           The default is 1.
+        enhancement : str, optional
+            Type of enhancement to use to improve the image quality. 
+            Valid enhancements are : [None, "histogram_equalization", "contrast_stretching", "local_equalization"]
+            The default is "histogram_equalization".
+        zoom : bool, optional
+            Specify if zooming close to the snowflake bounding box. 
+            The image shape is defined by selecting the smallest possible shapes 
+            across all the snowflakes to be plotted
+            The default is True.
+        squared : bool, optional
+            Specify if the zoomed images must have equal height,width. 
+            The default is True.
+        hspace : float 
+            Define the space across images in the vertical dimension.
+            The default is 0.01.
+        wspace : float 
+            Define the space across images in the horizontal dimension.
+            The default is 0.01.
+        **kwargs : dict
+            Optional arguments to be passed to DataArray.plot.
+
+        Returns
+        -------
+        xarray.plot.facetgrid.FacetGrid object for additional customization
+
+        """
         #--------------------------------------------------.
         # Retrieve number of valid index
         n_idxs = len(self._triplet.index)
@@ -1323,13 +1611,59 @@ class MASC_DB:
             ax.set_xlabel('')
             ax.set_ylabel('')
             ax.set_axis_off()
-        p.fig.subplots_adjust(wspace=0.01, hspace=0.01)   
+        p.fig.subplots_adjust(wspace=wspace, hspace=hspace)   
         #--------------------------------------------------. 
         return p       
             
     def plot_flake(self, cam_id=None, index=None, random = False,
                    enhancement="histogram_equalization",
                    zoom=True, squared=True, ax=None, **kwargs):
+        """
+        Plotting routine to display a specific MASC snowflake image.
+        
+        By default:
+        - The image is enhanced with histogram_equalization and zoomed.
+        - 'random' is effective only if 'index' is not specified.
+        - If index is unspecified, it plot an image of the first MASCDB triplet.
+        
+        Parameters
+        ----------
+        cam_id : int, optional
+            The camera from which display the snowflake image.
+            If not specified, the camera is randomly chosen. 
+            Valid cam_id values are 0, 1 and 2.
+            The default is None.
+        index : int, optional
+            Row index of the MASCDB triplet image to display. 
+            The default is None.
+        random : bool, optional
+           Specify if the displayed MASCDB image must be choosen randomly.
+           It's effective only if 'index' is not specified.
+           The default is False.
+        enhancement : str, optional
+            Type of enhancement to use to improve the image quality. 
+            Valid enhancements are : [None, "histogram_equalization", "contrast_stretching", "local_equalization"]
+            The default is "histogram_equalization".
+        zoom : bool, optional
+            Specify if zooming close to the snowflake bounding box. 
+            The image shape is defined by selecting the smallest possible shape 
+            to include the entire snowflake.
+            The default is True.
+        squared : bool, optional
+            Specify if the zoomed images must have equal height,width. 
+            The default is True.
+        ax: matplotlib axis, optional
+            Optional matplotlib axis on which to plot the image.
+            The default is None.
+        **kwargs : dict
+            Optional arguments to be passed to DataArray.plot.
+            
+        Returns
+        -------
+        p : TYPE
+            DESCRIPTION.
+
+        """
         # Check args
         _check_random(random)
         _check_zoom(zoom)
@@ -1391,12 +1725,64 @@ class MASC_DB:
     def plot_flakes(self, cam_id=None, indices=None, random = False, 
                     n_images = 9, col_wrap = 3,
                     enhancement="histogram_equalization",
-                    zoom=True, 
-                    squared=True, 
+                    zoom=True, squared=True, 
+                    hspace=0.1, wspace=0.1,
                     **kwargs):
-        "n_images used only if indices is not provided"
-        # random has effect only if indices are not specified 
-        # if more than 1 cam_id is specified , it plot n_images for each cam_id
+        """
+        Plotting routine to display MASC snowflake images.
+        
+        By default:
+        - images are enhanced with histogram_equalization and zoomed.
+        - 'n_images' and 'random' are effective only if 'indices' are not specified.
+        - If indices are unspecified:
+            - If cam_id is unspecified: it displays the first 'n_images' from a randomly selected camera of MASCDB.
+            - If cam_id specify 1 camera: it displays the first 'n_images' of the specified camera of MASCDB.
+            - If cam_id specifies more than 1 camera: it displays the first 'n_images' of each of the specified camera of MASCDB.
+             
+        Parameters
+        ----------
+        cam_id : (int, list), optional 
+            The camera(s) from which display the snowflake images.
+            If not specified, a single camera is randomly chosen. 
+            If specified, it can be any subset of the 3 camera.
+            Valid cam_id values are 0, 1 and 2.
+            The default is None.
+         indices : (int, list), optional
+            Integer list of rows to display. The default is None.
+        random : bool, optional
+           Specify if the displayed MASCDB images must be choosen randomly.
+           It's effective only if 'indices' are not specified.
+           The default is False.
+        n_images : int, optional
+           Specify the number of MASCDB images to be displayed for each camera.   
+           It's effective only if 'indices' are not specified.
+           The default is 1.
+        enhancement : str, optional
+            Type of enhancement to use to improve the image quality. 
+            Valid enhancements are : [None, "histogram_equalization", "contrast_stretching", "local_equalization"]
+            The default is "histogram_equalization".
+        zoom : bool, optional
+            Specify if zooming close to the snowflake bounding box. 
+            The image shape is defined by selecting the smallest possible shapes 
+            across all the snowflakes to be plotted.
+            The default is True.
+        squared : bool, optional
+            Specify if the zoomed images must have equal height,width. 
+            The default is True.
+        hspace : float 
+            Define the space across images in the vertical dimension.
+            The default is 0.1.
+        wspace : float 
+            Define the space across images in the horizontal dimension.
+            The default is 0.1.
+        **kwargs : dict
+            Optional arguments to be passed to DataArray.plot.
+
+        Returns
+        -------
+        xarray.plot.facetgrid.FacetGrid object for additional customization
+
+        """
         #--------------------------------------------------
         # Check args
         n_idxs = len(self)
@@ -1515,7 +1901,7 @@ class MASC_DB:
             ax.set_axis_off() 
             if FLAG_MULTI_INDEX and i < len(titles):
                 ax.set_title(titles[i])
-        p.fig.subplots_adjust(wspace=0.01, hspace=0.1)
+        p.fig.subplots_adjust(wspace=wspace,hspace=hspace)
         #--------------------------------------------------. 
         return p     
  
@@ -1525,6 +1911,36 @@ class MASC_DB:
     ####################### 
     def compute_2Dimage_descriptors(self, fun, labels, fun_kwargs = None, force=False,
                                     dask = "parallelized"):
+        """
+        Compute user-specific image descriptors with parallelized computations
+        and add it to the cam dataframes. 
+        
+        It requires the specification of a function ('fun') expecting the image 2D array 
+        and returning the descriptor(s) value(s).
+        It also require the specification of the expected descriptors names ('labels'). 
+
+        Parameters
+        ----------
+        fun : callable
+            A function computing the descriptor(s) of a 2D image.
+            The function must expects a grayscale 2D array and return the descriptor(s) value(s).
+        labels : (str, list)
+            String or list of string specifying the descriptor names computed by 'fun'.
+            These labels will become the colums added to cam dataframe.
+        fun_kwargs : dict, optional
+            Optional arguments to be passed to 'fun'. The default is None.
+        force : bool, optional
+            force=True enable to overwrite existing descriptors present in the cam dataframes.
+            The default is False.
+        dask : str, optional
+            Option to be passed to xr.apply_u_func. 
+            The default is "parallelized".
+
+        Returns
+        -------
+        MASCDB class instance with new descriptors in cam dataframes.
+
+        """
         #---------------------------------------------------------------------.
         # Check if specified labels are already columns of mascdb.cam* 
         existing_cam_columns = list(self._cam0.columns)
@@ -1694,7 +2110,7 @@ class MASC_DB:
             pd.DataFrame with index 'flake_id' .
         force : bool, optional
             Wheter to overwrite existing column of mascdb. The default is False.
-        complete : vool, optional
+        complete : bool, optional
             Wheter to merge only when the provided dataframe has the same 'flake_id' of 
             the current mascdb triplet dataframe. The default is True.
     
