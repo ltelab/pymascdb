@@ -236,14 +236,14 @@ class MASC_DB:
     dir_path : str
         Filepath to a directory storing a MASCDB.
         5 files are expected in the directory:
-            - MASCdb_cam<0/1/2>.parquet   
-            - MASCdb_triplet.parquet 
-            - MASCdb.zarr
+          - MASCdb_cam<0/1/2>.parquet   
+          - MASCdb_triplet.parquet 
+          - MASCdb.zarr
     
     Returns
     -------
     MASCDB class instance.
-
+    
     """
     
     #####################
@@ -1735,9 +1735,9 @@ class MASC_DB:
         - images are enhanced with histogram_equalization and zoomed.
         - 'n_images' and 'random' are effective only if 'indices' are not specified.
         - If indices are unspecified:
-            - If cam_id is unspecified: it displays the first 'n_images' from a randomly selected camera of MASCDB.
-            - If cam_id specify 1 camera: it displays the first 'n_images' of the specified camera of MASCDB.
-            - If cam_id specifies more than 1 camera: it displays the first 'n_images' of each of the specified camera of MASCDB.
+        * If cam_id is unspecified: it displays the first 'n_images' from a randomly selected camera of MASCDB.
+        * If cam_id specify 1 camera: it displays the first 'n_images' of the specified camera of MASCDB.
+        * If cam_id specifies more than 1 camera: it displays the first 'n_images' of each of the specified camera of MASCDB.
              
         Parameters
         ----------
