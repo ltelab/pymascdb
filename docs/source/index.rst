@@ -1,4 +1,4 @@
-Welcome to *pymascdb*'s documentation!
+Welcome to *mascdb*'s documentation!
 ======================================
 
 **mascdb** is a Python library that offers a *simple* and *intuitive* API to manipulate the data and the images of a database of snowflake and snow crystal pictures collected by a MASC *(Multi-Angle Snowflake Camera)* in various locations worldwide.
