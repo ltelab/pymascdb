@@ -27,7 +27,7 @@ A few examples of usage
 Contents
 ========
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 4
    
    download
    reference
