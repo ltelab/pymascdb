@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'pymascdb'
+project = 'mascdb'
 copyright = '2021, GG & JG'
 author = 'Gionata Ghiggi, Jacopo Grazioli'
 

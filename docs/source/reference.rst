@@ -3,7 +3,7 @@
 Reference
 =======================================
 
-Tha main module of *pymascdb* is the API 
+Tha main module of *mascdb* is the API 
 
 .. code-block:: python
 
