@@ -20,8 +20,8 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'pymascdb'
-copyright = '2021, Jacopo'
-author = 'Jacopo'
+copyright = '2021, GG & JG'
+author = 'Gionata Ghiggi, Jacopo Grazioli'
 
 # The full version, including alpha/beta/rc tags
 release = '0.1'

@@ -1,18 +1,11 @@
 Welcome to *pymascdb*'s documentation!
 ======================================
 
-**pymascdb** is a Python library TODO
-It can be downloaded `here <https://github.com/jacgraz/pymascdb/>`_ 
-and offers a *simple* and *intuitive* API.
+**pymascdb** is a Python library that offers a *simple* and *intuitive* API to manipulate the data and the images of a database of snowflake and snow crystal pictures collected by a MASC *(Multi-Angle Snowflake Camera)* in various locations worldwide.
 
 .. note::
 
    This project is under active development.
-
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
 
 
 :ref:`Reference`
@@ -23,7 +16,13 @@ Comprehensive description of all the modules and functions available in the libr
 :ref:`Examples`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A few examples of use
+A few examples of usage
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
 
 Contents
 ========
@@ -33,5 +32,6 @@ Contents
    download
    reference
    examples
-   
+
+
 
