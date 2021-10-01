@@ -9,18 +9,29 @@ and offers a *simple* and *intuitive* API.
 
    This project is under active development.
 
-.. automodule:: mascdb.api
-    :members:
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
 
+:ref:`Reference`
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Indices and tables
-==================
+Comprehensive description of all the modules and functions available in the library.
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+:ref:`Examples`
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A few examples of use
+
+Contents
+========
+.. toctree::
+   :maxdepth: 1
+   
+   download
+   reference
+   examples
+   
+
