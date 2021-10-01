@@ -3,6 +3,7 @@
 ![Snowflake_SOM_Clustering](./figs/SOM_Clustering/MASC_SOM_Cluster.png)
 
 The code in this repository provides an API to query, filter and visualize MASC data.
+Documentation is available at https://pymascdb.readthedocs.io/en/latest/index.html
 
 ATTENTION: The code is subject to changes in the coming weeks / months.
 
