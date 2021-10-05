@@ -130,9 +130,8 @@ def get_riming_class_id_colors_dict(method='Praz2017'):
 def get_melting_class_name_dict(method='Praz2017'):
     # TODO : doc string as above (and adapt class names ;) 
     if method == 'Praz2017':
-        dict = {'undefined': 0,  # TODO: UPDATE 
-                'dry': 1,
-                'melting':2,
+        dict = {'dry': 0,
+                'melting':1,
                }
     else:
         raise ValueError("Melting class dictionary not available for method {}.".format(method))
@@ -141,8 +140,7 @@ def get_melting_class_name_dict(method='Praz2017'):
 
 def get_melting_class_name_colors_dict(method='Praz2017'):
     if method == 'Praz2017':
-        dict = {'undefined': "forestgreen",
-                'dry': 'darkblue',
+        dict = {'dry': 'darkblue',
                 'melting': 'orange',  
                 }
     else:
