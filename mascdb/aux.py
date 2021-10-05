@@ -251,6 +251,7 @@ def var_units():
         'flake_id':      '-',
         'flake_number_tmp':'-',
         'pix_size':      'm',
+        'cam_id':         '-',           
         'quality_xhi':   '-',
         'n_roi'   :      '-',
         'flake_n_roi'   : '-',
@@ -390,6 +391,7 @@ def var_explanations():
              'flake_number_tmp':'Temporary flake number. Incremental, but it resets upon reboot of the instrument. ',
              'pix_size':      'Pixel size',
              'quality_xhi':   'Quality index of the ROI. Very good images above values of 9.  Reference is https://doi.org/10.5194/amt-10-1335-2017 (see Appendix B)',
+             'cam_id':        'ID of the CAM: 0, 1 or 2',
 
              'n_roi'   :      'Number of ROIs initially identified in the raw image of one camera. Note that all the processing downstream is referred to only one (the main) ROI',
              'flake_n_roi'   :'Average value of n_roi (see n_roi definition) over the three cameras ',
