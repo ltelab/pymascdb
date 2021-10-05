@@ -36,7 +36,7 @@ mascdb = MASC_DB(dir_path=dir_path)
 
 # Select the largest        
 mascdb = mascdb.arrange('cam0.Dmax', decreasing=True)
-img = mascdb.da.isel(CAM_ID=0, TripletID=0).values
+img = mascdb.da.isel(cam_id=0, flake_id=0).values
 
 # 0 : no values 
 # > 0 : some snowflake 
