@@ -148,7 +148,7 @@ def _descriptor_fun(img, properties):
     return props_arr
 
 # Check it works properly for many images (do it manually)
-img = mascdb.da.isel(CAM_ID=0, TripletID=0).values
+img = mascdb.da.isel(cam_id=0, flake_id=0).values
 props_arr = _descriptor_fun(img=img, properties = properties)
 
 # Check that it works for a subset of mascdb (first 100, then 1000) to 
@@ -157,24 +157,24 @@ props_arr = _descriptor_fun(img=img, properties = properties)
 # http://image.dask.org/en/latest/coverage.html for dask-optimized image processing functions
 
 # properties = ["area"]
-da = mascdb.da.isel(TripletID = slice(0,100))
+da = mascdb.da.isel(flake_id = slice(0,100))
 x = "x"
 y = "y"
 fun_kwargs = {'properties': properties}
 fun = _descriptor_fun
 labels = properties 
 
-da_descriptors = _compute_2Dimage_descriptors(da = mascdb.da.isel(TripletID = slice(0,100)), 
+da_descriptors = _compute_2Dimage_descriptors(da = mascdb.da.isel(flake_id = slice(0,100)), 
                                               fun = _descriptor_fun,
                                               labels = labels, 
                                               fun_kwargs = fun_kwargs)
 
-da_descriptors = _compute_2Dimage_descriptors(da = mascdb.da.isel(TripletID = slice(0,500)), 
+da_descriptors = _compute_2Dimage_descriptors(da = mascdb.da.isel(flake_id = slice(0,500)), 
                                               fun = _descriptor_fun,
                                               labels = labels, 
                                               fun_kwargs = fun_kwargs)
 
-da_descriptors = _compute_2Dimage_descriptors(da = mascdb.da.isel(TripletID = slice(0,1000)), 
+da_descriptors = _compute_2Dimage_descriptors(da = mascdb.da.isel(flake_id = slice(0,1000)), 
                                               fun = _descriptor_fun,
                                               labels = labels, 
                                               fun_kwargs = fun_kwargs)
@@ -195,9 +195,9 @@ da_descriptors = _compute_2Dimage_descriptors(da = da,
 
 #-----------------------------------------------------------------------------.
 # Apply descriptors manually to mascdb 
-cam0 = da_descriptors.isel(CAM_ID = 0).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
-cam1 = da_descriptors.isel(CAM_ID = 1).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
-cam2 = da_descriptors.isel(CAM_ID = 2).to_dataset('descriptor').to_pandas().drop(columns='CAM_ID')
+cam0 = da_descriptors.isel(cam_id = 0).to_dataset('descriptor').to_pandas().drop(columns='cam_id')
+cam1 = da_descriptors.isel(cam_id = 1).to_dataset('descriptor').to_pandas().drop(columns='cam_id')
+cam2 = da_descriptors.isel(cam_id = 2).to_dataset('descriptor').to_pandas().drop(columns='cam_id')
 new_mascdb = mascdb.add_cam_columns(cam0=cam0, cam1=cam1, cam2=cam2, force=False, complete=True)
 
 #-----------------------------------------------------------------------------.
@@ -237,7 +237,7 @@ from mascdb.utils_img import xri_hist_equalization
 from mascdb.utils_img import xri_local_hist_equalization 
   
 mascdb = mascdb.arrange('cam0.Dmax', decreasing=True) 
-da = mascdb.da.isel(CAM_ID=0, TripletID=0)
+da = mascdb.da.isel(cam_id=0, TripletID=0)
 
 ### Comparison 
 img = da.values
@@ -261,12 +261,12 @@ plt.show()
 # Random plots 
 x = 'x'
 y = 'y'
-da = mascdb.da.isel(CAM_ID=0, TripletID=1000)
-da.plot.imshow(x=x, y=y, row="TripletID", col="CAM_ID", vmin=0, vmax=255, cmap="gray")
-xri_contrast_stretching(da, pmin=2, pmax=98).plot.imshow(x=x, y=y, row="TripletID", col="CAM_ID", vmin=0, vmax=255, cmap="gray")
-xri_hist_equalization(da, adaptive=False).plot.imshow(x=x, y=y, row="TripletID", col="CAM_ID", vmin=0, vmax=255, cmap="gray")
-xri_hist_equalization(da, adaptive=True).plot.imshow(x=x, y=y, row="TripletID", col="CAM_ID", vmin=0, vmax=255, cmap="gray")
+da = mascdb.da.isel(cam_id=0, flake_id=1000)
+da.plot.imshow(x=x, y=y, row="flake_id", col="cam_id", vmin=0, vmax=255, cmap="gray")
+xri_contrast_stretching(da, pmin=2, pmax=98).plot.imshow(x=x, y=y, row="flake_id", col="cam_id", vmin=0, vmax=255, cmap="gray")
+xri_hist_equalization(da, adaptive=False).plot.imshow(x=x, y=y, row="flake_id", col="cam_id", vmin=0, vmax=255, cmap="gray")
+xri_hist_equalization(da, adaptive=True).plot.imshow(x=x, y=y, row="flake_id", col="cam_id", vmin=0, vmax=255, cmap="gray")
 # Slow !!!
-xri_local_hist_equalization(da).plot.imshow(x=x, y=y, row="TripletID", col="CAM_ID", vmin=0, vmax=255, cmap="gray")
+xri_local_hist_equalization(da).plot.imshow(x=x, y=y, row="flake_id", col="cam_id", vmin=0, vmax=255, cmap="gray")
 
 #-----------------------------------------------------------------------------.
