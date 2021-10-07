@@ -1144,7 +1144,7 @@ class MASC_DB:
         #----------------------------------------------.
         # Compute location info  
         columns = ['latitude','longitude', 'altitude', 'campaign']
-        info_location = df_event[columns].groupby('campaign').first().reset_index()
+        info_location = df_event[columns].groupby('campaign').first().reset_index
         
         #----------------------------------------------.
         # Compute number of triplets 
