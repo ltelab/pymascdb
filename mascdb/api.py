@@ -282,6 +282,12 @@ class MASC_DB:
         self._cam2 = _convert_object_to_string(self._cam2)
         self._triplet = _convert_object_to_string(self._triplet)
         
+        #------------   
+        # - Temporary solution for timedelta issue in parquets/arrow
+        if "event_duration" in list(self._triplet.columns):
+            self._triplet["event_duration"] = self._triplet["event_duration"].astype("timedelta64[ns]") # astype("m8[ns]")
+             
+        #------------    
         # - Define number of triplets 
         self._n_triplets = len(self._triplet)
         
@@ -372,13 +378,26 @@ class MASC_DB:
         cam2_fpath = os.path.join(dir_path, "MASCdb_cam2.parquet")
         triplet_fpath = os.path.join(dir_path, "MASCdb_triplet.parquet")
         
-        # - Write databases 
-        ds = self._da.to_dataset(name="data") 
+        # - Ensure "correct" chunks of DataArray 
+        da = self.da
+        new_chunks = [max(chunk) for chunk in da.chunks]
+        da = da.chunk(new_chunks)
+        
+        # - Write databases
+        #------------
+        # Temporary solution because timedelta cannot be saved 
+        #   currently to parquet: https://issues.apache.org/jira/browse/ARROW-6780
+        # - event_duration timedelta is converted to int 
+        # - It assume no other timedelta columns are present in dataframes
+        triplet = self.triplet 
+        triplet["event_duration"] = triplet["event_duration"].astype("timedelta64[ns]").view(int)
+        #------------        
+        ds = da.to_dataset(name="data") 
         ds.to_zarr(zarr_store_fpath)
-        self._cam0.to_parquet(cam0_fpath)
-        self._cam1.to_parquet(cam1_fpath)
-        self._cam2.to_parquet(cam2_fpath)
-        self._triplet.to_parquet(triplet_fpath)
+        self._cam0.to_parquet(cam0_fpath, engine="auto")
+        self._cam1.to_parquet(cam1_fpath, engine="auto")
+        self._cam2.to_parquet(cam2_fpath, engine="auto")
+        triplet.to_parquet(triplet_fpath, engine="auto")
         #---------------------------------------------------------------------.
         return None 
         
