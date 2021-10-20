@@ -18,7 +18,7 @@ Comprehensive description of all the modules and functions available in the libr
 
 A few examples of usage
 
-:ref: `Data Content`
+:ref:`Data Content`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Description of the input data for which *mascdb* is designed
