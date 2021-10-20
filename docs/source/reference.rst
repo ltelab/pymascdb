@@ -9,5 +9,6 @@ Tha main module of *mascdb* is the API
 
     import mascdb.api 
 
-.. automodule:: mascdb.api
-    :members:
+.. currentmodule:: mascdb.api
+.. autosummary::
+     :toctree: stubs
