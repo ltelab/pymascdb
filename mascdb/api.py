@@ -4,6 +4,10 @@
 Created on Wed Sep  1 21:56:51 2021
 
 TODO: 
+    
+- Add description of instance variables in the header of 
+ MASCdb (for Sphinx)
+    
 - Add to the docs that mascdb.events and mascdb.campaigns
   should not be used to derive idxs for mascdb.isel() JGR
   
