@@ -7,4 +7,5 @@ Data Content
 
 .. toctree::
    :maxdepth: 2
+   
    triplet
