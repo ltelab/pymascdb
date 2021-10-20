@@ -7,7 +7,9 @@ Data
 the dataset available at the following link (TODO: Zenodo link)
 
 The dataset includes four *parquet* files, where scalar descriptors
-of snowflake images are stored as well as a *Zarr*
+of snowflake images are stored and a *Zarr* (zipped, to unzip) 
+storage where the actual grayscale image triplets of snowflakes
+in free fall are stored. 
 
 
 .. toctree::
@@ -15,3 +17,4 @@ of snowflake images are stored as well as a *Zarr*
    
    triplet
    cam
+   zarr
