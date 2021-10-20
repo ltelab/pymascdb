@@ -1,6 +1,6 @@
 .. _triplet:
 
-MASCdb triplet data
+MASCDB triplet data
 =======================================
 Examples here TODO
 

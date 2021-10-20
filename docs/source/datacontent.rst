@@ -14,3 +14,4 @@ of snowflake images are stored as well as a *Zarr*
    :maxdepth: 2
    
    triplet
+   cam
