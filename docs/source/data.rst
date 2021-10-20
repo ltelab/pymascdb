@@ -1,6 +1,6 @@
-.. _datacontent:
+.. _data:
 
-Data Content
+Data 
 =======================================
 
 *mascdb* is built as an API to manipulate and operate with 
