@@ -19,7 +19,7 @@ Examples here TODO
 |                      |          |            | in raw image                           | Note: only one main ROI                       |
 |                      |          |            |                                        | is considered in the descriptors              |
 +----------------------+----------+------------+----------------------------------------+-----------------------------------------------+
-| cam_id               | -        | int        | Cam ID: 0, 1, 2                        |                                               |
+| cam_id               | -        | int        | Camera ID: 0, 1, 2                     |                                               |
 +----------------------+----------+------------+----------------------------------------+-----------------------------------------------+
 | roi_width            | pixels   | int        | x-size of the crop containing          |                                               |
 |                      |          |            | the selected ROI                       |                                               |
