@@ -11,7 +11,7 @@ Examples here TODO
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
 | datetime                                |           | datetime |                       |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| campaign                                | -         | string   | Field campaign string |                                                 |
+| campaign                                |           | string   | Field campaign string |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
 | latitude                                | deg       | float    | WGS84 latitude        |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
@@ -21,18 +21,18 @@ Examples here TODO
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
 |            Flake information            |           |          |                       |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| flake_id                                | -         | string   | Unique flake ID       | e.g. 2015.02.10_11.55.10_flake_4                |
+| flake_id                                |           | string   | Unique flake ID       | e.g. 2015.02.10_11.55.10_flake_4                |
 |                                         |           |          |                       | YYYY.MM.DD_HH.mm.ss_flake_flake_number_tmp      |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| flake_number_tmp                        | -         | string   | Temporary flake ID    |                                                 |
+| flake_number_tmp                        |           | string   | Temporary flake ID    |                                                 |
 |                                         |           |          | (not unique)          |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| flake_quality_xhi                       | -         | float    | Average quality index | $\chi$ in Praz et al, 2017 citePraz             |
+| flake_quality_xhi                       |           | float    | Average quality index | $\chi$ in Praz et al, 2017 citePraz             |
 |                                         |           |          | (on the three cams)   |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
 | flake_fallspeed                         | m/s       | float    | Recorded fallspeed    |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| flake_n_roi                             | -         | int      | Average # ROIs        |                                                 |
+| flake_n_roi                             |           | int      | Average # ROIs        |                                                 |
 |                                         |           |          | (on the three cams)   |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
 | flake_Dmax                              | m         | float    | Maximum Dmax          | Table A1:4 Praz et al, 2017 citePraz            |
@@ -40,41 +40,41 @@ Examples here TODO
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
 |      Riming estimation information      |           |          |                       |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| riming_deg_level                        | -         | float    | Continuous riming     | $R_c$ in Praz et al, 2017 citePraz              |
+| riming_deg_level                        |           | float    | Continuous riming     | $R_c$ in Praz et al, 2017 citePraz              |
 |                                         |           |          | degree level          |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| riming_class_id                         | -         | int      | Discrete riming       | Praz et al, 2017 citePraz                       |
+| riming_class_id                         |           | int      | Discrete riming       | Praz et al, 2017 citePraz                       |
 |                                         |           |          | degree class ID       | 0: undefined, 1: unrimed, 2: rimed              |
 |                                         |           |          |                       | 3: densely-rimed, 4: graupel-like, 5: graupel   |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| riming_class_prob                       | -         | float    | Riming classification | Praz et al, 2017 citePraz                       |
+| riming_class_prob                       |           | float    | Riming classification | Praz et al, 2017 citePraz                       |
 |                                         |           |          | probability           |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| riming_class_name                       | -         | string   | Discrete riming       | See riming_class_id                             |
+| riming_class_name                       |           | string   | Discrete riming       | See riming_class_id                             |
 |                                         |           |          | degree class name     |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
 |      Melting estimation information     |           |          |                       |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| melting_class_id                        | -         | int      | Discrete melting      | Praz et al, 2017 citePraz                       |
+| melting_class_id                        |           | int      | Discrete melting      | Praz et al, 2017 citePraz                       |
 |                                         |           |          | class ID              | 0: dry, 1: melting                              |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| melting_prob                            | -         | float    | Melting probability   | Praz et al, 2017 citePraz                       |
+| melting_prob                            |           | float    | Melting probability   | Praz et al, 2017 citePraz                       |
 |                                         |           |          |                       | If rounded, it yields melting_class_id          |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| melting_class_name                      | -         | string   | Discrete melting      | See melting_class_id                            |
+| melting_class_name                      |           | string   | Discrete melting      | See melting_class_id                            |
 |                                         |           |          | class name            |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
 | Hydrometeor type estimation information |           |          |                       |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| snowflake_class_name                    | -         | string   | Hydrometeor           | Praz et al, 2017 citePraz                       |
+| snowflake_class_name                    |           | string   | Hydrometeor           | Praz et al, 2017 citePraz                       |
 |                                         |           |          | class name            | See snowflake_class_id                          |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| snowflake_class_id                      | -         | int      | Hydrometeor           | Praz et al, 2017 citePraz                       |
+| snowflake_class_id                      |           | int      | Hydrometeor           | Praz et al, 2017 citePraz                       |
 |                                         |           |          | class ID              | 1: small_particle, 2: columnar_crystal,         |
 |                                         |           |          |                       | 3: planar_crystal, 4: aggregate,                |
 |                                         |           |          |                       | 5: graupel, 6: columnar_planar_combination      |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| snowflake_class_prob                    | -         | float    | Classification        |                                                 |
+| snowflake_class_prob                    |           | float    | Classification        |                                                 |
 |                                         |           |          | probability           |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
 |   3D reconstruction / mass estimation   |           |          |                       |                                                 |
@@ -101,16 +101,16 @@ Examples here TODO
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
 |         Blowing snow estimation         |           |          |                       |                                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| bs_normalized_angle                     | -         | float    | Blowing Snow          | Schaer et al 2020, citeSchaer                   |
+| bs_normalized_angle                     |           | float    | Blowing Snow          | Schaer et al 2020, citeSchaer                   |
 |                                         |           |          | normalized angle      | Pure precip. if $< 0.193$, Pure BS if $> 0.881$ |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| bs_mixing_ind                           | -         | float    | Blowing snow          | Schaer et al 2020, citeSchaer                   |
+| bs_mixing_ind                           |           | float    | Blowing snow          | Schaer et al 2020, citeSchaer                   |
 |                                         |           |          | mixing index          | Only defined in mixed BS/precip environments    |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| bs_precip_class_name                    | -         | string   | Blowing snow          | Schaer et al 2020, citeSchaer                   |
+| bs_precip_class_name                    |           | string   | Blowing snow          | Schaer et al 2020, citeSchaer                   |
 |                                         |           |          | class name            | See bs_precip_class_id                          |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| bs_precip_class_id                      | -         | int      | Blowing snow          | Schaer et al 2020, citeSchaer                   |
+| bs_precip_class_id                      |           | int      | Blowing snow          | Schaer et al 2020, citeSchaer                   |
 |                                         |           |          | class ID              | 0: undefined, 1: precip, 2: mixed,              |
 |                                         |           |          |                       | 3: blowing_snow                                 |
 +-----------------------------------------+-----------+----------+-----------------------+-------------------------------------------------+
