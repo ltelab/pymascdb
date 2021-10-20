@@ -3,7 +3,7 @@
 Data Content
 =======================================
 
-:ref:`MASCdb_triplet`
+:ref:`MASCdb triplet data`
 
 .. toctree::
    :maxdepth: 2
