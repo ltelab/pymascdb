@@ -3,8 +3,8 @@
 Data 
 =======================================
 
-*mascdb* is built as an API to manipulate and operate with 
-the dataset available at the following link (TODO: Zenodo link)
+The dataset used by the *mascdb* codes can be downloaded at the link:
+
 
 The dataset includes four *parquet* files, where scalar descriptors
 of snowflake images are stored and a *Zarr* (zipped, to unzip) 

@@ -21,7 +21,8 @@ A few examples of usage
 :ref:`Data`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Description of the input data for which *mascdb* is designed
+Description of the input data for which *mascdb* is designed and a link to where the
+data can be downloaded.
 
 
 .. toctree::

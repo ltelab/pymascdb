@@ -3,6 +3,15 @@
 """
 Created on Wed Sep  1 21:56:51 2021
 
+TODO: 
+- Add to the docs that mascdb.events and mascdb.campaigns
+  should not be used to derive idxs for mascdb.isel() JGR
+  
+- Maybe modify something in the event code so that when 
+  mascdb.redefine_events() it's called with min_duration or
+  min_n_triplets arguments ... if some event_ids are removed,
+  we redefine event_id to range from 0 to the number of events.
+
 @author: ghiggi
 """
 import os
