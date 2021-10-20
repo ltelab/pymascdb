@@ -43,8 +43,8 @@ Examples here TODO
 | riming_deg_level     |           | float    | Continuous riming     | $R_c$ in Praz et al, 2017 citePraz              |
 |                      |           |          | degree level          |                                                 |
 +----------------------+-----------+----------+-----------------------+-------------------------------------------------+
-| riming_class_id      |           | int      | Discrete riming       | Praz et al, 2017 citePraz                       |
-|                      |           |          | degree class ID       | 0: undefined, 1: unrimed, 2: rimed              |
+| riming_class_id      |           | int      | Discrete riming       | Praz et al, 2017 citePraz\                      |
+|                      |           |          | degree class ID       | 0: undefined, 1: unrimed, 2: rimed\             |
 |                      |           |          |                       | 3: densely-rimed, 4: graupel-like, 5: graupel   |
 +----------------------+-----------+----------+-----------------------+-------------------------------------------------+
 | riming_class_prob    |           | float    | Riming classification | Praz et al, 2017 citePraz                       |
