@@ -58,7 +58,7 @@ Examples here TODO
 | melting_class_id     |       | int      | | Discrete melting    | | Praz et al, 2017                              |
 |                      |       |          | | class ID            | | 0: dry, 1: melting                            |
 +----------------------+-------+----------+-----------------------+-------------------------------------------------+
-| melting_prob         |       | float    | | Melting probability | | Praz et al, 2017                              |
+| melting_prob         |       | float    |   Melting probability | | Praz et al, 2017                              |
 |                      |       |          |                       | | If rounded, it yields melting_class_id        |
 +----------------------+-------+----------+-----------------------+-------------------------------------------------+
 | melting_class_name   |       | string   | | Discrete melting    | See melting_class_id                            |
