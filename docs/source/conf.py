@@ -35,8 +35,6 @@ release = '0.1'
 extensions = ['sphinx.ext.napoleon','sphinx.ext.autosummary']
 #, 'sphinx.ext.coverage', 'sphinx.ext.autodoc']
 #master_doc = 'index'
-autodoc_default_flags = ['members']
-autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

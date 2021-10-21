@@ -12,6 +12,14 @@ Tha main module of *mascdb* is the API
 .. automodule:: mascdb.api
     :members:
     :undoc-members:
-    :private-members:
     :show-inheritance:
 
+.. currentmodule:: mascdb
+
+.. autosummary::
+   :recursive
+
+   mascdb.api
+
+
+ 
