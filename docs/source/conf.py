@@ -38,9 +38,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.coverage",
     "sphinx.ext.mathjax",
-    "sphinxcontrib.bibtex",
-    "sphinx_gallery.gen_gallery",
-]
+    "sphinx_gallery.gen_gallery"]
 
 
 #, 'sphinx.ext.coverage', 'sphinx.ext.autodoc']
