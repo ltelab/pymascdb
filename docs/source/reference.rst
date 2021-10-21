@@ -11,3 +11,9 @@ Tha main module of *mascdb* is the API
 
 .. automodule:: mascdb.api
     :members:
+
+.. toctree::
+   :maxdepth: 4
+
+   mascdb
+
