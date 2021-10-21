@@ -14,12 +14,17 @@ Tha main module of *mascdb* is the API
     :undoc-members:
     :show-inheritance:
 
-.. currentmodule:: mascdb
+.. toctree::
+   :maxdepth: 4
+   :caption: Contents:
+
+.. rubric:: Modules
 
 .. autosummary::
-   :recursive
+   :toctree: generated
 
    mascdb.api
+   mascdb.api.MASC_DB
 
 
  
