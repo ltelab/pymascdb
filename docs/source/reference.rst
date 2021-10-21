@@ -9,19 +9,11 @@ Tha main module of *mascdb* is the API
 
     import mascdb.api 
 
-.. automodule:: mascdb.api
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-.. toctree::
-   :maxdepth: 4
-   :caption: Contents:
-
 .. rubric:: Modules
 
 .. autosummary::
    :toctree: generated
+   :recursive:
 
    mascdb.api
    mascdb.api.MASC_DB
