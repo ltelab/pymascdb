@@ -9,6 +9,10 @@ Tha main module of *mascdb* is the API
 
     import mascdb.api 
 
+.. toctree::
+   :maxdepth: 4
+   :caption: Contents:
+
 .. rubric:: Modules
 
 .. autosummary::
