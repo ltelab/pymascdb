@@ -572,7 +572,7 @@ def masc_mat_triplet_to_dict(fnames,pix_size=33.5e-6,campaign=''):
     if dict['melting_class_id'] == 1:
         dict['riming_class_id']       = 0
         dict['riming_class_name']     = 'undefined'
-        dict['riming_class_prob']  =  np.nan
+        dict['riming_class_prob']     =  np.nan
         dict['riming_deg_level']      =  np.nan
 
     return dict

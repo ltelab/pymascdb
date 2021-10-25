@@ -344,11 +344,10 @@ def add_bs_to_parquet(triplet_parquet,file_bs,verbose=False):
     bs_precip_type[bs_mix_ind >= 0.0]='mixed'
     bs_class_id[bs_mix_ind >= 0.0]   = 2
 
-    
     table['bs_normalized_angle']   =  bs_nor_angle
     table['bs_mixing_ind']         =  bs_mix_ind
     table['bs_precip_class_name']  =  bs_precip_type
-    table['bs_precip_class_id']           =  bs_class_id
+    table['bs_precip_class_id']    =  bs_class_id
     
 
     # Store table and overwrite
@@ -435,13 +434,12 @@ def merge_triplet_dataframes(path,
         
         # Write to file ---------------------
 
-        # Add index as column (in first place)
-        df['index'] = df.index 
-        first_col = df.pop("index")
-        df.insert(0, "index", first_col)
-
         print('Writing output')
 
+        if db == 'triplet':
+            df = df.rename(columns={'n_roi':'flake_n_roi'})
+
+        df=df.drop(columns="index")    
         df=df.round(decimals=digits_dictionary())
         table = pa.Table.from_pandas(df)
         pq.write_table(table, out_path+out_name+'_'+db+'.parquet')
@@ -591,7 +589,6 @@ def process_all(masc_dir,campaign_name='EPFL'):
 
 campaigns=['Davos-2015','APRES3-2016','APRES3-2017','Valais-2016','ICEPOP-2018','PLATO-2019','Davos-2019','Jura-2019','POPE-2020','ICEGENESIS-2021']
 
-
 for campaign in campaigns:
     print(campaign)
     
@@ -618,6 +615,7 @@ for campaign in campaigns:
         add_trainingset_flag('/data/MASC_DB/'+campaign+'_'+cam+'.parquet','/data/MASC_DB/rawinput/aux/',cam=cam)
 
 #  --- Merge
+
 merge_triplet_dataframes('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
 merge_triplet_image_array('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
 
