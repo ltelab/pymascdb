@@ -11,15 +11,15 @@ Examples here TODO
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | datetime             |       | datetime |                       |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| campaign             | -     | string   | Field campaign string |                                               |
+| campaign             |       | string   | Field campaign string |                                               |
 +----------------------+-------+----------+---------------------- +-----------------------------------------------+
 | pix_size             | m     | float    | Pixel size            |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| n_roi                | -     | int      | | # of ROIs           | Praz et al, 2017                              |
+| n_roi                |       | int      | | # of ROIs           | Praz et al, 2017                              |
 |                      |       |          | | in raw image        | Note: only one main ROI                       |
 |                      |       |          |                       | is considered in the descriptors              |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| cam_id               | -     | int      | Camera ID: 0, 1, 2    |                                               |
+| cam_id               |       | int      | Camera ID: 0, 1, 2    |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | roi_width            | pix   | int      | | x-size of crop of   |                                               |
 |                      |       |          | | the selected ROI    |                                               |
@@ -49,7 +49,7 @@ Examples here TODO
 |                      |       |          | | orthogonal dir.     |                                               |
 |                      |       |          | | of Dmax.            |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| D90_r                | -     | float    |                       |                                               |
+| D90_r                |       | float    |                       |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | eq_radius            | m     | float    | Equiv. area radius    | Table A1:5 in Praz et al, 2017                |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
@@ -69,12 +69,12 @@ Examples here TODO
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | ell_fit_ori          | deg   | float    | Orientation           | Table A1:11 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| ell_fit_a_r          | -     | float    | Axis ratio            | Table A1:12 in Praz et al, 2017               |
+| ell_fit_a_r          |       | float    | Axis ratio            | Table A1:12 in Praz et al, 2017               |
 |                      |       |          | (ell_fit_A/ell_fit_B) |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| ell_fit_ecc          | -     | float    | Eccentricity          | Table A1:13 in Praz et al, 2017               |
+| ell_fit_ecc          |       | float    | Eccentricity          | Table A1:13 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| compactness          | -     | float    | area / ell_fit_area   | Table A1:14 in Praz et al, 2017               |
+| compactness          |       | float    | area / ell_fit_area   | Table A1:14 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 |          Elliptical approximation: inscribed ellipse (same center and orientation of fitted one)                |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
@@ -94,160 +94,160 @@ Examples here TODO
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 |                            Particle shape                                                                       |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| roundness            | -     | float    | | Area /              | Table A1:30 in Praz et al, 2017               |
-|                      | -     |          | | circum. circle area |                                               |
+| roundness            |       | float    | | Area /              | Table A1:30 in Praz et al, 2017               |
+|                      |       |          | | circum. circle area |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| p_circ_out_r         | -     | float    | |Circum. circle perim | Table A1:31 in Praz et al, 2017               |
+| p_circ_out_r         |       | float    | |Circum. circle perim | Table A1:31 in Praz et al, 2017               |
 |                      |       |          | | /  perimeter        |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| rectangularity       | -     | float    | | Area /              | Table A1:32 in Praz et al, 2017               |
+| rectangularity       |       | float    | | Area /              | Table A1:32 in Praz et al, 2017               |
 |                      |       |          | | bounding box area   |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | bbox_width           | m     | float    | Bounding box width    | Table A1:33 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | bbox_len             | m     | float    | Bounding box height   | Table A1:34 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| rect_perim_ratio     | -     | float    | | Bounding box perim /| Table A1:35 in Praz et al, 2017               |
+| rect_perim_ratio     |       | float    | | Bounding box perim /| Table A1:35 in Praz et al, 2017               |
 |                      |       |          | perimeter             |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| rect_aspect_ratio    | -     | float    | B. box aspect ratio   | Table A1:36 in Praz et al, 2017               |
+| rect_aspect_ratio    |       | float    | B. box aspect ratio   | Table A1:36 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| rect_eccentricity    | -     | float    | B. box eccentricity   | Table A1:37 in Praz et al, 2017               |
+| rect_eccentricity    |       | float    | B. box eccentricity   | Table A1:37 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| solidity             | -     | float    | Area/convex hull area | Table A1:38 in Praz et al, 2017               |
+| solidity             |       | float    | Area/convex hull area | Table A1:38 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| convexity            | -     | float    | | Convex hull perim.  | Table A1:39 in Praz et al, 2017               |
+| convexity            |       | float    | | Convex hull perim.  | Table A1:39 in Praz et al, 2017               |
 |                      |       |          | | / perimeter ratio   |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| hull_n_angles        | -     | int      | # vertices con. hull  | Table A1:40 in Praz et al, 2017               |
+| hull_n_angles        |       | int      | # vertices con. hull  | Table A1:40 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| p_circ_r             | -     | float    | | Perimeter/ eq. area | Table A1:41 in Praz et al, 2017               |
+| p_circ_r             |       | float    | | Perimeter/ eq. area | Table A1:41 in Praz et al, 2017               |
 |                      |       |          | | circle perimeter    |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| frac_dim_boxcounting | -     | float    | Fractal dim. (box)    | Table A1:42 in Praz et al, 2017               |
+| frac_dim_boxcounting |       | float    | Fractal dim. (box)    | Table A1:42 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| frac_dim_theoretical | -     | float    | Fractal dim.          | Table A1:43 in Praz et al, 2017               |
+| frac_dim_theoretical |       | float    | Fractal dim.          | Table A1:43 in Praz et al, 2017               |
 |                      |       |          |                       | Grazioli et al, 2014                          |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| nb_holes             | -     | int      | # holes inside ROI    |                                               |
+| nb_holes             |       | int      | # holes inside ROI    |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 |                                   Morphological skeleton                                                        |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| skel_N_ends          | -     | int      | | Skeleton #  ending  | Table A1:44 in Praz et al, 2017               |
+| skel_N_ends          |       | int      | | Skeleton #  ending  | Table A1:44 in Praz et al, 2017               |
 |                      |       |          | | points              |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| skel_N_junc          | -     | int      | Skeleton # junctions  | Table A1:45 in Praz et al, 2017               |
+| skel_N_junc          |       | int      | Skeleton # junctions  | Table A1:45 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| skel_perim_ratio     | -     | float    | | Skeleton length /   | Table A1:46 in Praz et al, 2017               |
+| skel_perim_ratio     |       | float    | | Skeleton length /   | Table A1:46 in Praz et al, 2017               |
 |                      |       |          | | perimeter           |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| skel_area_ratio      | m^-1  | float    | | Skeleton length     | Table A1:47 in Praz et al, 2017               |
+| skel_area_ratio      | 1/m   | float    | | Skeleton length     | Table A1:47 in Praz et al, 2017               |
 |                      |       |          | | area                |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 |                                    Rotational symmetry                                                          |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| sym_P1 ... sym_P6    | -     | float    | | Standardized dist.  | Table A1:49-54 in Praz et al, 2017            |
+| sym_P1 ... sym_P6    |       | float    | | Standardized dist.  | Table A1:49-54 in Praz et al, 2017            |
 |                      |       |          | | to centroid Fourier |                                               |
 |                      |       |          | | power spec. P1...P6 |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| sym_Pmax_id          | -     | int      | ID of max.  (sym_P*)  | Table A1:55 in Praz et al, 2017               |
+| sym_Pmax_id          |       | int      | ID of max.  (sym_P*)  | Table A1:55 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| sym_P6_max_ratio     | -     | float    | sym_P6 / max(sym_P*)  | Table A1:56 in Praz et al, 2017               |
+| sym_P6_max_ratio     |       | float    | sym_P6 / max(sym_P*)  | Table A1:56 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | sym_mean             | pix   | float    | Mean dist. to centroid| Table A1:57 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | sym_std              | pix   | float    | | Standard deviation  | Table A1:58 in Praz et al, 2017               |
 |                      |       |          | | dist. to centroid   |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| sym_std_mean_ratio   | -     | float    | sym_std / sym_mean    | Table A1:59 in Praz et al, 2017               |
+| sym_std_mean_ratio   |       | float    | sym_std / sym_mean    | Table A1:59 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 |                            Texture operators (for ROI/particle)                                                 |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| intensity_mean       | -     | float    | Mean pixel brightness | Table A1:60 in Praz et al, 2017               |
+| intensity_mean       |       | float    | Mean pixel brightness | Table A1:60 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| intensity_max        | -     | float    | Max. pixel brightness | Table A1:61 in Praz et al, 2017               |
+| intensity_max        |       | float    | Max. pixel brightness | Table A1:61 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| contrast             | -     | float    | Contrast              | Table A1:62 in Praz et al, 2017               |
+| contrast             |       | float    | Contrast              | Table A1:62 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| intensity_std        | -     | float    | std. pixel brightness | Table A1:63 in Praz et al, 2017               |
+| intensity_std        |       | float    | std. pixel brightness | Table A1:63 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| hist_entropy         | -     | float    | Bright. hist. entropy | Table A1:64 in Praz et al, 2017               |
+| hist_entropy         |       | float    | Bright. hist. entropy | Table A1:64 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| local_std            | -     | float    | | Average local (3x3) | Table A1:65 in Praz et al, 2017               |
+| local_std            |       | float    | | Average local (3x3) | Table A1:65 in Praz et al, 2017               |
 |                      |       |          | | intensity std       |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| local_intens         | -     | float    | | Average local (3x3) | Table A1:66 in Praz et al, 2017               |
+| local_intens         |       | float    | | Average local (3x3) | Table A1:66 in Praz et al, 2017               |
 |                      |       |          | | mean intensity      |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| lap_energy           | -     | float    | Energy of Laplacian   | Table A1:67 in Praz et al, 2017               |
+| lap_energy           |       | float    | Energy of Laplacian   | Table A1:67 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| wavs                 | -     | float    | Sum of wavelet coeff. | Table A1:68 in Praz et al, 2017               |
+| wavs                 |       | float    | Sum of wavelet coeff. | Table A1:68 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| complexity           | -     | float    | Particle complexity   | | Table A1:69 in Praz et al, 2017             |
+| complexity           |       | float    | Particle complexity   | | Table A1:69 in Praz et al, 2017             |
 |                      |       |          |                       | | Garrett and Yuter, 2014                     |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 |                                     Haralick features                                                           |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| har_energy           | -     | float    | Haralick energy       | Table A1:70 in Praz et al, 2017               |
+| har_energy           |       | float    | Haralick energy       | Table A1:70 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| har_contrast         | -     | float    | Haralick contrast     | Table A1:71 in Praz et al, 2017               |
+| har_contrast         |       | float    | Haralick contrast     | Table A1:71 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| har_corr             | -     | float    | Haralick correlation  | Table A1:72 in Praz et al, 2017               |
+| har_corr             |       | float    | Haralick correlation  | Table A1:72 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| har_hom              | -     | float    | Haralick homogeneity  | Table A1:73 in Praz et al, 2017               |
+| har_hom              |       | float    | Haralick homogeneity  | Table A1:73 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 |                               Riming estimation information                                                     |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| riming_deg_level     | -     | float    | | Continuous riming   |    Rc in Praz et al, 2017                     |
+| riming_deg_level     |       | float    | | Continuous riming   |    Rc in Praz et al, 2017                     |
 |                      |       |          | | degree level        |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| riming_class_id      | -     | int      | | Discrete riming     | | Praz et al, 2017                            |
+| riming_class_id      |       | int      | | Discrete riming     | | Praz et al, 2017                            |
 |                      |       |          | | degree class ID     | | 0: undefined, 1: unrimed, 2: rimed          |
 |                      |       |          |                       | | 3: densely-rimed, 4: graupel-like, 5:graupel|
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| riming_class_prob    | -     | float    | | Riming classif      | Praz et al, 2017                              |
+| riming_class_prob    |       | float    | | Riming classif      | Praz et al, 2017                              |
 |                      |       |          | | probability         |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| riming_class_name    | -     | string   | | Discrete riming     | See riming_class_id                           |
+| riming_class_name    |       | string   | | Discrete riming     | See riming_class_id                           |
 |                      |       |          | | degree class name   |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 |                               Melting estimation information                                                    |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| melting_class_id     | -     | int      | | Discrete melting    | Praz et al, 2017                              |
+| melting_class_id     |       | int      | | Discrete melting    | Praz et al, 2017                              |
 |                      |       |          | | class ID            | 0: dry, 1: melting                            |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| melting_prob         | -     | float    | Melting probability   | Praz et al, 2017                              |
+| melting_prob         |       | float    | Melting probability   | Praz et al, 2017                              |
 |                      |       |          |                       | If rounded, it yields melting_class_id        |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| melting_class_name   | -     | string   | Discrete melting      | See melting_class_id                          |
+| melting_class_name   |       | string   | Discrete melting      | See melting_class_id                          |
 |                      |       |          | class name            |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 |                            Hydrometeor type estimation information                                              |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| snowflake_class_name | -     | string   | Hydrometeor           | Praz et al, 2017                              |
+| snowflake_class_name |       | string   | Hydrometeor           | Praz et al, 2017                              |
 |                      |       |          | class name            | See snowflake_class_id                        |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| snowflake_class_id   | -     | int      | | Hydrometeor         | | Praz et al, 2017                            |
+| snowflake_class_id   |       | int      | | Hydrometeor         | | Praz et al, 2017                            |
 |                      |       |          | | class id            | | 1: small_particle, 2: columnar_crystal,     |
 |                      |       |          |                       | | 3: planar_crystal, 4: aggregate,            |
 |                      |       |          |                       | | 5: graupel, 6: columnar_planar_combination  |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| snowflake_class_prob | -     | float    | | Classification      |                                               |
+| snowflake_class_prob |       | float    | | Classification      |                                               |
 |                      |       |          | | probability         |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 |                                  Human label information                                                        |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| hl_snowflake         | -     | int      | | Human-label         | | Boolean flag. If set to 1, this  particle   |
+| hl_snowflake         |       | int      | | Human-label         | | Boolean flag. If set to 1, this  particle   |
 |                      |       |          | | hydrometeor         | | (in this CAM view) was part of the human    |
 |                      |       |          |                       | | labelled training set of                    |
 |                      |       |          |                       | | for hydrometeor classification              |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| hl_melting           | -     | int      | Human-label melting   | | Boolean flag. If set to 1, this  particle   |
+| hl_melting           |       | int      | Human-label melting   | | Boolean flag. If set to 1, this  particle   |
 |                      |       |          |                       | | (in this CAM view) was part of the human    |
 |                      |       |          |                       | | labelled training set of                    |
 |                      |       |          |                       | | for melting identification                  |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| hl_riming            | -     | int      | Human-label riming    | | Boolean flag. If set to 1, this  particl    |
+| hl_riming            |       | int      | Human-label riming    | | Boolean flag. If set to 1, this  particl    |
 |                      |       |          |                       | | (in this CAM view) was part of the human    |
 |                      |       |          |                       | | labelled training set of                    |
 |                      |       |          |                       | | for riming degree estimation                |
