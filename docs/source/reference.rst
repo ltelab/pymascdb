@@ -18,6 +18,7 @@ Tha main module of *mascdb* is the API
 .. autosummary::
    :toctree: generated
    :recursive:
+   :autoclass_content: both
 
    mascdb.api
    mascdb.api.MASC_DB
