@@ -2,7 +2,7 @@
 
 MASCDB triplet data
 =======================================
-Examples here TODO
+The file *MASCdb_triplet.parquet* contains the attributes listed in the table below.
 
 +----------------------+-------+----------+-----------------------+-------------------------------------------------+
 |    Parameter         | Units |     Type |     Long name         |     Reference / Format / Algorithm              |
