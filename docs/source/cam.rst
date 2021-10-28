@@ -257,7 +257,7 @@ The files *MASCdb_CAM0.parquet*,*MASCdb_CAM1.parquet*,*MASCdb_CAM2.parquet*  con
 References
 =========================================
 
-- `Baker and Lawson, 206 <https://journals.ametsoc.org/view/journals/apme/45/9/jam2398.1.xml>`_: Baker, B. & Lawson, R. P. Improvement in Determination of Ice Water Content from Two-Dimensional Particle Imagery. Part I: Image-to-Mass Relationships.J. Appl. Meteorol. Climatol.45, 1282–1290, https://doi.org/10.1175/JAM2398.1, 2006.
+- `Baker and Lawson, 2006 <https://journals.ametsoc.org/view/journals/apme/45/9/jam2398.1.xml>`_: Baker, B. & Lawson, R. P. Improvement in Determination of Ice Water Content from Two-Dimensional Particle Imagery. Part I: Image-to-Mass Relationships.J. Appl. Meteorol. Climatol.45, 1282–1290, https://doi.org/10.1175/JAM2398.1, 2006.
 
 - `Praz et al, 2017 <https://zenodo.org/record/5578921#.YXqUeJuxVH4>`_: Praz, C., Roulet, Y.-A., and Berne, A.: Solid hydrometeor classification and riming degree estimation from pictures collected with a Multi-Angle Snowflake Camera, Atmos. Meas. Tech., 10, 1335–1357, https://doi.org/10.5194/amt-10-1335-2017, 2017.
 
