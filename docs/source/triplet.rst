@@ -114,7 +114,7 @@ The file *MASCdb_triplet.parquet* contains the attributes listed in the table be
 +----------------------+-------+----------+-----------------------+-------------------------------------------------+
 
 References
-=========================================
+-----------------------------------------
 
 - `Praz et al, 2017 <https://zenodo.org/record/5578921#.YXqUeJuxVH4>`_: Praz, C., Roulet, Y.-A., and Berne, A.: Solid hydrometeor classification and riming degree estimation from pictures collected with a Multi-Angle Snowflake Camera, Atmos. Meas. Tech., 10, 1335–1357, https://doi.org/10.5194/amt-10-1335-2017, 2017.
 

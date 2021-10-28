@@ -255,7 +255,7 @@ The files *MASCdb_CAM0.parquet*,*MASCdb_CAM1.parquet*,*MASCdb_CAM2.parquet*  con
 
 
 References
-=========================================
+-----------------------------------------------
 
 - `Baker and Lawson, 2006 <https://journals.ametsoc.org/view/journals/apme/45/9/jam2398.1.xml>`_: Baker, B. & Lawson, R. P. Improvement in Determination of Ice Water Content from Two-Dimensional Particle Imagery. Part I: Image-to-Mass Relationships.J. Appl. Meteorol. Climatol.45, 1282–1290, https://doi.org/10.1175/JAM2398.1, 2006.
 
