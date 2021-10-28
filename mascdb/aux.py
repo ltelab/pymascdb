@@ -469,7 +469,7 @@ def var_explanations():
              'D90_r':              'Axis ratio between Dmax and Dmax_90',
              'riming_class_id':    'ID of riming class (0 to 5) from https://doi.org/10.5194/amt-10-1335-2017. 0 meaning undefined, while the other classes can be found in the paper. ',
              'riming_class_prob':  'Probability associated with riming_class_id / riming_class_name',
-             'riming_class_name':  'Riming class name (undefined, unrimed, densely_rimed, graupel-like, graupel. As defined in https://doi.org/10.5194/amt-10-1335-2017',
+             'riming_class_name':  'Riming class name (undefined, unrimed, rimed, densely_rimed, graupel-like, graupel. As defined in https://doi.org/10.5194/amt-10-1335-2017',
              'riming_deg_level':   'Continuously varying riming degree level (from 0, unrimed to 1 graupel). Variable named R_c in https://doi.org/10.5194/amt-10-1335-2017',
              'melting_class_id':   'ID of melting class (0: not melting, 1: melting). From the method of https://doi.org/10.5194/amt-10-1335-2017 ',
              'melting_class_name': 'Melting class name: (dry vs melting). From the method of https://doi.org/10.5194/amt-10-1335-2017',
