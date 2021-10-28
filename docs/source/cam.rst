@@ -15,9 +15,9 @@ Examples here TODO
 +----------------------+-------+----------+---------------------- +-----------------------------------------------+
 | pix_size             | m     | float    | Pixel size            |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| n_roi                |       | int      | | # of ROIs           | Praz et al, 2017                              |
-|                      |       |          | | in raw image        | Note: only one main ROI                       |
-|                      |       |          |                       | is considered in the descriptors              |
+| n_roi                |       | int      | | # of ROIs           | | Praz et al, 2017                            |
+|                      |       |          | | in raw image        | | Note: only one main ROI                     |
+|                      |       |          |                       | | is considered in the descriptors            |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | cam_id               |       | int      | Camera ID: 0, 1, 2    |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
@@ -33,7 +33,7 @@ Examples here TODO
 | roi_centroid_X       | pix   | int      | | Centroid Y coord    |                                               |
 |                      |       |          | |(ref. original image)|                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                                   Particle size and area                                                        |
+|                                   **Particle size and area**                                                    |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | area                 | m^2   | float    | Particle area         | Table A1:1 in Praz et al, 2017                |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
@@ -59,7 +59,7 @@ Examples here TODO
 | area_porous_r        | m^2   | float    | | Ratio area_porous   | Table A1:7 in Praz et al, 2017                |
 |                      |       |          | | over area           |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                                 Elliptical approximation: fitted ellipse                                        |
+|                               **Elliptical approximation: fitted ellipse**                                      |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | ell_fit_A            | m     | float    | Major dimension       | Table A1:8 in Praz et al, 2017                |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
@@ -76,7 +76,7 @@ Examples here TODO
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | compactness          |       | float    | area / ell_fit_area   | Table A1:14 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|          Elliptical approximation: inscribed ellipse (same center and orientation of fitted one)                |
+|        **Elliptical approximation: inscribed ellipse (same center and orientation of fitted one)**              |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | ell_in_A             | m     | float    | Major dimension       | Table A1:15 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
@@ -84,7 +84,7 @@ Examples here TODO
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | ell_in_area          | m^2   | float    | Area                  | Table A1:17 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|           Elliptical approximation: circumscribed ellipse (same center and orientation of fitted one)           |
+|         **Elliptical approximation: circumscribed ellipse (same center and orientation of fitted one)**         |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | ell_out_A            | m     | float    | Major dimension       | Table A1:18 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
@@ -92,7 +92,7 @@ Examples here TODO
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | ell_out_area         | m^2   | float    | Area                  | Table A1:20 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                            Particle shape                                                                       |
+|                        **Particle shape**                                                                       |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | roundness            |       | float    | | Area /              | Table A1:30 in Praz et al, 2017               |
 |                      |       |          | | circum. circle area |                                               |
@@ -126,12 +126,12 @@ Examples here TODO
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | frac_dim_boxcounting |       | float    | Fractal dim. (box)    | Table A1:42 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| frac_dim_theoretical |       | float    | Fractal dim.          | Table A1:43 in Praz et al, 2017               |
-|                      |       |          |                       | Grazioli et al, 2014                          |
+| frac_dim_theoretical |       | float    | Fractal dim.          | | Table A1:43 in Praz et al, 2017             |
+|                      |       |          |                       | | Grazioli et al, 2014                        |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | nb_holes             |       | int      | # holes inside ROI    |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                                   Morphological skeleton                                                        |
+|                               **Morphological skeleton**                                                        |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | skel_N_ends          |       | int      | | Skeleton #  ending  | Table A1:44 in Praz et al, 2017               |
 |                      |       |          | | points              |                                               |
@@ -144,7 +144,7 @@ Examples here TODO
 | skel_area_ratio      | 1/m   | float    | | Skeleton length     | Table A1:47 in Praz et al, 2017               |
 |                      |       |          | | area                |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                                    Rotational symmetry                                                          |
+|                                **Rotational symmetry**                                                          |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | sym_P1 ... sym_P6    |       | float    | | Standardized dist.  | Table A1:49-54 in Praz et al, 2017            |
 |                      |       |          | | to centroid Fourier |                                               |
@@ -161,7 +161,7 @@ Examples here TODO
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | sym_std_mean_ratio   |       | float    | sym_std / sym_mean    | Table A1:59 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                            Texture operators (for ROI/particle)                                                 |
+|                       **Texture operators (for ROI/particle)**                                                  |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | intensity_mean       |       | float    | Mean pixel brightness | Table A1:60 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
@@ -186,7 +186,7 @@ Examples here TODO
 | complexity           |       | float    | Particle complexity   | | Table A1:69 in Praz et al, 2017             |
 |                      |       |          |                       | | Garrett and Yuter, 2014                     |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                                     Haralick features                                                           |
+|                                 **Haralick features**                                                           |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | har_energy           |       | float    | Haralick energy       | Table A1:70 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
@@ -196,7 +196,7 @@ Examples here TODO
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | har_hom              |       | float    | Haralick homogeneity  | Table A1:73 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                               Riming estimation information                                                     |
+|                           **Riming estimation information**                                                     |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | riming_deg_level     |       | float    | | Continuous riming   |    Rc in Praz et al, 2017                     |
 |                      |       |          | | degree level        |                                               |
@@ -211,21 +211,21 @@ Examples here TODO
 | riming_class_name    |       | string   | | Discrete riming     | See riming_class_id                           |
 |                      |       |          | | degree class name   |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                               Melting estimation information                                                    |
+|                           **Melting estimation information**                                                    |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| melting_class_id     |       | int      | | Discrete melting    | Praz et al, 2017                              |
-|                      |       |          | | class ID            | 0: dry, 1: melting                            |
+| melting_class_id     |       | int      | | Discrete melting    | | Praz et al, 2017                            |
+|                      |       |          | | class ID            | | 0: dry, 1: melting                          |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| melting_prob         |       | float    | Melting probability   | Praz et al, 2017                              |
-|                      |       |          |                       | If rounded, it yields melting_class_id        |
+| melting_prob         |       | float    | Melting probability   | | Praz et al, 2017                            |
+|                      |       |          |                       | | If rounded, it yields melting_class_id      |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | melting_class_name   |       | string   | Discrete melting      | See melting_class_id                          |
 |                      |       |          | class name            |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                            Hydrometeor type estimation information                                              |
+|                        **Hydrometeor type estimation information**                                              |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| snowflake_class_name |       | string   | Hydrometeor           | Praz et al, 2017                              |
-|                      |       |          | class name            | See snowflake_class_id                        |
+| snowflake_class_name |       | string   | Hydrometeor           | | Praz et al, 2017                            |
+|                      |       |          | class name            | | See snowflake_class_id                      |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | snowflake_class_id   |       | int      | | Hydrometeor         | | Praz et al, 2017                            |
 |                      |       |          | | class id            | | 1: small_particle, 2: columnar_crystal,     |
@@ -235,7 +235,7 @@ Examples here TODO
 | snowflake_class_prob |       | float    | | Classification      |                                               |
 |                      |       |          | | probability         |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                                  Human label information                                                        |
+|                              **Human label information**                                                        |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | hl_snowflake         |       | int      | | Human-label         | | Boolean flag. If set to 1, this  particle   |
 |                      |       |          | | hydrometeor         | | (in this CAM view) was part of the human    |

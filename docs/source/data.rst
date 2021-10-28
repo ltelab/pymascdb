@@ -3,7 +3,10 @@
 Data 
 =======================================
 
-The dataset used by the *mascdb* codes can be downloaded at the link:
+The dataset used by the *mascdb* codes can be downloaded on `Zenodo
+<https://zenodo.org/record/5578921#.YXqUeJuxVH4>`_.:
+
+- DOI: *10.5281/zenodo.5578920*
 
 
 The dataset includes four *parquet* files, where scalar descriptors
