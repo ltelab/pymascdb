@@ -7,7 +7,7 @@ Tha main module of *mascdb* is the API
 
 .. code-block:: python
 
-    import mascdb.api 
+    from  mascdb.api import MASC_DB
 
 .. toctree::
    :maxdepth: 5
