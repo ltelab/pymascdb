@@ -28,12 +28,12 @@ The files *MASCdb_CAM0.parquet*,*MASCdb_CAM1.parquet*,*MASCdb_CAM2.parquet*  con
 |                      |       |          | | the selected ROI    |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | roi_centroid_X       | pix   | int      | | Centroid X coord    |                                               |
-|                      |       |          | |(ref. original image)|                                               |
+|                      |       |          | | (original image)    |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | roi_centroid_X       | pix   | int      | | Centroid Y coord    |                                               |
-|                      |       |          | |(ref. original image)|                                               |
+|                      |       |          | | ( original image)   |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-|                                   **Particle size and area**                                                    |
+|                               **Particle size and area**                                                        |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | area                 | m^2   | float    | Particle area         | Table A1:1 in Praz et al, 2017                |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
@@ -97,8 +97,8 @@ The files *MASCdb_CAM0.parquet*,*MASCdb_CAM1.parquet*,*MASCdb_CAM2.parquet*  con
 | roundness            |       | float    | | Area /              | Table A1:30 in Praz et al, 2017               |
 |                      |       |          | | circum. circle area |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| p_circ_out_r         |       | float    | |Circum. circle perim | Table A1:31 in Praz et al, 2017               |
-|                      |       |          | | /  perimeter        |                                               |
+| p_circ_out_r         |       | float    | | Circ. circle perim/ | Table A1:31 in Praz et al, 2017               |
+|                      |       |          | |   perimeter         |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | rectangularity       |       | float    | | Area /              | Table A1:32 in Praz et al, 2017               |
 |                      |       |          | | bounding box area   |                                               |
@@ -107,8 +107,8 @@ The files *MASCdb_CAM0.parquet*,*MASCdb_CAM1.parquet*,*MASCdb_CAM2.parquet*  con
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | bbox_len             | m     | float    | Bounding box height   | Table A1:34 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-| rect_perim_ratio     |       | float    | | Bounding box perim /| Table A1:35 in Praz et al, 2017               |
-|                      |       |          | perimeter             |                                               |
+| rect_perim_ratio     |       | float    | | Bounding box perim/ | Table A1:35 in Praz et al, 2017               |
+|                      |       |          | | perimeter           |                                               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | rect_aspect_ratio    |       | float    | B. box aspect ratio   | Table A1:36 in Praz et al, 2017               |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
