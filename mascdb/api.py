@@ -5,8 +5,7 @@ Created on Wed Sep  1 21:56:51 2021
 
 TODO: 
     
-- Add description of instance variables in the header of 
- MASCdb (for Sphinx)
+- Add description of instance variables in the header of  MASCdb (for Sphinx)
     
 - Add to the docs that mascdb.events and mascdb.campaigns
   should not be used to derive idxs for mascdb.isel() JGR
@@ -249,9 +248,9 @@ class MASC_DB:
     dir_path : str
         Filepath to a directory storing a MASCDB.
         5 files are expected in the directory:
-          - MASCdb_cam<0/1/2>.parquet   
-          - MASCdb_triplet.parquet 
-          - MASCdb.zarr
+        - MASCdb_cam<0/1/2>.parquet   
+        - MASCdb_triplet.parquet 
+        - MASCdb.zarr
     
     Returns
     -------
@@ -1093,6 +1092,9 @@ class MASC_DB:
     
     @property
     def cam0(self):
+        """
+        Dataframes of image descriptors and retrievals for CAM 0
+        """
         return self._cam0.copy()
     
     @property
