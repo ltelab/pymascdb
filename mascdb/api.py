@@ -228,6 +228,25 @@ def _check_columns(columns):
             raise ValueError("Expecting columns in the np.array to be strings.")
     return columns
 
+def _check_df_source(df_source):
+    if not isinstance(df_source, str): 
+        raise TypeError("'df_source' must be a string. Either 'triplet', 'cam0','cam1', 'cam2'.")
+    valid_source = ['triplet', 'cam0', 'cam1', 'cam2']
+    if not df_source in valid_source:
+        raise ValueError("Valid 'df_source' values are {}".format(valid_source))
+
+def _get_df_values(self, column, df_source='triplet'):
+    if df_source == 'triplet':
+        return self._triplet[column].to_numpy()
+    elif df_source == 'cam0':
+        return self._cam0[column].to_numpy()
+    elif df_source == 'cam1':
+        return self._cam1[column].to_numpy()
+    elif df_source == 'cam2':
+        return self._cam2[column].to_numpy()
+    else:
+        raise ValueError("Unvalid 'source'.")
+        
 def _count_occurence(x): 
     return [dict(zip(list(x.value_counts().keys()), list(x.value_counts())))]
 
@@ -277,6 +296,12 @@ class MASC_DB:
         cam2_fpath = os.path.join(dir_path, "MASCdb_cam2.parquet")
         triplet_fpath = os.path.join(dir_path, "MASCdb_triplet.parquet")
         
+        # - Check if the Zarr DirectoryStore has not been unzipped
+        if not os.path.exists(zarr_store_fpath):
+            zarr_zipstore_fpath = zarr_store_fpath + ".zip"
+            if os.path.exists(zarr_zipstore_fpath):
+                raise ValueError("You need to unzip {}".format(zarr_zipstore_fpath))
+
         # - Read image dataset 
         self._da = xr.open_zarr(zarr_store_fpath)['data']
         self._da['flake_id'] = self._da['flake_id'].astype(str)
@@ -781,7 +806,7 @@ class MASC_DB:
         idx = np.isin(campaigns_arr, campaign, invert=True)
         return self.isel(idx) 
      
-    def select_snowflake_class(self, values, method='Praz2017', invert = False): 
+    def select_snowflake_class(self, values, method='Praz2017', invert = False, df_source="triplet"): 
         """
         Select MASCDB data with specific snowflake classes.
 
@@ -797,12 +822,23 @@ class MASC_DB:
         invert : bool, optional
             If True, instead of selecting it discard the specified snowflake_class.
             The default is False.
+        df_source: str, optional 
+            The dataframe from which retrieve the class. 
+            Either 'cam0', 'cam1', 'cam2' or 'triplet'.
+            The  default is 'triplet'.
 
         Returns
         -------
         MASCDB class instance with specific snowflake classes.
     
         """
+        #---------------------------------------------------------------------.
+        ## Check default args 
+        if not isinstance(invert, bool):
+            raise TypeError("'invert' must be either True or False'.")
+        _check_df_source(df_source)
+        #---------------------------------------------------------------------.
+        ## Check values 
         if not isinstance(values,(int, str, list, np.ndarray)):
             raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
         # Convert to numpy array object 
@@ -821,8 +857,8 @@ class MASC_DB:
         else:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
         #---------------------------------------------------------------------.
-        # Retrieve triplet column values 
-        arr = self._triplet[column].to_numpy()
+        # Retrieve column values (by default from triplet df) 
+        arr = _get_df_values(self, df_source=df_source, column=column) 
         # Check values are valid 
         unvalid_values = values[np.isin(values, valid_names, invert=True)]
         if len(unvalid_values) > 0: 
@@ -835,7 +871,7 @@ class MASC_DB:
         idx = np.isin(arr, values, invert=invert)
         return self.isel(idx) 
 
-    def select_riming_class(self, values, method='Praz2017', invert=False): 
+    def select_riming_class(self, values, method='Praz2017', invert=False, df_source="triplet"): 
         """
         Select MASCDB data with specific riming classes.
 
@@ -851,12 +887,23 @@ class MASC_DB:
         invert : bool, optional
             If True, instead of selecting it discard the specified riming_class.
             The default is False.
-
+        df_source: str, optional 
+            The dataframe from which retrieve the class. 
+            Either 'cam0', 'cam1', 'cam2' or 'triplet'.
+            The  default is 'triplet'.
+            
         Returns
         -------
         MASCDB class instance with specific riming classes.
     
         """
+        #---------------------------------------------------------------------.
+        ## Check default args 
+        if not isinstance(invert, bool):
+            raise TypeError("'invert' must be either True or False'.")
+        _check_df_source(df_source)
+        #---------------------------------------------------------------------.
+        ## Check values
         if not isinstance(values,(int, str, list, np.ndarray)):
             raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
         # Convert to numpy array object 
@@ -875,8 +922,8 @@ class MASC_DB:
         else:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
         #---------------------------------------------------------------------.
-        # Retrieve triplet column values 
-        arr = self._triplet[column].to_numpy()
+        # Retrieve column values (by default from triplet df) 
+        arr = _get_df_values(self, df_source=df_source, column=column) 
         # Check values are valid 
         unvalid_values = values[np.isin(values, valid_names, invert=True)]
         if len(unvalid_values) > 0: 
@@ -889,7 +936,7 @@ class MASC_DB:
         idx = np.isin(arr, values, invert=invert)
         return self.isel(idx)     
  
-    def select_melting_class(self, values, method='Praz2017', invert=False): 
+    def select_melting_class(self, values, method='Praz2017', invert=False, df_source="triplet"): 
         """
         Select MASCDB data with specific melting classes.
 
@@ -905,12 +952,23 @@ class MASC_DB:
         invert : bool, optional
             If True, instead of selecting it discard the specified melting_class_id.
             The default is False.
-
+        df_source: str, optional 
+            The dataframe from which retrieve the class. 
+            Either 'cam0', 'cam1', 'cam2' or 'triplet'.
+            The  default is 'triplet'.
+            
         Returns
         -------
         MASCDB class instance with specific melting classes.
     
         """
+        #---------------------------------------------------------------------.
+        ## Check default args 
+        if not isinstance(invert, bool):
+            raise TypeError("'invert' must be either True or False'.")
+        _check_df_source(df_source)
+        #---------------------------------------------------------------------.
+        ## Check values
         if not isinstance(values,(int, str, list, np.ndarray)):
             raise TypeError("'values' must be either (list of) integers (for class ids) or str (for class names).")
         # Convert to numpy array object 
@@ -929,8 +987,8 @@ class MASC_DB:
         else:
             raise TypeError("'values' must be either integers (for class ids) or str (for class names).")  
         #---------------------------------------------------------------------.
-        # Retrieve triplet column values 
-        arr = self._triplet[column].to_numpy()
+        # Retrieve column values (by default from triplet df) 
+        arr = _get_df_values(self, df_source=df_source, column=column) 
         # Check values are valid 
         unvalid_values = values[np.isin(values, valid_names, invert=True)]
         if len(unvalid_values) > 0: 
@@ -997,7 +1055,7 @@ class MASC_DB:
         idx = np.isin(arr, values, invert=invert)
         return self.isel(idx)  
        
-    def discard_snowflake_class(self, values, method='Praz2017'):
+    def discard_snowflake_class(self, values, method='Praz2017', df_source="triplet"):
         """
         Discard MASCDB data with specific snowflake classes.
 
@@ -1010,15 +1068,19 @@ class MASC_DB:
             Valid values can be retrieved by calling 'mascdb.aux.get_snowflake_class_name_dict(method)'.
         method : str, optional
             Method used to determine snowflake_class. The default is 'Praz2017'.
+        df_source: str, optional 
+            The dataframe from which retrieve the class. 
+            Either 'cam0', 'cam1', 'cam2' or 'triplet'.
+            The  default is 'triplet'.
 
         Returns
         -------
         MASCDB class instance with specific snowflake classes.
     
         """
-        return self.select_snowflake_class(values=values, method=method, invert = True) 
+        return self.select_snowflake_class(values=values, method=method, invert = True, df_source=df_source)  
     
-    def discard_melting_class(self, values, method='Praz2017'):
+    def discard_melting_class(self, values, method='Praz2017', df_source="triplet"):
         """
         Discard MASCDB data with specific melting classes.
 
@@ -1031,15 +1093,19 @@ class MASC_DB:
             Valid values can be retrieved by calling 'mascdb.aux.get_melting_class_name_dict(method)'.
         method : str, optional
             Method used to determine melting_class. The default is 'Praz2017'.
+        df_source: str, optional 
+            The dataframe from which retrieve the class. 
+            Either 'cam0', 'cam1', 'cam2' or 'triplet'.
+            The  default is 'triplet'.
 
         Returns
         -------
         MASCDB class instance with specific melting classes.
     
         """
-        return self.select_melting_class(values=values, method=method, invert = True) 
+        return self.select_melting_class(values=values, method=method, invert = True, df_source=df_source)  
     
-    def discard_riming_class(self, values, method='Praz2017'):
+    def discard_riming_class(self, values, method='Praz2017', df_source="triplet"):
         """
         Discard MASCDB data with specific riming classes.
 
@@ -1052,13 +1118,17 @@ class MASC_DB:
             Valid values can be retrieved by calling 'mascdb.aux.get_riming_class_name_dict(method)'.
         method : str, optional
             Method used to determine riming_class. The default is 'Praz2017'.
-
+        df_source: str, optional 
+                The dataframe from which retrieve the class. 
+                Either 'cam0', 'cam1', 'cam2' or 'triplet'.
+                The  default is 'triplet'.
+                
         Returns
         -------
         MASCDB class instance with specific riming classes.
     
         """
-        return self.select_riming_class(values=values, method=method, invert = True) 
+        return self.select_riming_class(values=values, method=method, invert = True, df_source=df_source) 
       
     def discard_precip_class(self, values, method='Schaer2020'):
         """
@@ -1473,8 +1543,8 @@ class MASC_DB:
         """
         shortest_event_ids = self.arrange('triplet.event_duration', decreasing=False)._triplet['event_id'].iloc[0:n]
         idx_shortest_events = np.isin(self._triplet['event_id'].to_numpy(), shortest_event_ids)
-        return self.isel(idx_shortest_events)
-
+        return self.isel(idx_shortest_events) 
+    
     ##--------------------------------------------------
     ## Redefine events utils  
     def redefine_events(self, 
@@ -1515,20 +1585,31 @@ class MASC_DB:
         # Define event_id 
         self._define_events(max_interval_without_images=max_interval_without_images,unit=unit)
         #----------------------------------------------------------.
+        EVENT_FILTERING = False
         # Select only events with specific min/max n_triplets and duration
         if (min_n_triplets is not None) or (max_n_triplets is not None): 
+            EVENT_FILTERING = True
             if min_n_triplets is None: 
                 min_n_triplets = 0
             if max_n_triplets is None: 
                 max_n_triplets = np.inf
             self = self.select_events_with_n_triplets(min=min_n_triplets, max=max_n_triplets)
         if (min_duration is not None) or (max_duration is not None): 
+            EVENT_FILTERING = True
             if min_duration is None: 
                 min_duration = np.timedelta64(0,'ns')
             if max_duration is None: 
                 max_duration = np.timedelta64(365,'D')
             self = self.select_events_with_duration(min=min_duration, max=max_duration)
         #----------------------------------------------------------.
+        # Ensure event_id incremental order (0,1,..,n_events) if filtering out events 
+        if EVENT_FILTERING: 
+            event_ids = self._triplet['event_id'].values
+            event_ids_new = np.unique(event_ids, return_inverse=True)[1]
+            self._cam0['event_id'] = event_ids_new
+            self._cam1['event_id'] = event_ids_new
+            self._cam2['event_id'] = event_ids_new
+            self._triplet['event_id'] = event_ids_new
         # Return the object 
         return self 
         
