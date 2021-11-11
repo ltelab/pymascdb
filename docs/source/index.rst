@@ -7,11 +7,10 @@ Welcome to *mascdb*'s documentation!
 
    This project is under active development.
 
-
 :ref:`Reference`
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Comprehensive description of all the modules and functions available in the library.
+Description of the most important modules and functions available in the library.
 
 :ref:`Examples`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,7 +32,7 @@ data can be downloaded.
 Contents
 ========
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    
    download
    reference

@@ -4,4 +4,8 @@ Examples
 =======================================
 Examples here TODO
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
 
+   examples/00_basic_funcs
