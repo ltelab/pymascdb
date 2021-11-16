@@ -4,18 +4,10 @@
 Created on Wed Sep  1 21:56:51 2021
 
 TODO: 
-    
-- Add description of instance variables in the header of  MASCdb (for Sphinx)
-    
+        
 - Add to the docs that mascdb.events and mascdb.campaigns
   should not be used to derive idxs for mascdb.isel() JGR
-  
-- Maybe modify something in the event code so that when 
-  mascdb.redefine_events() it's called with min_duration or
-  min_n_triplets arguments ... if some event_ids are removed,
-  we redefine event_id to range from 0 to the number of events.
 
-@author: ghiggi
 """
 import os
 import shutil
@@ -1163,25 +1155,37 @@ class MASC_DB:
     @property
     def cam0(self):
         """
-        Dataframes of image descriptors and retrievals for CAM 0
+        Dataframe of snowflake attributes for CAM0 view
         """
         return self._cam0.copy()
     
     @property
     def cam1(self):
+        """
+        Dataframe of snowflake attributes for CAM1 view
+        """
         return self._cam1.copy()
     
     @property
     def cam2(self):
+        """
+        Dataframe of snowflake attributes for CAM2 view
+        """
         return self._cam2.copy()
     
     @property
     def triplet(self):
+        """
+        Dataframe of snowflake attributes valid for the triplet of images
+        """
         return self._triplet.copy()
     
     # The following properties are just utils
     @property
     def env(self):
+        """
+        Dataframe of environmental (env_*) attributes
+        """
         columns = list(self._triplet.columns)
         env_variables = [column for column in columns if column.startswith("env_")]
         env_db = self._triplet[[*env_variables]].copy()
@@ -1190,6 +1194,9 @@ class MASC_DB:
     
     @property
     def bs(self):
+        """
+        Dataframe of blowing-snow estimation (bs_*) attributes (Schaer et al 2020)
+        """
         columns = list(self._triplet.columns)
         bs_variables = [column for column in columns if column.startswith("bs_")]
         bs_db = self._triplet[[*bs_variables]].copy()
@@ -1198,14 +1205,20 @@ class MASC_DB:
     
     @property
     def gan3d(self):
+        """
+        Dataframe of 3d reconstruction (gan3d_*) attributes (Leinonen et al, 2021)
+        """
         columns = list(self._triplet.columns)
         gan3d_variables = [column for column in columns if column.startswith("gan3d_")]
         gan3d_db = self._triplet[[*gan3d_variables]].copy()
-        gan3d_db.columns = [column.strip("gan3d_") for column in gan3d_variables]
+        gan3d_db.columns = [column.replace('gan3d_','') for column in gan3d_variables]
         return gan3d_db
     
     @property
     def flake(self):
+        """
+        Dataframe of flake/triplet (flake_*) attributes
+        """
         columns = list(self._triplet.columns)
         flake_variables = [column for column in columns if column.startswith("flake_")]
         flake_db = self._triplet[[*flake_variables]].copy()
@@ -1214,12 +1227,18 @@ class MASC_DB:
     
     @property
     def labels(self):
+        """
+        Dataframe of hydrometeor classification, riming and melting attributes (Praz et al 2017)
+        """
         labels_variables = get_vars_class()
         labels_db = self._triplet[[*labels_variables]].copy()
         return labels_db
 
     @property
     def event(self):
+        """
+        Dataframe summarizing separate (according to setting) precip. events
+        """
         # columns = list(self._triplet.columns)
         # event_columns = [column for column in columns if column.startswith("event_")]
         event_columns = ['event_id', 'event_duration', 'event_n_triplets',
@@ -1240,6 +1259,9 @@ class MASC_DB:
         
     @property
     def campaign(self): 
+        """
+        Dataframe summarizing information of different field campaigns
+        """
         #----------------------------------------------.
         # Retrieve data 
         df_event = self.event     
@@ -1301,6 +1323,9 @@ class MASC_DB:
 
     @property
     def full_db(self):
+        """
+        Dataframe including cam0, cam1, cam2 and triplet stacked
+        """
         # TODO: check same order as ds_images ... maybe add cam_id  and campaign args 
         # Add cam_id to each cam db 
         l_cams = [self.cam0, self.cam1, self.cam2]
