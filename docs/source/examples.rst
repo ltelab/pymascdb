@@ -9,3 +9,4 @@ Examples here TODO
    :caption: Contents:
 
    examples/00_basic_funcs
+   examples/01_retrievals
