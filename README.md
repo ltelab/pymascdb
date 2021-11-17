@@ -29,8 +29,8 @@ For a local installation, follow the below instructions.
 
 1. Clone this repository.
    ```sh
-   git clone https://github.com/xxxx/xxxx.git
-   cd xxxxx
+   git clone https://github.com/ltelab/pymascdb.git
+   cd pymascdb
    ```
 
 2. Install the dependencies using conda:
@@ -45,6 +45,17 @@ For a local installation, follow the below instructions.
 4. Just for info... to update the environment.yml: 
    ```sh
    conda env export > environment.yml
+   ```
+
+5. With *mascdb* environment activated, install the package:
+   ```sh
+   python setup.py install
+   ```
+
+In this way, *mascdb* can simply be loaded, from any directory, as:
+   ```python
+   import mascdb.api
+   from mascdb.api import MASC_DB
    ```
 
 ## References 
