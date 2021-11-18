@@ -17,7 +17,7 @@ from mat_files import digits_dictionary
 
 from weather_data import blowingsnow
 
-sys.path.insert(1,'/home/grazioli/CODES/python/py-masc-3D-GAN-eval')
+sys.path.insert(1,'/home/grazioli/CODES/python/py-masc-gan-3Deval')
 from gan3d_lib import gan3d 
 
 
@@ -455,7 +455,7 @@ def add_trainingset_flag(cam_parquet,
     Input
 
     cam_parquet: parquet file to add the columns to
-    trainingset_pkl_path: path where the pickles of the trainingset flags are stored
+    trainingset_pkl_path: path where the pickles of the trainingset flags are locally stored
     cam =  'cam0', 'cam1' or 'cam2'
 
     """
@@ -467,35 +467,56 @@ def add_trainingset_flag(cam_parquet,
 
     # 1 Add hydro columns
     add = pd.read_pickle(trainingset_pkl_path+'hydro_trainingset_'+cam+'.pkl')
-    is_in = np.asarray([0] * len(table))
+    is_in    = np.asarray([0] * len(table))
+    value_in = np.asarray([np.nan] * len(table))
 
-    ind1=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[1]
+    # Intersect
+    intersect = np.intersect1d(flake_uid,add.flake_id,return_indices=True)
+    ind1=intersect[1]
+    ind2=intersect[2]
+    
 
     # Fill
     is_in[ind1] = 1
+    value_in[ind1] = add.class_id.iloc[ind2]
     table['hl_snowflake'] = is_in
+    table['hl_snowflake_class_id'] = value_in
     print('Found: '+str(len(ind1))+' in training, for hydro' )
 
     # 2 Add melting columns
     add = pd.read_pickle(trainingset_pkl_path+'melting_trainingset_'+cam+'.pkl')
     is_in = np.asarray([0] * len(table))
+    value_in = np.asarray([np.nan] * len(table))
 
-    ind1=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[1]
+
+    # Intersect
+    intersect = np.intersect1d(flake_uid,add.flake_id,return_indices=True)
+    ind1=intersect[1]
+    ind2=intersect[2]
 
     # Fill
     is_in[ind1] = 1
+    value_in[ind1] = add.melting.iloc[ind2]
     table['hl_melting'] = is_in
+    table['hl_melting_class_id'] = value_in
     print('Found: '+str(len(ind1))+' in training, for melting' )
 
     # 3 Add riming columns
     add = pd.read_pickle(trainingset_pkl_path+'riming_trainingset_'+cam+'.pkl')
     is_in = np.asarray([0] * len(table))
+    value_in = np.asarray([np.nan] * len(table))
 
-    ind1=np.intersect1d(flake_uid,add.flake_id,return_indices=True)[1]
+
+    # Intersect
+    intersect = np.intersect1d(flake_uid,add.flake_id,return_indices=True)
+    ind1=intersect[1]
+    ind2=intersect[2]
 
     # Fill
     is_in[ind1] = 1
+    value_in[ind1] = add.riming_id.iloc[ind2]
     table['hl_riming'] = is_in
+    table['hl_riming_class_id'] = value_in
     print('Found: '+str(len(ind1))+' in training, for riming' )
 
     # Overwrite

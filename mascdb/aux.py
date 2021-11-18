@@ -361,8 +361,11 @@ def var_units():
         'env_RH':             '%',
         
         'hl_snowflake':       'boolean',
+        'hl_snowflake_class_id': 'int',
         'hl_melting':	       'boolean',
-        'hl_riming':	       'boolean'
+        'hl_melting_class_id': 'int',
+        'hl_riming':	       'boolean',
+        'hl_riming_class_id':  'int'
         }
     return units
 
@@ -504,8 +507,11 @@ def var_explanations():
              'env_RH':             'Relative Humidity in the proximity of the instrument',
              
              'hl_snowflake':       'Boolean flag indicating if the ROI of a given cam was part of the hydrometeor classification human label (HL) trainingset of https://doi.org/10.5194/amt-10-1335-2017 ',
+             'hl_snowflake_class_id':  'Human label (HL) snowflake_class_id used in the trainingset of https://doi.org/10.5194/amt-10-1335-2017 ',
              'hl_melting':	    'Boolean flag indicating if the ROI of a given cam was part of the melting identification human label (HL) trainingset of https://doi.org/10.5194/amt-10-1335-2017',
-             'hl_riming':	    'Boolean flag indicating if the ROI of a given cam was part of the riming classification human label (HL) trainingset of https://doi.org/10.5194/amt-10-1335-2017'
+             'hl_snowflake_class_id':  'Human label (HL) melting_class_id used in the trainingset of https://doi.org/10.5194/amt-10-1335-2017 ',
+             'hl_riming':	    'Boolean flag indicating if the ROI of a given cam was part of the riming classification human label (HL) trainingset of https://doi.org/10.5194/amt-10-1335-2017',
+             'hl_riming_class_id':  'Human label (HL) riming_class_id used in the trainingset of https://doi.org/10.5194/amt-10-1335-2017 '
              }
     return explanations
 
