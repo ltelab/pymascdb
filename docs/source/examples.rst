@@ -17,3 +17,5 @@ functionalities and applications of the package and the related data.
 
    examples/00_basic_funcs
    examples/01_retrievals
+   examples/02_classification
+
