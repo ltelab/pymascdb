@@ -238,21 +238,29 @@ The files *MASCdb_CAM0.parquet*,*MASCdb_CAM1.parquet*,*MASCdb_CAM2.parquet*  con
 |                              **Human label information**                                                        |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | hl_snowflake         |       | int      | | Human-label         | | Boolean flag. If set to 1, this  particle   |
-|                      |       |          | | hydrometeor         | | (in this CAM view) was part of the human    |
-|                      |       |          |                       | | labelled training set of                    |
+|                      |       |          | | hydrometeor set     | | (in this CAM view) was part of the human    |
+|                      |       |          |                       | | labelled training set of Praz et al, 2017   |
 |                      |       |          |                       | | for hydrometeor classification              |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
+| hl_snowflake_class_id|       | int      | | Human-label         | | Human-labeled snowflake_class_id            |
+|                      |       |          | | hydrometeor class   | | for the training set of Praz et al, 2017    |
++----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | hl_melting           |       | int      | Human-label melting   | | Boolean flag. If set to 1, this  particle   |
-|                      |       |          |                       | | (in this CAM view) was part of the human    |
-|                      |       |          |                       | | labelled training set of                    |
+|                      |       |          | set                   | | (in this CAM view) was part of the human    |
+|                      |       |          |                       | | labelled training set of  Praz et al, 2017  |
 |                      |       |          |                       | | for melting identification                  |
++----------------------+-------+----------+-----------------------+-----------------------------------------------+
+| hl_melting_class_id  |       | int      | | Human-label         | | Human-labeled melting_class_id              |
+|                      |       |          | | melting class       | | for the training set of Praz et al, 2017    |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
 | hl_riming            |       | int      | Human-label riming    | | Boolean flag. If set to 1, this  particl    |
 |                      |       |          |                       | | (in this CAM view) was part of the human    |
-|                      |       |          |                       | | labelled training set of                    |
+|                      |       |          |                       | | labelled training set of  Praz et al, 2017  |
 |                      |       |          |                       | | for riming degree estimation                |
 +----------------------+-------+----------+-----------------------+-----------------------------------------------+
-
+| hl_riming_class_id   |       | int      | | Human-label         | | Human-labeled riming_class_id               |
+|                      |       |          | | riming class        | | for the training set of Praz et al, 2017    |
++----------------------+-------+----------+-----------------------+-----------------------------------------------+
 
 References
 -----------------------------------------------
