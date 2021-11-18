@@ -5,6 +5,8 @@
 The code in this repository provides an API to query, filter and visualize MASC data.
 Documentation is available at https://pymascdb.readthedocs.io/en/latest/index.html
 
+The data should be downloaded from Zenodo at: https://doi.org/10.5281/zenodo.5578920
+
 ATTENTION: The code is subject to changes in the coming weeks / months.
 
 The folder `tutorials` (will) provide jupyter notebooks describing various features of MASC-DB api.
