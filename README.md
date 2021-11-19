@@ -23,7 +23,7 @@ The tutorials are conceived for line-by-line execution for example using *spyder
 [`03_image_processing.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/03_image_processing.py
 
 
-The folder `examples` provides a link to some jupyter notebooks with a minimal selection of functionalities, also used in the [[`online documentation`]]
+The folder `examples` provides a link to some jupyter notebooks with a minimal selection of functionalities, the same as the ones used in the [`online documentation`]
 
 [`online documentation`]: https://pymascdb.readthedocs.io/en/latest/examples.html
 
