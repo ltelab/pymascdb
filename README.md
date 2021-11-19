@@ -2,10 +2,9 @@
 
 ![Snowflake_SOM_Clustering](./figs/SOM_Clustering/MASC_SOM_Cluster.png)
 
-The code in this repository provides an API to query, filter and visualize MASC data.
-Documentation is available at https://pymascdb.readthedocs.io/en/latest/index.html
+## About this repository
 
-The data should be downloaded from Zenodo at: https://doi.org/10.5281/zenodo.5578920
+The code in this repository provides an API to query, filter and visualize MASC data.
 
 ATTENTION: The code is subject to changes in the coming weeks / months.
 
@@ -70,6 +69,13 @@ In this way, *mascdb* can simply be loaded, from any directory, as:
    import mascdb.api
    from mascdb.api import MASC_DB
    ```
+## Documentation sources
+
+Documentation is available at https://pymascdb.readthedocs.io/en/latest/index.html
+
+## Data source
+
+The data should be downloaded from Zenodo at: https://doi.org/10.5281/zenodo.5578920
 
 ## References 
 
