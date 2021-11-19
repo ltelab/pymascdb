@@ -1,4 +1,4 @@
-# MASC-DB API - An API to query MASC data.
+# MASC_DB api - An API to query MASC data.
 
 ![Snowflake_SOM_Clustering](./figs/SOM_Clustering/MASC_SOM_Cluster.png)
 
@@ -9,13 +9,24 @@ The data should be downloaded from Zenodo at: https://doi.org/10.5281/zenodo.557
 
 ATTENTION: The code is subject to changes in the coming weeks / months.
 
-The folder `tutorials` (will) provide jupyter notebooks describing various features of MASC-DB api.
-- Downloading MASC DB  [[`download.ipynb`]]
-- Read and filter MASC DB [[`read_and_filter.ipynb`]]
-- Exploratory Data Analysis of MASC DB [[`eda.ipynb`]]
+The folder `tutorials` (will) provide line-by-line tutorials to explore the capabilities of the API of MASC_DB.
+The tutorials are conceived for line-by-line execution for example using *spyder*. They cannot be run as scripts:
 
-[`download.ipynb`]: https://nbviewer.jupyter.org/github/deepsphere/deepsphere-weather/blob/outputs/tutorials/spherical_grids.ipynb
-[`eda.ipynb`]: https://nbviewer.jupyter.org/github/deepsphere/deepsphere-weather/blob/outputs/tutorials/interpolation_pooling.ipynb
+- Downloading MASCDB  [[`00_download_mascdb.py`]]
+- Data manipulation and *api* functionalities [[`01_data_manipulation.py`]] 
+- Exploratory data analysis (eda) [[`02_eda.py`]] 
+- Image display and processing [[`03_image_processing.py`]] 
+
+[`00_download_mascdb.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/00_download_mascdb.py
+[`01_data_manipulation.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/01_data_manipulation.py
+[`02_eda.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/02_eda.py
+[`03_image_processing.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/03_image_processing.py
+
+
+The folder `examples` provides a link to some jupyter notebooks with a minimal selection of functionalities, also used in the [[`online documentation`]]
+
+[`online documentation`]: https://pymascdb.readthedocs.io/en/latest/examples.html
+
 
 The folder `experiments` (will) provide examples for:
 - Latent Space Exploration with UMAP / PCA
