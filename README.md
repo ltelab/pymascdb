@@ -6,7 +6,7 @@
 
 The code in this repository provides an API to query, filter and visualize MASC data.
 
-ATTENTION: The code is subject to changes in the coming weeks / months.
+ATTENTION: The code is subject to changes in the coming weeks / months and it has been only tested uner **Linux-Unix**
 
 The folder `tutorials` (will) provide line-by-line tutorials to explore the capabilities of the API of MASC_DB.
 The tutorials are conceived for line-by-line execution for example using *spyder*. They cannot be run as scripts:
