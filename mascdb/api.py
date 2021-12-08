@@ -20,13 +20,13 @@ import mascdb.pd_sns_accessor  # this is required to add pandas sns accessor
 from mascdb.utils_event import _define_event_id
 from mascdb.utils_event import _get_timesteps_duration
  
-from mascdb.aux import get_snowflake_class_name_dict
-from mascdb.aux import get_riming_class_name_dict
-from mascdb.aux import get_melting_class_name_dict
-from mascdb.aux import get_precip_class_name_dict
-from mascdb.aux import get_vars_class
-from mascdb.aux import var_units
-from mascdb.aux import var_explanations
+from mascdb.utils_aux import get_snowflake_class_name_dict
+from mascdb.utils_aux import get_riming_class_name_dict
+from mascdb.utils_aux import get_melting_class_name_dict
+from mascdb.utils_aux import get_precip_class_name_dict
+from mascdb.utils_aux import get_vars_class
+from mascdb.utils_aux import var_units
+from mascdb.utils_aux import var_explanations
   
 from mascdb.utils_img import _compute_2Dimage_descriptors
 from mascdb.utils_img import xri_zoom
@@ -808,7 +808,7 @@ class MASC_DB:
             Values specifying the snowflake classes to select.
             If integers, it assumes snowflake_class_id.
             If strings, it assumes snowflake_class_name.
-            Valid values can be retrieved by calling 'mascdb.aux.get_snowflake_class_name_dict(method)'.
+            Valid values can be retrieved by calling 'mascdb.utils_aux.get_snowflake_class_name_dict(method)'.
         method : str, optional
             Method used to determine snowflake_class. The default is 'Praz2017'.
         invert : bool, optional
@@ -873,7 +873,7 @@ class MASC_DB:
             Values specifying the riming classes to select.
             If integers, it assumes riming_class_id.
             If strings, it assumes riming_class_name.
-            Valid values can be retrieved by calling 'mascdb.aux.get_riming_class_name_dict(method)'.
+            Valid values can be retrieved by calling 'mascdb.utils_aux.get_riming_class_name_dict(method)'.
         method : str, optional
             Method used to determine riming_class. The default is 'Praz2017'.
         invert : bool, optional
@@ -938,7 +938,7 @@ class MASC_DB:
             Values specifying the melting classes to select.
             If integers, it assumes melting_class_id.
             If strings, it assumes melting_class_name.
-            Valid values can be retrieved by calling 'mascdb.aux.get_melting_class_name_dict(method)'.
+            Valid values can be retrieved by calling 'mascdb.utils_aux.get_melting_class_name_dict(method)'.
         method : str, optional
             Method used to determine melting_class. The default is 'Praz2017'.
         invert : bool, optional
@@ -1003,7 +1003,7 @@ class MASC_DB:
             Values specifying the precipitation classes to select.
             If integers, it assumes bs_precip_class_id.
             If strings, it assumes bs_precip_class_name.
-            Valid values can be retrieved by calling 'mascdb.aux.get_precip_class_name_dict(method)'.
+            Valid values can be retrieved by calling 'mascdb.utils_aux.get_precip_class_name_dict(method)'.
         method : str, optional
             Method used to determine bs_precip_class. The default is 'Schaer2020'.
         invert : bool, optional
@@ -1057,7 +1057,7 @@ class MASC_DB:
             Values specifying the snowflake classes to discard.
             If integers, it assumes snowflake_class_id.
             If strings, it assumes snowflake_class_name.
-            Valid values can be retrieved by calling 'mascdb.aux.get_snowflake_class_name_dict(method)'.
+            Valid values can be retrieved by calling 'mascdb.utils_aux.get_snowflake_class_name_dict(method)'.
         method : str, optional
             Method used to determine snowflake_class. The default is 'Praz2017'.
         df_source: str, optional 
@@ -1082,7 +1082,7 @@ class MASC_DB:
             Values specifying the melting classes to discard.
             If integers, it assumes melting_class_id.
             If strings, it assumes melting_class_name.
-            Valid values can be retrieved by calling 'mascdb.aux.get_melting_class_name_dict(method)'.
+            Valid values can be retrieved by calling 'mascdb.utils_aux.get_melting_class_name_dict(method)'.
         method : str, optional
             Method used to determine melting_class. The default is 'Praz2017'.
         df_source: str, optional 
@@ -1107,7 +1107,7 @@ class MASC_DB:
             Values specifying the riming classes to discard.
             If integers, it assumes riming_class_id.
             If strings, it assumes riming_class_name.
-            Valid values can be retrieved by calling 'mascdb.aux.get_riming_class_name_dict(method)'.
+            Valid values can be retrieved by calling 'mascdb.utils_aux.get_riming_class_name_dict(method)'.
         method : str, optional
             Method used to determine riming_class. The default is 'Praz2017'.
         df_source: str, optional 
@@ -1132,7 +1132,7 @@ class MASC_DB:
             Values specifying the precipitation classes to discard.
             If integers, it assumes bs_precip_class_id.
             If strings, it assumes bs_precip_class_name.
-            Valid values can be retrieved by calling 'mascdb.aux.get_precip_class_name_dict(method)'.
+            Valid values can be retrieved by calling 'mascdb.utils_aux.get_precip_class_name_dict(method)'.
         method : str, optional
             Method used to determine bs_precip_class. The default is 'Schaer2020'.
 
