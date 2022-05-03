@@ -6,8 +6,8 @@ The folder `tutorials` provides code examples to explore the capabilities of the
 The tutorials are conceived for line-by-line execution for example using the *spyder* GUI. They cannot be run as scripts. 
 They provide example usage for: 
 
-- Downloading MASCDB  [[`00_download_mascdb.py`]]
-- Data manipulation and *MASCDB API* functionalities [[`01_data_manipulation.py`]] 
+- Downloading MASCDB [[`00_download_mascdb.py`]]
+- Data manipulation and other MASCDB API functionalities [[`01_data_manipulation.py`]] 
 - Exploratory data analysis (EDA) [[`02_eda.py`]] 
 - Image display and processing [[`03_image_processing.py`]] 
 
