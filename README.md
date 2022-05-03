@@ -1,17 +1,13 @@
 # pyMASCDB - An API to query MASC data.
 
-![Snowflake_SOM_Clustering](./figs/SOM_Clustering/MASC_SOM_Cluster.png)
-
-## About this repository
-
 The code in this repository provides an API to query, filter and visualize MASC data.
 
 The folder `tutorials` (will) provide line-by-line tutorials to explore the capabilities of the API of MASC_DB.
-The tutorials are conceived for line-by-line execution for example using *spyder* GUI. They cannot be run as scripts:
+The tutorials are conceived for line-by-line execution for example using *spyder* GUI. They cannot be run as scripts. They provide example usage for: 
 
 - Downloading MASCDB  [[`00_download_mascdb.py`]]
-- Data manipulation and *api* functionalities [[`01_data_manipulation.py`]] 
-- Exploratory data analysis (eda) [[`02_eda.py`]] 
+- Data manipulation and *MASCDB API* functionalities [[`01_data_manipulation.py`]] 
+- Exploratory data analysis (EDA) [[`02_eda.py`]] 
 - Image display and processing [[`03_image_processing.py`]] 
 
 [`00_download_mascdb.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/00_download_mascdb.py
