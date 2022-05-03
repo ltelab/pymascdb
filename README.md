@@ -2,8 +2,9 @@
 
 The code in this repository provides an API to query, filter and visualize MASC data.
 
-The folder `tutorials` (will) provide line-by-line tutorials to explore the capabilities of the API of MASC_DB.
-The tutorials are conceived for line-by-line execution for example using *spyder* GUI. They cannot be run as scripts. They provide example usage for: 
+The folder `tutorials` provides code examples to explore the capabilities of the MASCDB API.
+The tutorials are conceived for line-by-line execution for example using the *spyder* GUI. They cannot be run as scripts. 
+They provide example usage for: 
 
 - Downloading MASCDB  [[`00_download_mascdb.py`]]
 - Data manipulation and *MASCDB API* functionalities [[`01_data_manipulation.py`]] 
