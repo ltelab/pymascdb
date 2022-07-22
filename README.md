@@ -1,19 +1,14 @@
-# MASC_DB api - An API to query MASC data.
-
-![Snowflake_SOM_Clustering](./figs/SOM_Clustering/MASC_SOM_Cluster.png)
-
-## About this repository
+# pyMASCDB - An API to query MASC data.
 
 The code in this repository provides an API to query, filter and visualize MASC data.
 
-ATTENTION: The code is subject to changes in the coming weeks / months and it has been only tested under **Linux-Unix**
+The folder `tutorials` provides code examples to explore the capabilities of the MASCDB API.
+The tutorials are conceived for line-by-line execution for example using the *spyder* GUI. They cannot be run as scripts. 
+They provide example usage for: 
 
-The folder `tutorials` (will) provide line-by-line tutorials to explore the capabilities of the API of MASC_DB.
-The tutorials are conceived for line-by-line execution for example using *spyder*. They cannot be run as scripts:
-
-- Downloading MASCDB  [[`00_download_mascdb.py`]]
-- Data manipulation and *api* functionalities [[`01_data_manipulation.py`]] 
-- Exploratory data analysis (eda) [[`02_eda.py`]] 
+- Downloading MASCDB [[`00_download_mascdb.py`]]
+- Data manipulation and other MASCDB API functionalities [[`01_data_manipulation.py`]] 
+- Exploratory data analysis (EDA) [[`02_eda.py`]] 
 - Image display and processing [[`03_image_processing.py`]] 
 
 [`00_download_mascdb.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/00_download_mascdb.py
@@ -21,19 +16,13 @@ The tutorials are conceived for line-by-line execution for example using *spyder
 [`02_eda.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/02_eda.py
 [`03_image_processing.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/03_image_processing.py
 
-
 The folder `examples` provides a link to some jupyter notebooks with a minimal selection of functionalities, the same as the ones used in the [`online documentation`]
 
 [`online documentation`]: https://pymascdb.readthedocs.io/en/latest/examples.html
 
-
-The folder `experiments` (will) provide examples for:
+The folder `experiments` currently provides examples for:
 - Latent Space Exploration with UMAP / PCA
 - Snowflake clustering with Self-Organizing Maps
-- Snowflake representation learning using Info-GAN 
-- 3D snowflake mass reconstruction 
-- Multinomial logistic classification
-- CNN classification
 
 ## Installation
 
@@ -54,11 +43,6 @@ For a local installation, follow the below instructions.
    conda activate mascdb
    ```
    
-4. Just for info... to update the environment.yml: 
-   ```sh
-   conda env export > environment.yml
-   ```
-
 5. With *mascdb* environment activated, install the package:
    ```sh
    python setup.py install
@@ -69,6 +53,9 @@ In this way, *mascdb* can simply be loaded, from any directory, as:
    import mascdb.api
    from mascdb.api import MASC_DB
    ```
+   
+ATTENTION: The code has been currently tested only under **Linux-Unix** systems.
+
 ## Documentation sources
 
 Documentation is available at https://pymascdb.readthedocs.io/en/latest/index.html
@@ -79,9 +66,7 @@ The data should be downloaded from Zenodo at: https://doi.org/10.5281/zenodo.557
 
 ## References 
 
-- [Manuscript](https://XXXX)
-- [Slides](https://XXXX)
-- [Presentation](https://XXXX)
+- [Manuscript](https://www.nature.com/articles/s41597-022-01269-7)
 
 ## Contributors
 
