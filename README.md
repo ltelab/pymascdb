@@ -1,5 +1,7 @@
 # pyMASCDB - An API to query MASC data.
 
+[![DOI](https://zenodo.org/badge/424361411.svg)](https://zenodo.org/badge/latestdoi/424361411)
+
 The code in this repository provides an API to query, filter and visualize MASC data.
 
 The folder `tutorials` provides code examples to explore the capabilities of the MASCDB API.
