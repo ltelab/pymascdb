@@ -427,17 +427,17 @@ def merge_triplet_dataframes(path,
         # Read the parquet files
         for i in range(len(campaigns)):
             print('Merging campaign: '+campaigns[i])
+            data_in = pd.read_parquet(path+campaigns[i]+'_'+db+'.parquet')
+            if db == 'triplet':
+                data_in = data_in.rename(columns={'n_roi':'flake_n_roi'})
             if i == 0:
-                df = pd.read_parquet(path+campaigns[i]+'_'+db+'.parquet')
+                df = data_in
             else:
-                df = pd.concat([df, pd.read_parquet(path+campaigns[i]+'_'+db+'.parquet')], axis=0).reset_index(drop=True)
+                df = pd.concat([df, data_in], axis=0).reset_index(drop=True)
         
         # Write to file ---------------------
 
-        print('Writing output')
-
-        if db == 'triplet':
-            df = df.rename(columns={'n_roi':'flake_n_roi'})
+        print('Writing output')        
 
         df=df.drop(columns="index")    
         df=df.round(decimals=digits_dictionary())
@@ -608,8 +608,14 @@ def process_all(masc_dir,campaign_name='EPFL'):
     print("Hi")
 
 
-campaigns=['Davos-2015','APRES3-2016','APRES3-2017','Valais-2016','ICEPOP-2018','PLATO-2019','Davos-2019','Jura-2019','POPE-2020','ICEGENESIS-2021']
+campaigns=['Davos-2015','APRES3-2016','APRES3-2017',
+'Valais-2016','ICEPOP-2018','PLATO-2019','Davos-2019',
+'Jura-2019','POPE-2020','ICEGENESIS-2021','Remoray-2022',
+'Norway-2016','Jura-2023']
 
+#campaigns = ['Jura-2023']
+
+"""
 for campaign in campaigns:
     print(campaign)
     
@@ -634,8 +640,10 @@ for campaign in campaigns:
     print("Adding flags of data eventually used for manual training")
     for cam in ['cam0','cam1','cam2']:
         add_trainingset_flag('/data/MASC_DB/'+campaign+'_'+cam+'.parquet','/data/MASC_DB/rawinput/aux/',cam=cam)
-
+"""
 #  --- Merge
+ 
+
 
 merge_triplet_dataframes('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
 merge_triplet_image_array('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')

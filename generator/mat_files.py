@@ -16,6 +16,7 @@ def digits_dictionary():
              'quality_xhi':   1,
 
              'n_roi'   :      0,
+             'flake_n_roi'  : 0,
              'area'    :      9,
              'perim'   :      5,
              'Dmean'   :      5,
@@ -153,6 +154,10 @@ def lat_lon_alt(campaign):
         lat =  46.6702 
         lon =  6.3125
         alt =  1045.0 
+    elif campaign == 'Jura-2023': # Les Charbonnieres
+        lat =  46.6702 
+        lon =  6.3125
+        alt =  1045.0 
     elif campaign == 'PLATO-2019':
         lat = -68.5752 
         lon = 77.9659 
@@ -165,6 +170,14 @@ def lat_lon_alt(campaign):
         lat = 46.1222 
         lon = 7.2122 
         alt = 2370.0  
+    elif campaign == 'Remoray-2022':
+        lat = 46.7665 
+        lon = 6.2402
+        alt = 920.0
+    elif campaign == 'Norway-2016':
+        lat = 59.8118
+        lon = 7.2143
+        alt = 991.0
     else:
         print("Warning: campaign "+campaign+" not recognized")
         lat = np.nan

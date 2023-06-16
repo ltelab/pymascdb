@@ -122,10 +122,10 @@ class blowingsnow:
 #concatenate_wprof('/home/grazioli/tmp/Y2017/','/data/MASC_DB/rawinput/Valais-2016/Weather/Valais-2016_wprof_weather.pickle')
 
 
-#file='/data/MASC_DB/rawinput/Jura-2019/Weather/Jura_2019_2020_IDAWEB.txt'
-#ss=idaweb(file,res='10min')
+file='/data/MASC_DB/rawinput/Jura-2023/Weather/Jura_2023_IDAWEB.txt'
+ss=idaweb(file,res='10min')
 
-#print("Hi")
+print("Hi")
 
 #
 #i = np.argmin(np.abs(df.index.to_pydatetime() - date))
