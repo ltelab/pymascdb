@@ -11,7 +11,7 @@ import numcodecs
 import dask
 import pandas as pd
 
-dir_path = "/ltenas3/MASC_DB"
+dir_path = "/data/MASC_DB"
 zarr_array_fpath = os.path.join(dir_path,"Array.zarr")
 cam0_fpath = os.path.join(dir_path, "MASCdb_cam0.parquet")  
 
@@ -25,12 +25,12 @@ dask_arr = dask.array.from_zarr(zarr_array_fpath, chunks=chunks)
 
 # Define global attributes 
 global_attr = {"title": "MASCDB" ,
-               "version": "MASCDB v1.0",
+               "version": "MASCDB v1.1",
                "authors": "Jacopo Grazioli, Gionata Ghiggi",
                "contacts": "jacopo.grazioli@epfl.ch; gionata.ghiggi@epfl.ch",
 		       "laboratory": "Environmental Remote Sensing Laboratory (LTE)",
                "institution": "EPFL",
-		       "references": "Grazioli et al.,2022. MASCDB - XXXXX, Nat. Sci. Data, doi: https://doi.org/XXXX"
+		       "references": "Grazioli et al.,2022.MASCDB, a database of images, descriptors and microphysical properties of individual snowflakes in free fall, Nat. Sci. Data, doi: https://doi.org/10.1038/s41597-022-01269-7"
                }
 
 # Create a xr.Dataset 
@@ -53,7 +53,7 @@ compressor = numcodecs.blosc.Blosc(cname='zstd', clevel=2, shuffle=numcodecs.blo
 encoding =  {"data": {"dtype": "uint8", "compressor": compressor}}
     
 # Save to zarr 
-p = ds.to_zarr("/ltenas3/MASC_DB/MASCdb.zarr", encoding=encoding, compute=False)
+p = ds.to_zarr("/data/MASC_DB/MASCdb.zarr", encoding=encoding, compute=False)
 
 from dask.diagnostics import ProgressBar
 with ProgressBar():                        

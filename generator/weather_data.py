@@ -73,6 +73,99 @@ def concatenate_wprof(data_dir,out_file):
     df = df.set_index(["time"])
     df.to_pickle(out_file)
 
+def concatenate_hatpro(data_dir,out_file):
+
+    """
+    Function to concatenate environmental data contained HatPro files
+
+    Input:
+        data_dir: Hatpro base path data
+        out_file: output storage filename
+
+    """
+
+    time= np.asarray([])    # Unix time
+    T   = np.asarray([])    # Temperature
+    RH  = np.asarray([])    # RH [%]
+    FF  = np.asarray([])    # Wind speed [m/s]
+    P   = np.asarray([])    # Pressure [hPa]
+    DD  = np.asarray([])    # Wind dir [°]
+
+    for fn_full in files_in_dir_recursive(
+        data_dir, pattern="*.nc"):
+
+        print(fn_full)
+        ncobj = netCDF4.Dataset(fn_full)
+        ncvars = ncobj.variables
+
+        # Put variables together
+        time=np.concatenate([time, np.asarray(ncvars['time'])]).astype(int)
+        T   =np.concatenate([T,  np.asarray(ncvars['air_temperature'])-273.15])
+        RH  =np.concatenate([RH, np.asarray(ncvars['relative_humidity'])*100. ])
+        FF  =np.concatenate([FF, np.asarray(ncvars['wind_speed'])])
+        P   =np.concatenate([P,  np.asarray(ncvars['air_pressure'])]) 
+        DD  =np.concatenate([DD, np.asarray(ncvars['wind_direction'])])
+
+        # Close NC file (GAN)   
+        ncobj.close()
+    #  Make output dataframe
+    df = pd.DataFrame({'time':pd.to_datetime(time,unit='s'),
+                        'T':T,
+                        'RH':RH,
+                        'P':P,
+                        'FF':FF,
+                        'DD':DD}) 
+
+    # Save pickle
+    df = df.sort_values(by='time')        # sometimes order is not respected
+    df.drop_duplicates(inplace=True)      # drop eventual duplicates
+    df = df.set_index(["time"])
+    df.to_pickle(out_file)
+
+def concatenate_tinytag(data_dir,out_file):
+
+    """
+    Function to concatenate environmental data contained Tinytag files
+
+    Input:
+        data_dir: Tinytag base path data
+        out_file: output storage filename
+
+    """
+
+    time= np.asarray([])    # Unix time
+    T   = np.asarray([])    # Temperature
+    RH  = np.asarray([])    # RH [%]
+
+
+    for fn_full in files_in_dir_recursive(
+        data_dir, pattern="tinytag*.nc"):
+
+        print(fn_full)
+        ncobj = netCDF4.Dataset(fn_full)
+        ncvars = ncobj.variables
+
+        # Put variables together
+        time=np.concatenate([time, np.asarray(ncvars['time'])*24.*3600.]).astype(int)
+        T   =np.concatenate([T,  np.asarray(ncvars['TA'])])
+        RH  =np.concatenate([RH, np.asarray(ncvars['UU'])])
+
+        # Close NC file (GAN)   
+        ncobj.close()
+    #  Make output dataframe
+    df = pd.DataFrame({'time':pd.to_datetime(time,unit='s'),
+                        'T':T,
+                        'RH':RH,
+                        'P':T*np.nan,
+                        'FF':T*np.nan,
+                        'DD':T*np.nan}) 
+
+    # Save pickle
+    df = df.sort_values(by='time')        # sometimes order is not respected
+    df.drop_duplicates(inplace=True)      # drop eventual duplicates
+    df = df.set_index(["time"])
+    df.to_pickle(out_file)
+
 
 class idaweb:
     """
@@ -122,8 +215,13 @@ class blowingsnow:
 #concatenate_wprof('/home/grazioli/tmp/Y2017/','/data/MASC_DB/rawinput/Valais-2016/Weather/Valais-2016_wprof_weather.pickle')
 
 
-file='/data/MASC_DB/rawinput/Jura-2023/Weather/Jura_2023_IDAWEB.txt'
-ss=idaweb(file,res='10min')
+#file='/data/MASC_DB/rawinput/Jura-2023/Weather/Jura_2023_IDAWEB.txt'
+#ss=idaweb(file,res='10min')
+
+
+#concatenate_hatpro('/home/grazioli/Downloads/transfer_72301_files_0136f997/Hatpro_l1/Hatpro_l1/','/home/grazioli/tmp/Norway-2023_weather.pickle')
+concatenate_tinytag('/home/grazioli/Downloads/transfer_72301_files_0136f997/','/home/grazioli/tmp/ISLAS-2022_weather.pickle')
+
 
 print("Hi")
 

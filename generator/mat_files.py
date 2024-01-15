@@ -178,6 +178,14 @@ def lat_lon_alt(campaign):
         lat = 59.8118
         lon = 7.2143
         alt = 991.0
+    elif campaign == 'ISLAS-2022':
+        lat = 69.2985
+        lon = 16.0481
+        alt = 10.
+    elif campaign == 'Norway-2023':
+        lat = 69.2954
+        lon = 16.0337
+        alt = 13.
     else:
         print("Warning: campaign "+campaign+" not recognized")
         lat = np.nan

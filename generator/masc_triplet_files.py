@@ -611,17 +611,20 @@ def process_all(masc_dir,campaign_name='EPFL'):
 campaigns=['Davos-2015','APRES3-2016','APRES3-2017',
 'Valais-2016','ICEPOP-2018','PLATO-2019','Davos-2019',
 'Jura-2019','POPE-2020','ICEGENESIS-2021','Remoray-2022',
-'Norway-2016','Jura-2023']
+'Norway-2016','Jura-2023','ISLAS-2022','Norway-2023']
 
-#campaigns = ['Jura-2023']
+campaigns=['ISLAS-2022','Norway-2023']
 
-"""
+
+
+
 for campaign in campaigns:
     print(campaign)
     
     # 0: Process data and triplets (basic)
     process_all('/data/'+campaign+'/',campaign_name=campaign)
 
+    
     # 1: Add blowing snow to parquet
     print("Adding blowing snow")
     add_bs_to_parquet('/data/MASC_DB/'+campaign+'_triplet.parquet',
@@ -640,10 +643,11 @@ for campaign in campaigns:
     print("Adding flags of data eventually used for manual training")
     for cam in ['cam0','cam1','cam2']:
         add_trainingset_flag('/data/MASC_DB/'+campaign+'_'+cam+'.parquet','/data/MASC_DB/rawinput/aux/',cam=cam)
-"""
-#  --- Merge
- 
+    
+#  --- Merge 
 
+
+campaigns=['Norway-2016','ISLAS-2022','Norway-2023']
 
 merge_triplet_dataframes('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
 merge_triplet_image_array('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
