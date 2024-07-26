@@ -1,25 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Nov  1 20:56:39 2021
+SCRIPT providing step-by step examples to perform investigations of the orientation
+habit of falling snowflakes. 
 
-PAPER, images:
-    
-    - Orientation visual
-    - MASC orientation bias when cameras are averaged
-    - Orientation distribution all particles and wind effect
-    - Effect of axis ratio?
-    
-    AppendiX: 
-    - evaluation of reconstruction vs other assumptions    
-
+With this script, part of the results presented in Grazioli et al, GRL
+can be reproduced 
 
 
 @author: grazioli
 """
+
+# Adapt paths according to local users
 import os
-#os.chdir("/home/ghiggi/Projects/pymascdb")
-os.chdir("/home/grazioli/CODES/python/pymascdb")
+os.chdir("/home/grazioli/CODES/python/pymascdb") 
 
 import sys
 sys.path.insert(1,'/home/grazioli/CODES/python/py-masc-gan-3Deval/')
@@ -29,29 +23,25 @@ out_path  = '/home/grazioli/Documents/Publications/Grazioli_GRL_2024/Raw_images/
 
 
 from statsmodels.graphics.gofplots import qqplot
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.pylab as plb
 from matplotlib import rc
 from matplotlib import gridspec
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-## for Palatino and other serif fonts use:
-#rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
 
 import seaborn as sns
 from scipy.stats import norm
-
 import mascdb.api
 from mascdb.api import MASC_DB
-
 from scipy import stats
 
 
 #-----------------------------------------------------------------------------
+# Some utility functions before the main script
+
 def plot_kde_ori(x,
                   hue=None,
                   title='',
@@ -231,16 +221,16 @@ def get_ori_a_r(mascdb,method = 'mean',absolute=False):
         
     return x, y
 
-
-##----------------------------------------------------------------------------.
+#----------------------------------------------------------------------------.
 ### Create MASC_DB instance 
 mascdb = MASC_DB(dir_path=dir_path)
 
+# Keep only data at negative temperatures
 idx = mascdb.triplet['env_T'] < 0
 print(idx)
 mascdb = mascdb.isel(idx) 
 
-# Remove bliwing snow
+# Remove blowing snow
 mascdb = mascdb.discard_precip_class(['blowing_snow'])
 
 # Remove small particles
@@ -254,15 +244,11 @@ mascdb = mascdb.isel(idx)
 mascdb = mascdb.discard_snowflake_class('small_particle')
 
 
-# ----------------------------------
-
-x, y = get_ori_a_r(mascdb)
-
-qqplot(np.array(x),line='q')
-plt.show()
-
 #-----------------------------------------------------------------------------
 # 1. Plot histogram of all data
+
+# Get orientation
+x, y = get_ori_a_r(mascdb)
 
 # Set style and font sizes
 sns.set(rc={'axes.labelsize': 20, 
@@ -273,7 +259,9 @@ sns.set(rc={'axes.labelsize': 20,
 sns.set_style('whitegrid')
 
 # Create a figure with specified size and layout
-fig, axs = plt.subplots(2, 1, figsize=(8, 10), sharex=True, gridspec_kw={'height_ratios': [1, 1]})
+fig, axs = plt.subplots(2, 1, figsize=(8, 10), 
+                        sharex=True,
+                        gridspec_kw={'height_ratios': [1, 1]})
 
 # Create the histogram in the first subplot
 ax = sns.histplot(x=x, color='grey',
@@ -347,7 +335,8 @@ plt.show()
 
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
-# 4. Plot only the sheltered, low wind and stratify per hydrometeor type
+# 2. Plot an investigation of the effect of horizonatl winds on distribution
+
 idx = mascdb.triplet['env_FF'] > 0
 mascdb = mascdb.isel(idx) 
 
@@ -486,16 +475,8 @@ plt.savefig(out_path+'02_hydro_axis_ratio_DFIR.png',dpi=450)
 plt.savefig(out_path+'02_hydro_axis_ratio_DFIR.pdf')
 plt.show()
 
-for iii in ['graupel','aggregate','planar_crystal','columnar_crystal']:
-    mdb = mascdb_in.select_snowflake_class(iii)
-    x, y = get_ori_a_r(mdb)
-    print(iii)
-    print(stats.describe(x))
-
-    
-
 #----------------------------------------------------------------------------
-# 3. Plot only the sheltered for low wind, stratified by hydro type
+# 4. Plot only the sheltered for high wind, stratified by hydro type
 idx = mascdb.triplet['env_FF'] > 8
 mascdb_in = mascdb.isel(idx) 
 mascdb_in = mascdb_in.discard_snowflake_class('columnar_planar_combination')
@@ -548,15 +529,3 @@ plt.tight_layout()  # Adjust layout to prevent clipping of labels
 plt.savefig(out_path+'02_hydro_axis_ratio_DFIR_highwind.png',dpi=450)
 plt.savefig(out_path+'02_hydro_axis_ratio_DFIR_highwind.pdf')
 plt.show()
-
-for iii in ['graupel','aggregate','planar_crystal','columnar_crystal']:
-    mdb = mascdb_in.select_snowflake_class(iii)
-    x, y = get_ori_a_r(mdb)
-    print(iii)
-    print(stats.describe(x))
-
-
-
-
-
-
