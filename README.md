@@ -18,7 +18,7 @@ This repository provide the software to create, manipulate and analyze Multi Ang
 
 [**Documentation**](https://pymascdb.readthedocs.io/en/latest/) | [**Data Archive**](https://doi.org/10.5281/zenodo.5578920)
 
-MASC is an international joint effort collect and homogenize Multi Angle Snowflake Camera (MASC) data from around the world.
+MASC is a community-based effort to collect, standardize and homogenize Multi Angle Snowflake Camera (MASC) data from around the world.
 
 ## 🛠️ Installation
 
