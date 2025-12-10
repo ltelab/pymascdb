@@ -5,14 +5,14 @@
 
 .. autoclass:: MASC_DB
 
-   
+
    .. automethod:: __init__
 
-   
+
    .. rubric:: Methods
 
    .. autosummary::
-   
+
       ~MASC_DB.__init__
       ~MASC_DB.add_cam_columns
       ~MASC_DB.add_triplet_columns
@@ -51,15 +51,15 @@
       ~MASC_DB.select_riming_class
       ~MASC_DB.select_snowflake_class
       ~MASC_DB.tail
-   
-   
 
-   
-   
+
+
+
+
    .. rubric:: Attributes
 
    .. autosummary::
-   
+
       ~MASC_DB.bs
       ~MASC_DB.cam0
       ~MASC_DB.cam1
@@ -73,5 +73,3 @@
       ~MASC_DB.gan3d
       ~MASC_DB.labels
       ~MASC_DB.triplet
-   
-   

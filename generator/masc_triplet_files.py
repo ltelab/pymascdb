@@ -1,46 +1,37 @@
-"""
-See code description in the bottom of this document, where data flow info is also provided, for
+"""See code description in the bottom of this document, where data flow info is also provided, for
 data that need to be processed before to run this scripts.
 """
 
-from datetime import datetime, timedelta
-import sys
 import fnmatch
 import os
+import sys
+from datetime import datetime
 
 import numpy as np
-from scipy import io as sio
 import pandas as pd
-
 import pyarrow as pa
 import pyarrow.parquet as pq
 import zarr
+from mat_files import digits_dictionary, masc_mat_file_to_dict, masc_mat_triplet_to_dict, triplet_images_reshape
 from numcodecs import Blosc
-
-from mat_files import masc_mat_file_to_dict,masc_mat_triplet_to_dict,triplet_images_reshape
-from mat_files import digits_dictionary
-
+from scipy import io as sio
 from weather_data import blowingsnow
 
-sys.path.insert(1,'/home/grazioli/CODES/python/py-masc-gan-3Deval')
-from gan3d_lib import gan3d 
-
+sys.path.insert(1, "/home/grazioli/CODES/python/py-masc-gan-3Deval")
+from gan3d_lib import gan3d
 
 
 def files_in_dir_recursive(top, pattern="*", include_dir=True):
-    for (root, dirs, files) in os.walk(top):
-        match_files = (fn for fn in files if 
-            fnmatch.fnmatchcase(fn, pattern))
+    for root, _dirs, files in os.walk(top):
+        match_files = (fn for fn in files if fnmatch.fnmatchcase(fn, pattern))
         if include_dir:
-            match_files = (os.path.join(root,fn) for fn in match_files)
-        for fn in match_files:
-            yield fn
+            match_files = (os.path.join(root, fn) for fn in match_files)
+        yield from match_files
 
 
 def find_matched(data_dir, min_files=3):
     files = {}
-    for fn_full in files_in_dir_recursive(
-        data_dir, pattern="*_flake_*_cam_?.mat"):
+    for fn_full in files_in_dir_recursive(data_dir, pattern="*_flake_*_cam_?.mat"):
 
         fn = fn_full.split("/")[-1]
         fn = ".".join(fn.split(".")[:-1])
@@ -50,19 +41,19 @@ def find_matched(data_dir, min_files=3):
         timestamp = "_".join(fn.split("_")[:2])
         time = datetime.strptime(timestamp, "%Y.%m.%d_%H.%M.%S")
 
-        key = (time,flake_id)
+        key = (time, flake_id)
         if key not in files:
             files[key] = {}
         files[key][cam] = fn_full
 
     print(len(files))
-    files = {k: files[k] for k in files if len(files[k])>=min_files}
+    files = {k: files[k] for k in files if len(files[k]) >= min_files}
     print(len(files))
 
     delete_keys = []
-    for (i,k) in enumerate(files):
-        if i%1000==0:
-            print("{}/{}, {} deleted".format(i,len(files),len(delete_keys)))
+    for i, k in enumerate(files):
+        if i % 1000 == 0:
+            print(f"{i}/{len(files)}, {len(delete_keys)} deleted")
         if any(not valid_file(files[k][c]) for c in files[k]):
             delete_keys.append(k)
     for k in delete_keys:
@@ -73,49 +64,38 @@ def find_matched(data_dir, min_files=3):
     return files
 
 
-def valid_file(fn, xhi_min=7, 
-                   max_intens_min=0.03,
-                   min_size=8, 
-                   max_size=2048):
+def valid_file(fn, xhi_min=7, max_intens_min=0.03, min_size=8, max_size=2048):
 
     m = sio.loadmat(fn)
 
-    xhi = m["roi"]["xhi"][0,0][0,0]
+    xhi = m["roi"]["xhi"][0, 0][0, 0]
     if xhi < xhi_min:
         return False
 
-    max_intens = m["roi"]["max_intens"][0,0][0,0]
+    max_intens = m["roi"]["max_intens"][0, 0][0, 0]
     if max_intens < max_intens_min:
         return False
 
-    shape = m["roi"]["data"][0,0].shape
+    shape = m["roi"]["data"][0, 0].shape
     size = np.max(shape)
 
     if not (min_size <= size <= max_size):
         return False
 
     # Check if any nan in riming
-    if np.isnan(m["roi"][0,0]['riming_probs'][0]).any():
-        return False
+    return not np.isnan(m["roi"][0, 0]["riming_probs"][0]).any()
 
-    return True
 
-def valid_triplet(triplet_files,
-                  min_size=12,
-                  max_ysize_var=1.4,
-                  max_ysize_delta=60, # Pixels
-                  xhi_low=8,
-                  xhi_high=8.5):
+def valid_triplet(triplet_files, min_size=12, max_ysize_var=1.4, max_ysize_delta=60, xhi_low=8, xhi_high=8.5):  # Pixels
 
-    
     mat = [sio.loadmat(triplet_files[i]) for i in range(3)]
 
     def get_size(m):
-        shape = m["roi"]["data"][0,0].shape
+        shape = m["roi"]["data"][0, 0].shape
         return shape[0]
 
     def get_xhi(m):
-        return m["roi"]["xhi"][0,0][0,0]
+        return m["roi"]["xhi"][0, 0][0, 0]
 
     sizes = [get_size(m) for m in mat]
     largest = max(sizes)
@@ -125,75 +105,70 @@ def valid_triplet(triplet_files,
     xhi_min = min(xhis)
     xhi_max = max(xhis)
 
-
-    return (largest>=min_size) and (largest-smallest <= max_ysize_delta) and (largest/smallest<=max_ysize_var) and ((xhi_min >= xhi_low) or (xhi_max >= xhi_high)) 
+    return (
+        (largest >= min_size)
+        and (largest - smallest <= max_ysize_delta)
+        and (largest / smallest <= max_ysize_var)
+        and ((xhi_min >= xhi_low) or (xhi_max >= xhi_high))
+    )
 
 
 def filter_triplets(files):
     return {k: files[k] for k in files if valid_triplet(files[k])}
 
 
-def filter_condensation(df0,
-                        threshold_var=2.5,
-                        Dmax_min=0.001):
+def filter_condensation(df0, threshold_var=2.5, Dmax_min=0.001):
     """
-    Filter condensation based on excessive stability of adjacent descriptors
-    
+    Filter condensation based on excessive stability of adjacent descriptors.
+
     Input:
         df0: pandas dataframe of one camera
         threshold_var : minimum allowed variation [%] of some descriptors
-        Dmax_min : minumum Dmax to consider for this filter
+        Dmax_min : minimum Dmax to consider for this filter
     """
+    df0_s = df0.copy()  # Save
+    ind = []
 
-    df0_s = df0.copy() #Save
-    ind=[]
-
-    df0 = df0[['area','perim','Dmax','roi_centroid_X','roi_centroid_Y']]
+    df0 = df0[["area", "perim", "Dmax", "roi_centroid_X", "roi_centroid_Y"]]
 
     # Shift forward
-    diff1 = 100*np.abs(df0.diff()/df0)
-    diff1['mean'] = diff1.mean(axis=1)
-    diff1 = diff1[['mean']]
+    diff1 = 100 * np.abs(df0.diff() / df0)
+    diff1["mean"] = diff1.mean(axis=1)
+    diff1 = diff1[["mean"]]
 
     # Shift backward
-    diff2 = 100*np.abs(df0.diff(periods=-1)/df0)
-    diff2['mean'] = diff2.mean(axis=1)
-    diff2 = diff2[['mean']]
+    diff2 = 100 * np.abs(df0.diff(periods=-1) / df0)
+    diff2["mean"] = diff2.mean(axis=1)
+    diff2 = diff2[["mean"]]
 
-    df0_1= df0_s[diff1['mean'] < threshold_var]
+    df0_1 = df0_s[diff1["mean"] < threshold_var]
     df0_1 = df0_1[df0_1.Dmax > Dmax_min]
     ind.extend(np.asarray(df0_1.index))
 
-    df0_2= df0_s[diff2['mean'] < threshold_var]
+    df0_2 = df0_s[diff2["mean"] < threshold_var]
     df0_2 = df0_2[df0_2.Dmax > Dmax_min]
     ind.extend(np.asarray(df0_2.index))
 
     return ind
 
 
+def create_triplet_dataframes(triplet_files, out_dir, campaign_name="EPFL"):
+    """Put in a dataframe the descriptors of the images for each cam."""
+    c0 = []
+    c1 = []
+    c2 = []
+    tri = []
 
-def create_triplet_dataframes(triplet_files, out_dir,campaign_name='EPFL'):
-    """
-    Put in a dataframe the descriptors of the images for each cam
-
-    """
-
-    c0=[]
-    c1=[]
-    c2=[]
-    tri=[]
-
-    for (i,k) in enumerate(sorted(triplet_files.keys())):
-        if i%10000 == 0:
-            print("{}/{}".format(i,len(triplet_files)))
+    for i, k in enumerate(sorted(triplet_files.keys())):
+        if i % 10000 == 0:
+            print(f"{i}/{len(triplet_files)}")
         triplet = triplet_files[k]
 
         # Create and increment the data frames
         c0.append(masc_mat_file_to_dict(triplet[0]))
         c1.append(masc_mat_file_to_dict(triplet[1]))
         c2.append(masc_mat_file_to_dict(triplet[2]))
-        tri.append(masc_mat_triplet_to_dict(triplet,campaign=campaign_name))
-
+        tri.append(masc_mat_triplet_to_dict(triplet, campaign=campaign_name))
 
     c0 = pd.DataFrame.from_dict(c0)
     c1 = pd.DataFrame.from_dict(c1)
@@ -202,7 +177,7 @@ def create_triplet_dataframes(triplet_files, out_dir,campaign_name='EPFL'):
 
     # Filter possible contaminations from condensation
     print("Filtering possible condensation")
-    ind=[]
+    ind = []
     ind.extend(filter_condensation(c0))
     ind.extend(filter_condensation(c1))
     ind.extend(filter_condensation(c2))
@@ -210,104 +185,100 @@ def create_triplet_dataframes(triplet_files, out_dir,campaign_name='EPFL'):
     bad_indexes = list(set(ind))
     bad_indexes.sort()
 
-    c0.drop(bad_indexes,inplace=True)
+    c0 = c0.drop(bad_indexes)
     c0 = c0.reset_index()
 
-    c1.drop(bad_indexes,inplace=True)
+    c1 = c1.drop(bad_indexes)
     c1 = c1.reset_index()
 
-    c2.drop(bad_indexes,inplace=True)
+    c2 = c2.drop(bad_indexes)
     c2 = c2.reset_index()
 
-    tri.drop(bad_indexes,inplace=True)
+    tri = tri.drop(bad_indexes)
     tri = tri.reset_index()
 
-    print("Removed flakes total: "+str(len(bad_indexes)))
+    print("Removed flakes total: " + str(len(bad_indexes)))
 
     # Write tables
     table = pa.Table.from_pandas(c0)
-    pq.write_table(table, out_dir+campaign_name+'_cam0.parquet')
+    pq.write_table(table, out_dir + campaign_name + "_cam0.parquet")
 
     table = pa.Table.from_pandas(c1)
-    pq.write_table(table, out_dir+campaign_name+'_cam1.parquet')
+    pq.write_table(table, out_dir + campaign_name + "_cam1.parquet")
 
     table = pa.Table.from_pandas(c2)
-    pq.write_table(table, out_dir+campaign_name+'_cam2.parquet')
+    pq.write_table(table, out_dir + campaign_name + "_cam2.parquet")
 
     table = pa.Table.from_pandas(tri)
-    pq.write_table(table, out_dir+campaign_name+'_triplet.parquet')
+    pq.write_table(table, out_dir + campaign_name + "_triplet.parquet")
 
     # Update the triplet files removing the filtered files
     sorted_keys = sorted(triplet_files)
-    remove_keys=  [sorted_keys[bad_indexes[jj]] for jj in range(len(bad_indexes))]
+    remove_keys = [sorted_keys[bad_indexes[jj]] for jj in range(len(bad_indexes))]
 
-    return {k: triplet_files[k] for k in triplet_files if k not in remove_keys }
+    return {k: triplet_files[k] for k in triplet_files if k not in remove_keys}
 
 
-def create_triplet_image_array(triplet_files, out_dir,campaign_name='EPFL',dim_in=1024,chunks_n=16):
-
-    """
-    Create an image array of (resized) triplet. Store on disk for each campaign
-    
-    """
-
+def create_triplet_image_array(triplet_files, out_dir, campaign_name="EPFL", dim_in=1024, chunks_n=16):
+    """Create an image array of (resized) triplet. Store on disk for each campaign."""
     # Define the output array (data flushed directly)
-    compressor=Blosc(cname='zstd', clevel=2, shuffle=Blosc.BITSHUFFLE)
-    z1 = zarr.open(out_dir+campaign_name+'.zarr', mode='w',
-        shape = [len(triplet_files),dim_in,dim_in,3],compressor=compressor,
-        dtype='u1',chunks=[chunks_n,dim_in,dim_in,3]  ) # Size N files, 1024, 1024, 3 
+    compressor = Blosc(cname="zstd", clevel=2, shuffle=Blosc.BITSHUFFLE)
+    z1 = zarr.open(
+        out_dir + campaign_name + ".zarr",
+        mode="w",
+        shape=[len(triplet_files), dim_in, dim_in, 3],
+        compressor=compressor,
+        dtype="u1",
+        chunks=[chunks_n, dim_in, dim_in, 3],
+    )  # Size N files, 1024, 1024, 3
 
-    for (i,k) in enumerate(sorted(triplet_files.keys())):
-        if i%10000 == 0:
-            print("{}/{}".format(i,len(triplet_files)))
+    for i, k in enumerate(sorted(triplet_files.keys())):
+        if i % 10000 == 0:
+            print(f"{i}/{len(triplet_files)}")
 
         triplet = triplet_files[k]
-        z1[i,:,:,:] = triplet_images_reshape(triplet,newshape=[dim_in,dim_in])
+        z1[i, :, :, :] = triplet_images_reshape(triplet, newshape=[dim_in, dim_in])
 
 
-def add_gan3d_to_parquet(triplet_parquet,gan3d_folder):
-
-    """
-    Add GAN3D mass and volume to triplet files
-    """
-
-    ganfile  = gan3d_folder+'masc_3D_print_grids.nc'
-    mascfile = gan3d_folder+'masc_3D_print_triplets.nc'
+def add_gan3d_to_parquet(triplet_parquet, gan3d_folder):
+    """Add GAN3D mass and volume to triplet files."""
+    ganfile = gan3d_folder + "masc_3D_print_grids.nc"
+    mascfile = gan3d_folder + "masc_3D_print_triplets.nc"
 
     # Get the gan3d files
-    g3d = gan3d(ganfile=ganfile,mascfile=mascfile)
+    g3d = gan3d(ganfile=ganfile, mascfile=mascfile)
 
     # Read the parquet file
     table = pd.read_parquet(triplet_parquet)
-    flake_uid = table.datetime.apply(lambda x: x.strftime('%Y%m%d%H%M%S'))+'_'+table.flake_number_tmp.apply(str)
+    flake_uid = table.datetime.apply(lambda x: x.strftime("%Y%m%d%H%M%S")) + "_" + table.flake_number_tmp.apply(str)
 
     # Get GAN time in proper format and fill the precooked vector
-    mass = np.asarray(table['gan3d_mass'])
-    vol  = np.asarray(table['gan3d_volume'])
-    r_g  = np.asarray(table['gan3d_gyration'])
+    mass = np.asarray(table["gan3d_mass"])
+    vol = np.asarray(table["gan3d_volume"])
+    r_g = np.asarray(table["gan3d_gyration"])
 
     for i in range(len(g3d.time)):
-        tt = timestamp=datetime.utcfromtimestamp(g3d.time[i]).strftime("%Y%m%d%H%M%S")+'_'+str(g3d.particle_id[i])
+        tt = datetime.utcfromtimestamp(g3d.time[i]).strftime("%Y%m%d%H%M%S") + "_" + str(g3d.particle_id[i])
         try:
-            mass[(np.where(flake_uid == tt))]=g3d.mass_1d[i]
-            vol[(np.where(flake_uid == tt))]=g3d.V_ch[i]
-            r_g[(np.where(flake_uid == tt))]=g3d.r_g[i]
+            mass[(np.where(flake_uid == tt))] = g3d.mass_1d[i]
+            vol[(np.where(flake_uid == tt))] = g3d.V_ch[i]
+            r_g[(np.where(flake_uid == tt))] = g3d.r_g[i]
         except:
-            print("Flake id: "+tt+" not in the database") 
+            print("Flake id: " + tt + " not in the database")
 
-    table['gan3d_mass']   =  mass
-    table['gan3d_volume'] =  vol
-    table['gan3d_gyration']    =  r_g
+    table["gan3d_mass"] = mass
+    table["gan3d_volume"] = vol
+    table["gan3d_gyration"] = r_g
 
     # Store table and overwrite
-    table=table.round(decimals=digits_dictionary())
+    table = table.round(decimals=digits_dictionary())
     table = pa.Table.from_pandas(table)
     pq.write_table(table, triplet_parquet)
 
-def add_bs_to_parquet(triplet_parquet,file_bs,verbose=False):
 
+def add_bs_to_parquet(triplet_parquet, file_bs, verbose=False):
     """
-    Add Blowing Snow information to triplet files
+    Add Blowing Snow information to triplet files.
 
     Input:
 
@@ -315,22 +286,21 @@ def add_bs_to_parquet(triplet_parquet,file_bs,verbose=False):
     file_bs        : CSV file of blowing snow
 
     """
-
     # Read the parquet file
     table = pd.read_parquet(triplet_parquet)
-    flake_uid = table.datetime.apply(lambda x: x.strftime('%Y%m%d%H%M%S'))+'_'+table.flake_number_tmp.apply(str)
+    flake_uid = table.datetime.apply(lambda x: x.strftime("%Y%m%d%H%M%S")) + "_" + table.flake_number_tmp.apply(str)
 
     # Read the blowingsnow file
-    bs  = blowingsnow(file_bs)
+    bs = blowingsnow(file_bs)
 
-    # Fill the precooked vector 
-    bs_nor_angle    = np.asarray(table['bs_normalized_angle'])
-    bs_mix_ind      = np.asarray(table['bs_mixing_ind'])
-    bs_precip_type  = table['bs_precip_class_name'].copy()
+    # Fill the precooked vector
+    bs_nor_angle = np.asarray(table["bs_normalized_angle"])
+    bs_mix_ind = np.asarray(table["bs_mixing_ind"])
+    bs_precip_type = table["bs_precip_class_name"].copy()
 
     # Intersect arrays
-    ind1=np.intersect1d(flake_uid,bs.flake_uid,return_indices=True)[1]
-    ind2=np.intersect1d(flake_uid,bs.flake_uid,return_indices=True)[2]
+    ind1 = np.intersect1d(flake_uid, bs.flake_uid, return_indices=True)[1]
+    ind2 = np.intersect1d(flake_uid, bs.flake_uid, return_indices=True)[2]
 
     # Fill
     bs_nor_angle[ind1] = bs.df["Normalized_Angle"][ind2]
@@ -340,79 +310,75 @@ def add_bs_to_parquet(triplet_parquet,file_bs,verbose=False):
     bs_class_id = np.asarray([0] * len(table))
 
     # Fill also a precooked flag
-    bs_precip_type[bs_nor_angle > 0.881]='blowing_snow'
-    bs_class_id[bs_nor_angle > 0.881]   = 3
+    bs_precip_type[bs_nor_angle > 0.881] = "blowing_snow"
+    bs_class_id[bs_nor_angle > 0.881] = 3
 
-    bs_precip_type[bs_nor_angle < 0.193]='precip'
-    bs_class_id[bs_nor_angle < 0.193]   = 1
+    bs_precip_type[bs_nor_angle < 0.193] = "precip"
+    bs_class_id[bs_nor_angle < 0.193] = 1
 
-    bs_precip_type[bs_mix_ind >= 0.0]='mixed'
-    bs_class_id[bs_mix_ind >= 0.0]   = 2
+    bs_precip_type[bs_mix_ind >= 0.0] = "mixed"
+    bs_class_id[bs_mix_ind >= 0.0] = 2
 
-    table['bs_normalized_angle']   =  bs_nor_angle
-    table['bs_mixing_ind']         =  bs_mix_ind
-    table['bs_precip_class_name']  =  bs_precip_type
-    table['bs_precip_class_id']    =  bs_class_id
-    
+    table["bs_normalized_angle"] = bs_nor_angle
+    table["bs_mixing_ind"] = bs_mix_ind
+    table["bs_precip_class_name"] = bs_precip_type
+    table["bs_precip_class_id"] = bs_class_id
 
     # Store table and overwrite
-    table=table.round(decimals=digits_dictionary())
+    table = table.round(decimals=digits_dictionary())
     table = pa.Table.from_pandas(table)
     pq.write_table(table, triplet_parquet)
 
-def add_weather_to_parquet(triplet_parquet,file_weather, verbose=False):
-    """"
-    Add weather data (from pre-compiled minute-scaled pickle) to the triplet file
+
+def add_weather_to_parquet(triplet_parquet, file_weather, verbose=False):
+    """ "
+    Add weather data (from pre-compiled minute-scaled pickle) to the triplet file.
     """
     # Read the parquet file and get the time string
     table = pd.read_parquet(triplet_parquet)
-    flake_uid = table.datetime.round('min') # Round to minute as weather info is in minute
+    flake_uid = table.datetime.round("min")  # Round to minute as weather info is in minute
 
     # Read the blowingsnow file
-    env  = pd.read_pickle(file_weather)
+    env = pd.read_pickle(file_weather)
 
-    # Fill the precooked vectors of environmental info 
-    T = np.asarray(table['env_T'])
-    P = np.asarray(table['env_P'])
-    DD = np.asarray(table['env_DD'])
-    FF = np.asarray(table['env_FF'])
-    RH = np.asarray(table['env_RH'])
+    # Fill the precooked vectors of environmental info
+    T = np.asarray(table["env_T"])
+    P = np.asarray(table["env_P"])
+    DD = np.asarray(table["env_DD"])
+    FF = np.asarray(table["env_FF"])
+    RH = np.asarray(table["env_RH"])
 
     # Ugly unefficent loop
     for i in range(len(flake_uid)):
         ID = flake_uid[i]
 
         # Find the closest emvironmental info
-        try: 
+        try:
             index = env.index.searchsorted(ID)
             vec = env.iloc[index]
-            T[i]   = vec["T"]
-            P[i]   = vec["P"]
-            DD[i]  = vec["DD"]
-            FF[i]  = vec["FF"]
-            RH[i]  = vec["RH"]
+            T[i] = vec["T"]
+            P[i] = vec["P"]
+            DD[i] = vec["DD"]
+            FF[i] = vec["FF"]
+            RH[i] = vec["RH"]
         except:
             if verbose:
-                print("Cannot find environemntal information for this datetime: ")
+                print("Cannot find environmental information for this datetime: ")
                 print(ID)
-        
-    table['env_T']   = T
-    table['env_P']   = P
-    table['env_DD']  = DD
-    table['env_FF']  = FF
-    table['env_RH']  = RH
-    
+
+    table["env_T"] = T
+    table["env_P"] = P
+    table["env_DD"] = DD
+    table["env_FF"] = FF
+    table["env_RH"] = RH
+
     # Store table and overwrite
-    table=table.round(decimals=digits_dictionary())
+    table = table.round(decimals=digits_dictionary())
     table = pa.Table.from_pandas(table)
     pq.write_table(table, triplet_parquet)
-    
 
-def merge_triplet_dataframes(path,
-                        campaigns,
-                        out_path,
-                        out_name='all'):
 
+def merge_triplet_dataframes(path, campaigns, out_path, out_name="all"):
     """
     Merge triplet dataframes into a single one.
 
@@ -420,119 +386,110 @@ def merge_triplet_dataframes(path,
         path :        input path
         campaigns:    list of campaign names (parquet must exist)
         out_path:     out_path
-        out_name:     string used in the output name        
+        out_name:     string used in the output name
 
     """
-
     # Dataframes
-    databases=['cam0','cam1','cam2','triplet']
+    databases = ["cam0", "cam1", "cam2", "triplet"]
 
     for db in databases:
-        print('Merging database: '+db)
+        print("Merging database: " + db)
         # Read the parquet files
         for i in range(len(campaigns)):
-            print('Merging campaign: '+campaigns[i])
-            data_in = pd.read_parquet(path+campaigns[i]+'_'+db+'.parquet')
-            if db == 'triplet':
-                data_in = data_in.rename(columns={'n_roi':'flake_n_roi'})
-            if i == 0:
-                df = data_in
-            else:
-                df = pd.concat([df, data_in], axis=0).reset_index(drop=True)
-        
+            print("Merging campaign: " + campaigns[i])
+            data_in = pd.read_parquet(path + campaigns[i] + "_" + db + ".parquet")
+            if db == "triplet":
+                data_in = data_in.rename(columns={"n_roi": "flake_n_roi"})
+            df = data_in if i == 0 else pd.concat([df, data_in], axis=0).reset_index(drop=True)
+
         # Write to file ---------------------
 
-        print('Writing output')        
+        print("Writing output")
 
-        df=df.drop(columns="index")    
-        df=df.round(decimals=digits_dictionary())
+        df = df.drop(columns="index")
+        df = df.round(decimals=digits_dictionary())
         table = pa.Table.from_pandas(df)
-        pq.write_table(table, out_path+out_name+'_'+db+'.parquet')
+        pq.write_table(table, out_path + out_name + "_" + db + ".parquet")
 
-def add_trainingset_flag(cam_parquet,
-                         trainingset_pkl_path,
-                         cam=None):
+
+def add_trainingset_flag(cam_parquet, trainingset_pkl_path, cam=None):
     """
     Add to a single-cam parquet the information flags (adding columns)
     indicating if a given cam view was used in a training set for
-    melting, hydro classif or riming degree
+    melting, hydro classif or riming degree.
 
     Input
 
     cam_parquet: parquet file to add the columns to
-    trainingset_pkl_path: path where the pickles of the trainingset flags are locally stored
+    trainingset_pkl_path: path where the pickles of the training set flags are locally stored
     cam =  'cam0', 'cam1' or 'cam2'
 
     """
-    print('CAM: '+cam)
+    print("CAM: " + cam)
 
     # Read the parquet file
     table = pd.read_parquet(cam_parquet)
-    flake_uid = table.datetime.apply(lambda x: x.strftime('%Y.%m.%d_%H.%M.%S'))+'_flake_'+table.flake_number_tmp.apply(str)                   
+    flake_uid = (
+        table.datetime.apply(lambda x: x.strftime("%Y.%m.%d_%H.%M.%S")) + "_flake_" + table.flake_number_tmp.apply(str)
+    )
 
     # 1 Add hydro columns
-    add = pd.read_pickle(trainingset_pkl_path+'hydro_trainingset_'+cam+'.pkl')
-    is_in    = np.asarray([0] * len(table))
+    add = pd.read_pickle(trainingset_pkl_path + "hydro_trainingset_" + cam + ".pkl")
+    is_in = np.asarray([0] * len(table))
     value_in = np.asarray([np.nan] * len(table))
 
     # Intersect
-    intersect = np.intersect1d(flake_uid,add.flake_id,return_indices=True)
-    ind1=intersect[1]
-    ind2=intersect[2]
-    
+    intersect = np.intersect1d(flake_uid, add.flake_id, return_indices=True)
+    ind1 = intersect[1]
+    ind2 = intersect[2]
 
     # Fill
     is_in[ind1] = 1
     value_in[ind1] = add.class_id.iloc[ind2]
-    table['hl_snowflake'] = is_in
-    table['hl_snowflake_class_id'] = value_in
-    print('Found: '+str(len(ind1))+' in training, for hydro' )
+    table["hl_snowflake"] = is_in
+    table["hl_snowflake_class_id"] = value_in
+    print("Found: " + str(len(ind1)) + " in training, for hydro")
 
     # 2 Add melting columns
-    add = pd.read_pickle(trainingset_pkl_path+'melting_trainingset_'+cam+'.pkl')
+    add = pd.read_pickle(trainingset_pkl_path + "melting_trainingset_" + cam + ".pkl")
     is_in = np.asarray([0] * len(table))
     value_in = np.asarray([np.nan] * len(table))
 
-
     # Intersect
-    intersect = np.intersect1d(flake_uid,add.flake_id,return_indices=True)
-    ind1=intersect[1]
-    ind2=intersect[2]
+    intersect = np.intersect1d(flake_uid, add.flake_id, return_indices=True)
+    ind1 = intersect[1]
+    ind2 = intersect[2]
 
     # Fill
     is_in[ind1] = 1
     value_in[ind1] = add.melting.iloc[ind2]
-    table['hl_melting'] = is_in
-    table['hl_melting_class_id'] = value_in
-    print('Found: '+str(len(ind1))+' in training, for melting' )
+    table["hl_melting"] = is_in
+    table["hl_melting_class_id"] = value_in
+    print("Found: " + str(len(ind1)) + " in training, for melting")
 
     # 3 Add riming columns
-    add = pd.read_pickle(trainingset_pkl_path+'riming_trainingset_'+cam+'.pkl')
+    add = pd.read_pickle(trainingset_pkl_path + "riming_trainingset_" + cam + ".pkl")
     is_in = np.asarray([0] * len(table))
     value_in = np.asarray([np.nan] * len(table))
 
-
     # Intersect
-    intersect = np.intersect1d(flake_uid,add.flake_id,return_indices=True)
-    ind1=intersect[1]
-    ind2=intersect[2]
+    intersect = np.intersect1d(flake_uid, add.flake_id, return_indices=True)
+    ind1 = intersect[1]
+    ind2 = intersect[2]
 
     # Fill
     is_in[ind1] = 1
     value_in[ind1] = add.riming_id.iloc[ind2]
-    table['hl_riming'] = is_in
-    table['hl_riming_class_id'] = value_in
-    print('Found: '+str(len(ind1))+' in training, for riming' )
+    table["hl_riming"] = is_in
+    table["hl_riming_class_id"] = value_in
+    print("Found: " + str(len(ind1)) + " in training, for riming")
 
     # Overwrite
     table = pa.Table.from_pandas(table)
     pq.write_table(table, cam_parquet)
 
-    return(None)
 
-
-def merge_triplet_image_array(path,campaigns,out_path,out_name='all',chunks_n=16):
-
+def merge_triplet_image_array(path, campaigns, out_path, out_name="all", chunks_n=16):
     """
     Merge triplet image array into a single zarr output.
 
@@ -540,109 +497,115 @@ def merge_triplet_image_array(path,campaigns,out_path,out_name='all',chunks_n=16
         path :        input path
         campaigns:    list of campaign names (zarr must exist)
         out_path:     out_path
-        out_name:     string used in the output name  
-        chunks_n:     chunk size in number of images      
+        out_name:     string used in the output name
+        chunks_n:     chunk size in number of images
 
     """
-    n_images=0 # Number of images
+    n_images = 0  # Number of images
 
-    # Get information on dimension (assuming all dims except first one are the same) 
+    # Get information on dimension (assuming all dims except first one are the same)
     for i in range(len(campaigns)):
-        fn=path+campaigns[i]+'.zarr'
-        zz = zarr.open(fn,mode='r')
+        fn = path + campaigns[i] + ".zarr"
+        zz = zarr.open(fn, mode="r")
         n_images += zz.shape[0]
 
     # Create output Zarr
-    compressor=Blosc(cname='zstd', clevel=2, shuffle=Blosc.BITSHUFFLE)
-    z1 = zarr.open(out_path+out_name+'.zarr', mode='w',
-         shape = [n_images,zz.shape[1],zz.shape[2],3],compressor=compressor,
-         dtype='u1',chunks=[chunks_n,zz.shape[1],zz.shape[2],3]  ) # Size N files, 1024, 1024, 3 
+    compressor = Blosc(cname="zstd", clevel=2, shuffle=Blosc.BITSHUFFLE)
+    z1 = zarr.open(
+        out_path + out_name + ".zarr",
+        mode="w",
+        shape=[n_images, zz.shape[1], zz.shape[2], 3],
+        compressor=compressor,
+        dtype="u1",
+        chunks=[chunks_n, zz.shape[1], zz.shape[2], 3],
+    )  # Size N files, 1024, 1024, 3
 
     # Merge .zarr according to chunk size and write a new .zarr
-    ii=0
+    ii = 0
     for i in range(len(campaigns)):
-        fn=path+campaigns[i]+'.zarr'
-        zz = zarr.open(fn,mode='r')
+        fn = path + campaigns[i] + ".zarr"
+        zz = zarr.open(fn, mode="r")
 
         n_ii = zz.shape[0]
 
         # Two increments: one as big as the chunk and one equal to 1 at the tail of the dataset
         j = 0
-        j2= 0
+        j2 = 0
         escape = False
-        while (j < n_ii) and not(escape):
+        while (j < n_ii) and not (escape):
             # Update counter
-            if ((n_ii-j) >=  chunks_n):
+            if (n_ii - j) >= chunks_n:
                 inc = chunks_n
-                j2 += inc  
-                z1[ii:(ii+inc),:,:,:] = zz[j:(j+inc),:,:,:]
+                j2 += inc
+                z1[ii : (ii + inc), :, :, :] = zz[j : (j + inc), :, :, :]
             else:
                 inc = 1
-                j2 += inc  
-                z1[ii,:,:,:] = zz[j,:,:,:]
+                j2 += inc
+                z1[ii, :, :, :] = zz[j, :, :, :]
                 if j2 == n_ii:
                     escape = True
-            j   = j2
+            j = j2
             ii += inc
 
-            if ii%10000 == 0:
+            if ii % 10000 == 0:
                 print(ii)
-                print('Merged')
+                print("Merged")
 
 
-def process_all(masc_dir,campaign_name='EPFL'):
+def process_all(masc_dir, campaign_name="EPFL"):
     # this runs all the processing to create a basic dataset of masc triplets and
     # m
-    
+
     # Find triplets
-    print('Finding matched triplets: ')
+    print("Finding matched triplets: ")
     triplet_files = find_matched(masc_dir)
     print(len(triplet_files))
-    print('Valid triplets: ')
+    print("Valid triplets: ")
     triplet_files = filter_triplets(triplet_files)
     print(len(triplet_files))
 
     # Create triplet datasets (descriptors) of each campaign
-    print('Creating triplet dataframe')
-    triplet_files=create_triplet_dataframes(triplet_files,'/data/MASC_DB/',campaign_name=campaign_name)
+    print("Creating triplet dataframe")
+    triplet_files = create_triplet_dataframes(triplet_files, "/data/MASC_DB/", campaign_name=campaign_name)
 
     # Create triplet array of images using Zarr
-    print('Creating database of images (zarr)')
-    create_triplet_image_array(triplet_files,'/data/MASC_DB/',campaign_name=campaign_name,dim_in=1024)
+    print("Creating database of images (zarr)")
+    create_triplet_image_array(triplet_files, "/data/MASC_DB/", campaign_name=campaign_name, dim_in=1024)
 
     print("Hi")
 
-"""
-This code is managing the full data flow to create MASCdb, given a set of campaigns.
 
-First, already processed MASC data (see preliminary steps) are further processed in order to store them in the proper format 
+"""
+This code is managing the full data flow to create MASCDB, given a set of campaigns.
+
+First, already processed MASC data (see preliminary steps) are further processed in order to store them in the proper format
 and all relevant additional information is added.
 
-Then, individual campaigns are merged together. 
+Then, individual campaigns are merged together.
 
 In the example below, all campaigns are processed together and then merged, but the code can be used to process only one campaign (i.e. the last one)
 and then merge ALL campaigns together to create the final dataset.
 
 PRELIMINARY STEPS:
 
-- Raw MASC data have to undergo a processing using masclab. This is done usually on ltesrv5 at EPFL. See dedicated wrapper script on ltesrv5 (user lteuser: 
+- Raw MASC data have to undergo a processing using masclab. This is done usually on ltesrv5 at EPFL. See dedicated wrapper script on ltesrv5 (user lteuser:
      /home/lteuser/SCRIPTS/MASC/MASC_process_classify_quicklooks.sh
 
 - The resulting Proc_data/* should be accessible. For example in this scripts they are copied in the /data local directory for each campaign, such that,
-    for example the local /data/Jura_2023/ folder contains the Proc_data content of the MASC folder for the same campaing on the /ltedata. 
-    Note that this is done only because it was handy for me to work on the local laptop, the scripts here can be easily adapted to work directly on 
+    for example the local /data/Jura_2023/ folder contains the Proc_data content of the MASC folder for the same campaign on the /ltedata.
+    Note that this is done only because it was handy for me to work on the local laptop, the scripts here can be easily adapted to work directly on
     the server
 
 - The Blowing Snow estimation has to be computed. This is done with another matlab script on ltesrv5:
     /home/lteuser/SCRIPTS/MASC/SharedSchaerMBL/run_bs.m (needs to be adapted inside for the proper paths)
-  The file resulting from the blowing snow classification, in this example, is expected under 
+  The file resulting from the blowing snow classification, in this example, is expected under
     /data/MASC_DB/rawinput/CAMPAIGN-NAME/bs/blowing_snow_triplet.csv,
 
     where CAMPAIGN-NAME is the name of the campaign (ex. Jura_2023 or APRES3-2016...)
 
 - The estimation of 3D reconstruction quantities, from Leinonet et al 2021 (https://doi.org/10.5194/amt-14-6851-2021)
   have to be precomputed. One file per campaign is expected, under:
-   
+
   /data/CAMPAIGN-NAME/masc_3D_print_grids.nc and /data/CAMPAIGN-NAME/masc_3D_print_triplets.nc
 
   note that the name "3D_print" is a legacy, but hard coded here. Those NetCDF files are generated by the GAN 3D reconstruction codes
@@ -651,13 +614,13 @@ PRELIMINARY STEPS:
 - There is environmental information ready to be included in the dataset. This information is stored in one ".pickle" python file
  per campaign, under /data/MASC_DB/rawinput/CAMPAIGN-NAME/Weather/CAMPAIGN-NAME.pickle
 
-  This file has to be pre-computed case by case (code not provided here), with information stored at 1 minute resolution 
+  This file has to be pre-computed case by case (code not provided here), with information stored at 1 minute resolution
 and it must include time, P (pressure), T (temperature), RH (relative humidity), DD (wind direction), FF (wind speed)
-for example as: 
+for example as:
 
 >>> pd.read_pickle("APRES3-2016.pickle")
                          P    T    RH     DD   FF
-time                                             
+time
 2015-11-07 00:00:00  966.0 -9.3  35.0  100.0  8.5
 2015-11-07 00:01:00  966.0 -9.3  35.0  110.0  8.7
 
@@ -675,42 +638,61 @@ jgr 2024, based on older codes
 """
 
 
-campaigns=['Davos-2015','APRES3-2016','APRES3-2017',
-'Valais-2016','ICEPOP-2018','PLATO-2019','Davos-2019',
-'Jura-2019','POPE-2020','ICEGENESIS-2021','Remoray-2022',
-'Norway-2016','Jura-2023','ISLAS-2022','Norway-2023']
+campaigns = [
+    "Davos-2015",
+    "APRES3-2016",
+    "APRES3-2017",
+    "Valais-2016",
+    "ICEPOP-2018",
+    "PLATO-2019",
+    "Davos-2019",
+    "Jura-2019",
+    "POPE-2020",
+    "ICEGENESIS-2021",
+    "Remoray-2022",
+    "Norway-2016",
+    "Jura-2023",
+    "ISLAS-2022",
+    "Norway-2023",
+]
 
 
 for campaign in campaigns:
     print(campaign)
-    
-    # 0: Process data and triplets (basic)
-    process_all('/data/'+campaign+'/',campaign_name=campaign)
 
+    # 0: Process data and triplets (basic)
+    process_all("/data/" + campaign + "/", campaign_name=campaign)
 
     # 1: Add blowing snow to parquet
     print("Adding blowing snow")
-    add_bs_to_parquet('/data/MASC_DB/'+campaign+'_triplet.parquet',
-        '/data/MASC_DB/rawinput/'+campaign+'/bs/blowing_snow_triplet.csv',verbose=True)         # Add BS                                                     
+    add_bs_to_parquet(
+        "/data/MASC_DB/" + campaign + "_triplet.parquet",
+        "/data/MASC_DB/rawinput/" + campaign + "/bs/blowing_snow_triplet.csv",
+        verbose=True,
+    )  # Add BS
 
     # 2: Add GAN3D to parquet
     print("Adding 3d-gan")
-    add_gan3d_to_parquet('/data/MASC_DB/'+campaign+'_triplet.parquet','/data/'+campaign+'/')    # Add GAN3D
+    add_gan3d_to_parquet("/data/MASC_DB/" + campaign + "_triplet.parquet", "/data/" + campaign + "/")  # Add GAN3D
 
-    # 3: Add Environemntal info to parquet
+    # 3: Add Environmental info to parquet
     print("Adding environmental information")
-    add_weather_to_parquet('/data/MASC_DB/'+campaign+'_triplet.parquet',
-        '/data/MASC_DB/rawinput/'+campaign+'/Weather/'+campaign+'.pickle',verbose=True)         # Add weather
+    add_weather_to_parquet(
+        "/data/MASC_DB/" + campaign + "_triplet.parquet",
+        "/data/MASC_DB/rawinput/" + campaign + "/Weather/" + campaign + ".pickle",
+        verbose=True,
+    )  # Add weather
 
     # 4: Add training of melting, riming, hydroclass
     print("Adding flags of data eventually used for manual training")
-    for cam in ['cam0','cam1','cam2']:
-        add_trainingset_flag('/data/MASC_DB/'+campaign+'_'+cam+'.parquet','/data/MASC_DB/rawinput/aux/',cam=cam)
-    
-#  --- Merge 
+    for cam in ["cam0", "cam1", "cam2"]:
+        add_trainingset_flag(
+            "/data/MASC_DB/" + campaign + "_" + cam + ".parquet",
+            "/data/MASC_DB/rawinput/aux/",
+            cam=cam,
+        )
 
-merge_triplet_dataframes('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
-merge_triplet_image_array('/data/MASC_DB/',campaigns,'/data/MASC_DB/',out_name='MASCdb')
+#  --- Merge
 
-
-
+merge_triplet_dataframes("/data/MASC_DB/", campaigns, "/data/MASC_DB/", out_name="MASCdb")
+merge_triplet_image_array("/data/MASC_DB/", campaigns, "/data/MASC_DB/", out_name="MASCdb")

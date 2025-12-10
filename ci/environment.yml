@@ -1,0 +1,28 @@
+name: pymascdb
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - pandas
+  - pyarrow
+	- zarr
+	- xarray
+  - bottleneck
+	- dask
+  - distributed
+  - matplotlib-base
+  - seaborn
+  - scikit-image
+  # Docs
+  - jupyter
+  - sphinx
+  - sphinx-book-theme
+  - nbsphinx
+  # Testing
+  - setuptools
+  - pre_commit
+  - coverage
+  - pytest
+  - pytest-cov
+  - pytest-mock
+  - pip
