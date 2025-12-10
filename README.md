@@ -53,15 +53,6 @@ To install the latest development version via pip, see the [documentation][dev_i
 The folder `tutorials` provides code examples to explore the capabilities of pymascdb.
 A selection of of jupyter notebooks illustrates a selection of pymascdb functionalities.
 These jupyter notebooks tutorial can also be consulted in the [`online documentation`].
-The .py files present in the folder `tutorials` are instead conceived for line-by-line execution for example using the *spyder* GUI and cannot be run as scripts.
-These .py tutorials provide example usage for:
-
-- Downloading MASCDB \[[`00_download_mascdb.py`]\]
-- Data manipulation and other MASCDB API functionalities \[[`01_data_manipulation.py`]\]
-- Exploratory data analysis (EDA) \[[`02_eda.py`]\]
-- Image display and processing \[[`03_image_processing.py`]\]
-
-The folder `examples` provides a link to some jupyter notebooks with a minimal selection of functionalities, the same as the ones used in the [`online documentation`]
 
 ## 📖 Explore the MASCDB documentation
 
@@ -89,7 +80,7 @@ You can cite the MASCDB project by:
 > Grazioli, J., Ghiggi, G., & Berne, A. (2023). MASCDB, a database of images, descriptors and microphysical properties of individual snowflakes in free fall (1.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.8046497
 > Grazioli, J., Ghiggi, G., Billault-Roux, AC. et al. MASCDB, a database of images, descriptors and microphysical properties of individual snowflakes in free fall. Sci Data 9, 186 (2022). https://doi.org/10.1038/s41597-022-01269-7
 
-If you want to cite a specific version of pymascdb, have a look at the [Zenodo site](https://zenodo.org/records/17886482)
+If you want to cite a specific version of pymascdb, have a look at the [Zenodo software archive repository](https://zenodo.org/records/17886482).
 
 ## License
 
@@ -100,8 +91,4 @@ The content of this repository is released under the terms of the [MIT license](
 [dev_install_link]: https://pymascdb.readthedocs.io/en/latest/installation.html#installation-for-contributors
 [pip_link]: https://pypi.org/project/mascdb
 [winpy_link]: https://winpython.github.io/
-[`00_download_mascdb.py`]: https://github.com/ltelab/pymascdb/tree/main/tutorials/00_download_mascdb.py
-[`01_data_manipulation.py`]: https://github.com/ltelab/pymascdb/tree/main/tutorials/01_data_manipulation.py
-[`02_eda.py`]: https://github.com/ltelab/pymascdb/tree/main/tutorials/02_eda.py
-[`03_image_processing.py`]: https://github.com/ltelab/pymascdb/tree/main/tutorials/03_image_processing.py
 [`online documentation`]: https://pymascdb.readthedocs.io/en/latest/examples.html
