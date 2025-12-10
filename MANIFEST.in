@@ -1,0 +1,9 @@
+prune .github
+prune ci
+prune experiments
+prune data
+prune figs
+prune docs
+prune tutorials
+prune generator
+prune mascdb/tests

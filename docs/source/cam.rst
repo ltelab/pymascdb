@@ -265,15 +265,10 @@ The files *MASCdb_CAM0.parquet*,*MASCdb_CAM1.parquet*,*MASCdb_CAM2.parquet*  con
 References
 -----------------------------------------------
 
-- `Baker and Lawson, 2006 <https://journals.ametsoc.org/view/journals/apme/45/9/jam2398.1.xml>`_: Baker, B. & Lawson, R. P. Improvement in Determination of Ice Water Content from Two-Dimensional Particle Imagery. Part I: Image-to-Mass Relationships.J. Appl. Meteorol. Climatol.45, 1282–1290, https://doi.org/10.1175/JAM2398.1, 2006.
+- `Baker and Lawson, 2006 <https://journals.ametsoc.org/view/journals/apme/45/9/jam2398.1.xml>`_: Baker, B. & Lawson, R. P. Improvement in Determination of Ice Water Content from Two-Dimensional Particle Imagery. Part I: Image-to-Mass Relationships.J. Appl. Meteorol. Climatol.45, 1282-1290, https://doi.org/10.1175/JAM2398.1, 2006.
 
-- `Praz et al, 2017 <https://zenodo.org/record/5578921#.YXqUeJuxVH4>`_: Praz, C., Roulet, Y.-A., and Berne, A.: Solid hydrometeor classification and riming degree estimation from pictures collected with a Multi-Angle Snowflake Camera, Atmos. Meas. Tech., 10, 1335–1357, https://doi.org/10.5194/amt-10-1335-2017, 2017.
+- `Praz et al, 2017 <https://zenodo.org/record/5578921#.YXqUeJuxVH4>`_: Praz, C., Roulet, Y.-A., and Berne, A.: Solid hydrometeor classification and riming degree estimation from pictures collected with a Multi-Angle Snowflake Camera, Atmos. Meas. Tech., 10, 1335-1357, https://doi.org/10.5194/amt-10-1335-2017, 2017.
 
-- `Grazioli et al, 2014 <https://amt.copernicus.org/articles/7/2869/2014/amt-7-2869-2014.html>`_: Grazioli, J., Tuia, D., Monhart, S., Schneebeli, M., Raupach, T., and Berne, A.: Hydrometeor classification from two-dimensional video disdrometer data, Atmos. Meas. Tech., 7, 2869–2882, https://doi.org/10.5194/amt-7-2869-2014, 2014.
+- `Grazioli et al, 2014 <https://amt.copernicus.org/articles/7/2869/2014/amt-7-2869-2014.html>`_: Grazioli, J., Tuia, D., Monhart, S., Schneebeli, M., Raupach, T., and Berne, A.: Hydrometeor classification from two-dimensional video disdrometer data, Atmos. Meas. Tech., 7, 2869-2882, https://doi.org/10.5194/amt-7-2869-2014, 2014.
 
-- `Garrett and Yuter, 2014 <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2014GL061016>`_: Garrett, T. J. & Yuter, S. E. Observed influence of riming, temperature, and turbulence on the fallspeed of solid precipitation. Geophys. Res. Lett.41, 6515–6522, https://doi.org/10.1002/2014GL061016, 2014.
-
-
-
-
-
+- `Garrett and Yuter, 2014 <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2014GL061016>`_: Garrett, T. J. & Yuter, S. E. Observed influence of riming, temperature, and turbulence on the fallspeed of solid precipitation. Geophys. Res. Lett.41, 6515-6522, https://doi.org/10.1002/2014GL061016, 2014.

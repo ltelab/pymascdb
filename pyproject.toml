@@ -1,0 +1,234 @@
+[build-system]
+requires = ["setuptools>=64.0", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mascdb"
+authors = [
+	{name = "Gionata Ghiggi"},
+    {name = "Jacopo Grazioli"},
+]
+description = "pymascdb provides tools to process, archive, and anaylze MASC snowflake images."
+readme = "README.md"
+keywords = ["python", "MASC", "snowflakes", "drop size distribution"]
+classifiers = [
+	"Development Status :: 1 - Planning",
+	"Intended Audience :: Developers",
+	"Programming Language :: Python :: 3",
+	"Operating System :: Unix",
+	"Operating System :: MacOS :: MacOS X",
+	"Operating System :: Microsoft :: Windows",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyarrow",
+	"zarr",
+	"xarray",
+    "bottleneck",
+	"dask",
+    "distributed",
+    "matplotlib",
+    "seaborn",
+    "scikit-image",
+]
+version = "0.1.0"
+# dynamic = ["version"]
+license-files = ["LICENSE"]
+
+[project.optional-dependencies]
+dev = [
+	"jupyter",
+	"pre-commit",
+	"pytest",
+	"pytest-cov",
+	"pytest-mock",
+	"setuptools",
+	"build",
+	"twine",
+	"loghub",
+]
+
+[project.urls]
+homepage = "https://github.com/ltelab/pymascdb"
+repository = "https://github.com/ltelab/pymascdb"
+source = "https://github.com/ltelab/pymascdb"
+tracker = "https://github.com/ltelab/pymascdb/issues"
+documentation = "https://pymascdb.readthedocs.io"
+changelog = "https://github.com/ltelab/pymascdb/blob/main/CHANGELOG.md"
+
+[tool.setuptools_scm]
+write_to = "mascdb/_version.py"
+
+[tool.setuptools.packages.find]
+include = ["mascdb*"]
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report term-missing --cov-report xml --cov-report lcov:lcov.info"
+
+[tool.black]
+line-length = 120
+preview = true
+
+[tool.ruff]
+
+line-length = 120
+indent-width = 4
+
+# Addional file to be formatted by ruff (in addition to *py)
+extend-include = ["*.ipynb"]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "docs",
+    "dist",
+    "node_modules",
+    "venv",
+    "generator*",
+]
+
+[tool.ruff.format]
+
+# Enable reformatting of code snippets in docstrings.
+docstring-code-format = true
+
+[tool.ruff.lint]
+
+select = [
+	# pydocstyle
+    "D",
+    # Pyflakes
+    "F",
+    # pycodestyle
+    "E",
+    "W",
+    # isort
+    "I",
+    # pyupgrade
+    "UP",
+    # flake8-quotes
+    "Q",
+    # flake8-bugbear
+    "B",
+    # flake8-return
+    "RET",
+    # flake8-unused-arguments
+    "ARG",
+    # flake8-raise
+    "RSE",
+    # flake8-pytest-style
+    "PT",
+    # flake8-simplify
+    "SIM",
+    # Perflint
+    "PERF",
+    # pandas-vet
+    "PD",
+    # pylint
+    "PL",
+    # flake8-commas
+    "COM",
+    # flake8-slots
+    "SLOT",
+    # flake8-comprehensions
+    "C4",
+    # Ruff custom rules
+    "RUF"
+
+    #---------------------
+    #### Future rules ####
+    # flake8-use-pathlib
+    # "PTH",
+    # NumPy-specific rules  (for 2.0)
+    # "NPY",
+    # refurb
+    # "FURB", # require preview
+]
+ignore = [
+    "PD002", # TODO: in future remove use of inplace=True
+    "PD013", # pd.melt vs pd.stack
+    "PD015",  # pd.merge
+    "E722",
+    "PT011", # pytest raised error must be checked if match the expected error msg
+    "PT030",
+    "PERF203",
+	"PLW2901",
+    "B904",
+	"RET504",
+    #  "PD901",
+    "RUF043",
+    "PLC0415",
+    "PLC0206",
+    "PLW1641",
+    "RUF059",
+
+    # Docstyle Rules
+    "D100", # Missing docstring in public module
+    "D404", # Docstring can't start with "This"
+    "D401", # First sentence must be in imperative mood
+
+    # Complexity rules
+    "PLR0913",
+    "PLR2004",
+    "PLR0912",
+    "PLR0915",
+]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore `E402` (import violations) in all Jupyter Notebooks.
+"*.ipynb" = ["E402"]
+
+# Rules to ignore in test files
+"test_*.py" = [
+    "ARG",  # avoid problems with fixtures
+    "D101","D102", "D103", "D104", "D105",  # Missing docstrings
+]
+"conftest.py" = [
+     "D101","D102", "D103", "D104", "D105",
+]
+"*__init__.py" = ["D104"]
+
+[tool.doc8]
+ignore-path = [
+    "docs/build",
+    "docs/api/generated",
+    "docs/_templates",
+    "docs/tutorials",
+    "docs/examples",
+]
+file-encoding = "utf8"
+max-line-length = 120
+ignore = ["D001"]
+
+[tool.codespell]
+ignore-words-list = "nd,mis,thi,thet,ALS"
+
+[tool.coverage.run]
+omit = [
+  "pymascdb/tests/*",
+]
