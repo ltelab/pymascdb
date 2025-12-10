@@ -45,5 +45,5 @@ It first cleans previous builds (`make clean`) and then generates fresh document
 
 **Note**: It's important to review the output of the command. Look out for warnings or errors and address them to ensure the documentation is accurate and complete.
 
-By following these steps, you should have a local version of the DISDRODB documentation in the `docs/build/html/` directory,
+By following these steps, you should have a local version of the pymascdb documentation in the `docs/build/html/` directory,
 ready for review or deployment!

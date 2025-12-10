@@ -1,0 +1,31 @@
+name: Lint
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Ruff
+        if: success() || failure()
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: ruff --all-files
+
+      - name: Black
+        if: success() || failure()
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: black --all-files --verbose
+
+      - name: Blackdoc
+        if: success() || failure()
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: blackdoc --all-files

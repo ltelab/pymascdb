@@ -129,7 +129,7 @@ html_theme = "sphinx_book_theme"
 html_title = "pymascdb"
 html_theme_options = {
     "repository_url": "https://github.com/ltelab/pymascdb",
-    "repository_branch": "master",
+    "repository_branch": "main",
     "use_repository_button": True,
     "use_edit_page_button": True,
     # "use_source_button": True,
@@ -216,6 +216,6 @@ def linkcode_resolve(domain, info):
     fn = os.path.relpath(fn, start=os.path.dirname(mascdb.__file__))
 
     if "+" in mascdb.__version__:
-        return f"https://github.com/ltelab/pymascdb/blob/master/mascdb/{fn}{linespec}"
+        return f"https://github.com/ltelab/pymascdb/blob/main/mascdb/{fn}{linespec}"
     else:
         return f"https://github.com/ltelab/pymascdb/blob/" f"v{mascdb.__version__}/mascdb/{fn}{linespec}"
