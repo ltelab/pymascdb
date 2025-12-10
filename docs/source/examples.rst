@@ -9,7 +9,7 @@ functionalities and applications of the package and the related data.
 
    Only a few functionalities are showcased here. For a complete list
    of functions and applications, look at the code reference documentation
-   and at the line-by-line tutorials on `github <https://github.com/ltelab/pymascdb/tree/master/tutorials/>`_
+   and at the line-by-line tutorials on `github <https://github.com/ltelab/pymascdb/tree/main/tutorials/>`_
 
 .. toctree::
    :maxdepth: 2

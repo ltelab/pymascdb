@@ -33,8 +33,8 @@ dependencies = [
     "seaborn",
     "scikit-image",
 ]
-version = "0.1.0"
-# dynamic = ["version"]
+
+dynamic = ["version"]
 license-files = ["LICENSE"]
 
 [project.optional-dependencies]
@@ -232,3 +232,25 @@ ignore-words-list = "nd,mis,thi,thet,ALS"
 omit = [
   "pymascdb/tests/*",
 ]
+
+[tool.bumpver]
+current_version = "2025.1001-alpha"
+version_pattern = "YYYY.BUILD[-TAG]"
+commit_message = "bump version {old_version} -> {new_version}"
+tag_message = "{new_version}"
+tag_scope = "default"
+pre_commit_hook = ""
+post_commit_hook = ""
+commit = true
+tag = true
+push = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+]
+"README.md" = [
+    "{version}",
+    "{pep440_version}",
+]
+
