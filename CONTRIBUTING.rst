@@ -7,8 +7,8 @@ You can contribute in many ways:
 
 - Join the `GitHub discussions <https://github.com/ltelab/pymascdb/discussions>`__
 - Report software `issues <#issue-reporting-guidelines>`__
-- Help us develop new readers
-- Add new data to the pymascdb Decentralized Data Archive
+- Help us develop new descriptors
+- Add new data to MASCDB
 - Implement new products
 - ...
 - Any code improvements are welcome!
@@ -35,8 +35,7 @@ Here are some guidelines to facilitate this process:
 
 1. Start with a conversation
 
-   Before you start coding, open a `GitHub Discussion <https://github.com/ltelab/pymascdb/discussions>`__, a `GitHub Feature Request Issue <https://github.com/ltelab/pymascdb/issues/new/choose>`__ or
-   just start a discussion in the `pymascdb Slack Workspace <https://join.slack.com/t/pymascdbworkspace/shared_invite/zt-25l4mvgo7-cfBdXalzlWGd4Pt7H~FqoA>`__.
+   Before you start coding, open a `GitHub Discussion <https://github.com/ltelab/pymascdb/discussions>`__ or a `GitHub Feature Request Issue <https://github.com/ltelab/pymascdb/issues/new/choose>`__.
    These channels of communication provide an opportunity to gather feedback, understand the project's current state, and improve your contributions.
 
 2. Seek guidance and suggestions
@@ -50,8 +49,7 @@ Here are some guidelines to facilitate this process:
 
 By following these steps, you not only enhance the quality and relevance of your contribution but also become an integral part of the project's collaborative ecosystem.
 
-If you have any questions, please do not hesitate to ask in the `GitHub Discussions <https://github.com/ltelab/pymascdb/discussions>`__ or in the
-`pymascdb Slack Workspace <https://join.slack.com/t/pymascdbworkspace/shared_invite/zt-25l4mvgo7-cfBdXalzlWGd4Pt7H~FqoA>`__.
+If you have any questions, please do not hesitate to ask in the `GitHub Discussions <https://github.com/ltelab/pymascdb/discussions>`__.
 
 
 Issue Reporting Guidelines
@@ -109,17 +107,11 @@ in the Git documentation.
 
 Please define the name of your branch based on the scope of the contribution. Try to strictly stick to the following guidelines:
 
--  If you add a reader, use : ``reader-<data_source*>-<campaign>``
 -  If you fix a bug: ``bugfix-<some_key>-<word>``
 -  If you improve the documentation: ``doc-<some_key>-<word>``
 -  If you add a new feature: ``feature-<some_key>-<word>``
 -  If you refactor some code: ``refactor-<some_key>-<word>``
 -  If you optimize some code: ``optimize-<some_key>-<word>``
-
-
-\* Guidelines for the ``<data_source>``
-- 	We use the institution name when campaign data spans more than 1 country (i.e. ARM, NASA)
-- 	We use the country name when all campaigns (or sensor networks) are inside a given country.
 
 
 

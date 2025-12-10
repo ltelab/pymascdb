@@ -7,19 +7,6 @@ Welcome to *MASCDB* documentation!
 
    This project is under active development.
 
-:ref:`Download`
-~~~~~~~~~~~~~~~~~~~~~~~~
-Where to download the code and latest available installation procedure.
-
-:ref:`Examples`
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-A few examples of usage through in  *jupyter* notebook style.
-
-:ref:`Data`
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-Description of the input data for which *mascdb* is designed and a link to where the
-data can be downloaded.
-
 
 Documentation
 =============
@@ -27,11 +14,14 @@ Documentation
 .. toctree::
    :maxdepth: 2
 
-   download
-   installation
-   examples
-   data
 
+   installation
+   download
+   data
+   examples
+   contributors_guidelines
+   maintainers_guidelines
+   authors
 
 .. toctree::
    :maxdepth: 2

@@ -1,7 +1,8 @@
 .. _examples:
 
-Examples
+Tutorials
 =======================================
+
 Here we show a few examples, in *jupyter notebook"* style of
 functionalities and applications of the package and the related data.
 

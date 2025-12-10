@@ -27,6 +27,11 @@ project = "pymascdb"
 copyright = "LTE - Environmental Remote Sensing Lab - EPFL"
 author = "Gionata Ghiggi, Jacopo Grazioli"
 
+docs_tutorials_dir = os.path.join(os.getcwd(), "tutorials")
+os.makedirs(docs_tutorials_dir, exist_ok=True)
+
+docs_static_dir = os.path.join(os.getcwd(), "static")
+os.makedirs(docs_static_dir, exist_ok=True)
 
 # Copy tutorial notebook
 root_path = os.path.dirname(os.path.dirname(os.getcwd()))
@@ -38,7 +43,7 @@ filenames = [
 ]
 for filename in filenames:
     in_path = os.path.join(root_path, "tutorials", filename)
-    out_path = os.path.join(os.getcwd(), "tutorials", filename)
+    out_path = os.path.join(docs_tutorials_dir, filename)
     shutil.copyfile(in_path, out_path)
 
 

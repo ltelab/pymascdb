@@ -1,6 +1,6 @@
 .. _data:
 
-Data
+Data Description
 =======================================
 
 The dataset used by the *mascdb* codes can be downloaded on `Zenodo
