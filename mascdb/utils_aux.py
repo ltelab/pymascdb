@@ -1,11 +1,17 @@
-"""
-Miscellaneaous auxiliary functions.
-
-TODO: Make sure that all functions here are integrated in  api.py
-IMPORTANT: keep up to date with eventual name change of variables
-
-
-"""
+# -----------------------------------------------------------------------------.
+# Copyright (c) 2021-2025 MASCDB developers
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# You should have received a copy of the MIT License
+# along with this program.  If not, see <https://opensource.org/license/mit/>.
+# -----------------------------------------------------------------------------.
+"""MASCDB auxiliary functions."""
 
 
 ####--------------------------------------------------------------------------.

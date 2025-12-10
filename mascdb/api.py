@@ -1,13 +1,17 @@
-#!/usr/bin/env python3
-"""
-Created on Wed Sep  1 21:56:51 2021.
-
-TODO:
-
-- Add to the docs that mascdb.events and mascdb.campaigns
-  should not be used to derive idxs for mascdb.isel() JGR
-
-"""
+# -----------------------------------------------------------------------------.
+# Copyright (c) 2021-2025 MASCDB developers
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# You should have received a copy of the MIT License
+# along with this program.  If not, see <https://opensource.org/license/mit/>.
+# -----------------------------------------------------------------------------.
+"""MASCDB API."""
 import copy
 import os
 import shutil
@@ -284,7 +288,8 @@ class MASC_DB:
 
     Returns
     -------
-    MASCDB class instance.
+    MASCDB
+        MASCDB class instance.
 
     """
 
@@ -298,7 +303,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance.
+        MASCDB
+            MASCDB class instance.
 
         """
         # DEBUG
@@ -393,7 +399,8 @@ class MASC_DB:
         ----------
         dir_path : str
             Directory path where to save the current MASCDB database.
-        force :  Bool, default False
+        force :  bool
+           Default is False
            If dir_path is the same as the source path of MASCDB object,
            force=True should allows to overwrite the original source database.
 
@@ -462,12 +469,13 @@ class MASC_DB:
 
         Parameters
         ----------
-        idx : (np.ndarray, list, int)
+        idx : (numpy.ndarray, list, int)
             List or np.ndarray of integer/boolean values used as positional indices for subsetting.
 
         Returns
         -------
-        MASCDB class instance subsetted (or index-based reordered).
+        MASCDB
+            MASCDB class instance subsetted class instance subsetted (or index-based reordered).
 
         """
         # ---------------------------------------------------------------------.
@@ -504,12 +512,13 @@ class MASC_DB:
 
         Parameters
         ----------
-        flake_ids : (np.ndarray, list, str)
+        flake_ids : numpy.ndarray, list, str
             List or np.ndarray of string specifying flake_id values to subset.
 
         Returns
         -------
-        MASCDB class instance subsetted.
+        MASCDB
+            MASCDB class instance subsetted.
 
         """
         # ---------------------------------------------------------------------.
@@ -537,17 +546,18 @@ class MASC_DB:
         return db
 
     def sample_n(self, n=10):
-        """Sample randomly 'n' flakes in the current MASC_DB object.
+        """Sample randomly 'n' flakes in the current MASCDB object.
 
         Parameters
         ----------
-        n : int,float; optional
+        n : int, float, optional
              Number of samples to extract The default is 10.
 
 
         Returns
         -------
-        MASC_DB object with n sampled flakes.
+        MASCDB
+            MASCDB object with n sampled flakes.
 
         """
         if n > len(self):
@@ -560,13 +570,14 @@ class MASC_DB:
 
         Parameters
         ----------
-        n : int,float; optional
+        n : int,float, optional
              Number of samples to extract The default is 1.
 
 
         Returns
         -------
-        MASC_DB object containing only the n first flakes of the current database
+        MASCDB
+            MASCDB object containing only the n first flakes of the current database
 
         """
         if n > len(self):
@@ -579,13 +590,14 @@ class MASC_DB:
 
         Parameters
         ----------
-        n : int,float; optional
+        n : int,float, optional
              Number of samples to extract The default is 1
 
 
         Returns
         -------
-        MASC_DB object containing only the n last flakes of the current database.
+        MASCDB
+            MASCDB object containing only the n last flakes of the current database.
 
         """
         if n > len(self):
@@ -598,13 +610,14 @@ class MASC_DB:
 
         Parameters
         ----------
-        n : int,float; optional
+        n : int,float, optional
              Number of samples to extract The default is 10.
 
 
         Returns
         -------
-        MASC_DB object containing only the n first flakes of the current database.
+        MASCDB
+            MASCDB object containing only the n first flakes of the current database.
 
         """
         n = min(self._n_triplets, n)
@@ -616,13 +629,14 @@ class MASC_DB:
 
         Parameters
         ----------
-        n : int,float; optional
+        n : int,float, optional
              Number of samples to extract The default is 10.
 
 
         Returns
         -------
-        MASC_DB object containing only the n last flakes of the current database.
+        MASCDB
+            MASCDB object containing only the n last flakes of the current database.
 
         """
         n = min(self._n_triplets, n)
@@ -648,7 +662,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance sorted.
+        MASCDB
+            MASCDB object sorted.
 
         """
         # Check expression type
@@ -763,7 +778,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with data of specific campaigns.
+        MASCDB
+            MASCDB class instance with data of specific campaigns.
 
         """
         if not isinstance(campaign, (list, str)):
@@ -794,7 +810,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with data of specific campaigns.
+        MASCDB
+            MASCDB class instance with data of specific campaigns.
 
         """
         if not isinstance(campaign, (list, str)):
@@ -837,7 +854,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with specific snowflake classes.
+        MASCDB
+            MASCDB class instance with specific snowflake classes.
 
         """
         # ---------------------------------------------------------------------.
@@ -899,7 +917,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with specific riming classes.
+        MASCDB
+            MASCDB class instance with specific riming classes.
 
         """
         # ---------------------------------------------------------------------.
@@ -961,7 +980,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with specific melting classes.
+        MASCDB
+            MASCDB class instance with specific melting classes.
 
         """
         # ---------------------------------------------------------------------.
@@ -1019,7 +1039,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with specific precipitation classes.
+        MASCDB
+            MASCDB  class instance with specific precipitation classes.
 
         """
         if not isinstance(values, (int, str, list, np.ndarray)):
@@ -1071,7 +1092,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with specific snowflake classes.
+        MASCDB
+            MASCDB  class instance with specific snowflake classes.
 
         """
         return self.select_snowflake_class(values=values, method=method, invert=True, df_source=df_source)
@@ -1096,7 +1118,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with specific melting classes.
+        MASCDB
+            MASCDB  class instance with specific melting classes.
 
         """
         return self.select_melting_class(values=values, method=method, invert=True, df_source=df_source)
@@ -1121,7 +1144,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with specific riming classes.
+        MASCDB
+            MASCDB class instance with specific riming classes.
 
         """
         return self.select_riming_class(values=values, method=method, invert=True, df_source=df_source)
@@ -1141,7 +1165,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with specific precipitation classes.
+        MASCDB
+            MASCDB class instance with specific precipitation classes.
 
         """
         return self.select_precip_class(values=values, method=method, invert=True)
@@ -1483,7 +1508,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance
+        MASCDB
+            MASCDB class instance
 
         """
         ## Check min and max values validity
@@ -1518,14 +1544,15 @@ class MASC_DB:
 
         Parameters
         ----------
-        min : (np.timedelta64, pd.Timedelta), optional
+        min : (numpy.timedelta64, pandas.Timedelta), optional
             Minimum duration. The default is 0 ns.
-        max : (np.timedelta64, pd.Timedelta), optional
+        max : (numpy.timedelta64, pandas.Timedelta), optional
             Maximum duration. The default is 1 year.
 
         Returns
         -------
-        MASCDB class instance
+        MASCDB
+            MASCDB class instance
 
         """
         min = np.timedelta64(0, "ns") if min is None else min
@@ -1568,7 +1595,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance
+        MASCDB
+            MASCDB class instance
 
         """
         longest_event_ids = self.arrange("triplet.event_duration", decreasing=True)._triplet["event_id"].iloc[0:n]
@@ -1586,7 +1614,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance
+        MASCDB
+            MASCDB class instance
 
         """
         shortest_event_ids = self.arrange("triplet.event_duration", decreasing=False)._triplet["event_id"].iloc[0:n]
@@ -1611,14 +1640,14 @@ class MASC_DB:
 
         Parameters
         ----------
-        max_interval_without_images : (np.timedelta64, pd.Timedelta), optional
+        max_interval_without_images : (numpy.timedelta64, pandas.Timedelta), optional
             Maximum interval of time without images to consider
             consecutive images to belong the same event.
             The default is np.timedelta64(4,'h').
-        min_duration : (np.timedelta64, pd.Timedelta), optional
-            Minimum duration of an event to retained. The default is np.timedelta64(0,'ns').
-        max_duration : (np.timedelta64, pd.Timedelta), optional
-            Maximum duration of an event to retained. The default is np.timedelta64(365,'D').
+        min_duration : (numpy.timedelta64, pandas.Timedelta), optional
+            Minimum duration of an event to retained. The default is numpy.timedelta64(0,'ns').
+        max_duration : (numpy.timedelta64, pandas.Timedelta), optional
+            Maximum duration of an event to retained. The default is numpy.timedelta64(365,'D').
         min_n_triplets : int, optional
             Minimum number of triplets within an event to retain the event. The default is 0.
         max_n_triplets : int, optional
@@ -1629,7 +1658,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with the custom event definition.
+        MASCDB
+            MASCDB class instance with the custom event definition.
 
         """
         max_interval_without_images = (
@@ -1728,7 +1758,8 @@ class MASC_DB:
 
         Returns
         -------
-        xarray.plot.facetgrid.FacetGrid object for additional customization
+        xarray.plot.facetgrid.FacetGrid
+            FacetGrid object for additional customization
 
         """
         # --------------------------------------------------.
@@ -1841,16 +1872,11 @@ class MASC_DB:
         squared : bool, optional
             Specify if the zoomed images must have equal height,width.
             The default is True.
-        ax: matplotlib axis, optional
+        ax: matplotlib.axes.Axes, optional
             Optional matplotlib axis on which to plot the image.
             The default is None.
         **kwargs : dict
             Optional arguments to be passed to DataArray.plot.
-
-        Returns
-        -------
-        p : TYPE
-            DESCRIPTION.
 
         """
         # Check args
@@ -1978,7 +2004,8 @@ class MASC_DB:
 
         Returns
         -------
-        xarray.plot.facetgrid.FacetGrid object for additional customization
+        xarray.plot.facetgrid.FacetGrid
+            FacetGrid object for additional customization
 
         """
         # --------------------------------------------------
@@ -2141,7 +2168,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance with new descriptors in cam dataframes.
+        MASCDB
+            MASCDB class instance with new descriptors in cam dataframes.
 
         """
         # ---------------------------------------------------------------------.
@@ -2181,21 +2209,22 @@ class MASC_DB:
 
         Parameters
         ----------
-        cam0 : pd.DataFrame
+        cam0 : pandas.DataFrame
             pd.DataFrame with index 'flake_id' .
-        cam1 : pd.DataFrame
+        cam1 : pandas.DataFrame
             pd.DataFrame with index 'flake_id' .
-        cam2 : pd.DataFrame
+        cam2 : pandas.DataFrame
             pd.DataFrame with index 'flake_id' .
         force : bool, optional
             Whether to overwrite existing column of mascdb. The default is False.
-        complete : vool, optional
+        complete : bool, optional
             Whether to merge only when the cam dataframes have same 'flake_id' of
             the current mascdb. The default is True.
 
         Returns
         -------
-        MASCDB class instance
+        MASCDB
+            MASCDB class instance
 
         """
         # ---------------------------------------------------------------------.
@@ -2318,7 +2347,7 @@ class MASC_DB:
 
         Parameters
         ----------
-        df : pd.DataFrame
+        df : pandas.DataFrame
             pd.DataFrame with index 'flake_id' .
         force : bool, optional
             Whether to overwrite existing column of mascdb. The default is False.
@@ -2328,7 +2357,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance
+        MASCDB
+            MASCDB class instance
 
         """
         # ---------------------------------------------------------------------.
@@ -2425,7 +2455,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance
+        MASCDB
+            MASCDB class instance
 
         """
         # ---------------------------------------------------------------------.
@@ -2459,7 +2490,8 @@ class MASC_DB:
 
         Returns
         -------
-        MASCDB class instance
+        MASCDB
+            MASCDBclass instance
 
         """
         # ---------------------------------------------------------------------.

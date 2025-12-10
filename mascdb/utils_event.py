@@ -1,9 +1,17 @@
-#!/usr/bin/env python3
-"""
-Created on Fri Sep  3 11:53:06 2021.
-
-@author: ghiggi
-"""
+# -----------------------------------------------------------------------------.
+# Copyright (c) 2021-2025 MASCDB developers
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# You should have received a copy of the MIT License
+# along with this program.  If not, see <https://opensource.org/license/mit/>.
+# -----------------------------------------------------------------------------.
+"""Utilities for event definition."""
 import numpy as np
 import pandas as pd
 

@@ -74,8 +74,8 @@ The data should be downloaded from Zenodo at: https://doi.org/10.5281/zenodo.557
 
 The content of this repository is released under the terms of the [MIT license](LICENSE.txt).
 
-[`00_download_mascdb.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/00_download_mascdb.py
-[`01_data_manipulation.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/01_data_manipulation.py
-[`02_eda.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/02_eda.py
-[`03_image_processing.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorial/03_image_processing.py
+[`00_download_mascdb.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorials/00_download_mascdb.py
+[`01_data_manipulation.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorials/01_data_manipulation.py
+[`02_eda.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorials/02_eda.py
+[`03_image_processing.py`]: https://github.com/ltelab/pymascdb/tree/master/tutorials/03_image_processing.py
 [`online documentation`]: https://pymascdb.readthedocs.io/en/latest/examples.html

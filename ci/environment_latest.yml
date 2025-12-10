@@ -5,10 +5,10 @@ dependencies:
   - numpy
   - pandas
   - pyarrow
-	- zarr
-	- xarray
   - bottleneck
-	- dask
+  - zarr
+  - xarray
+  - dask
   - distributed
   - matplotlib-base
   - seaborn

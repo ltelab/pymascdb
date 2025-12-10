@@ -3,15 +3,20 @@ channels:
   - conda-forge
 dependencies:
   - python>=3.11
-  - netcdf4
-  - pyarrow
+  - numpy
   - pandas
-  - dask
+  - pyarrow
+  - bottleneck
+  - zarr
   - xarray
+  - dask
+  - distributed
+  - matplotlib-base
+  - seaborn
+  - scikit-image
   - jupyter
-  - pydantic>=2.0.0
   - pip
-  - pre-commit
+  - pre_commit
   - pandoc
   - nbsphinx==0.9.3
   - sphinx==7.2.6
@@ -19,5 +24,3 @@ dependencies:
   - sphinx-mdinclude==0.5.3
   - sphinx-gallery
   - docutils
-  - pip:
-      - git+https://github.com/ltelab/disdrodb.git

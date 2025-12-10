@@ -4,6 +4,6 @@ prune experiments
 prune data
 prune figs
 prune docs
-prune tutorial
+prune tutorials
 prune generator
 prune mascdb/tests

@@ -14,23 +14,28 @@ import os
 import shutil
 import sys
 import inspect
-import disdrodb
+import mascdb
 
 # sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../.."))
-sys.path.insert(0, os.path.join(os.path.abspath("../.."), "disdrodb"))
+sys.path.insert(0, os.path.join(os.path.abspath("../.."), "mascdb"))
 
 
 # -- Project information -----------------------------------------------------
 
-project = "disdrodb"
+project = "pymascdb"
 copyright = "LTE - Environmental Remote Sensing Lab - EPFL"
-author = "LTE - Environmental Remote Sensing Lab - EPFL"
+author = "Gionata Ghiggi, Jacopo Grazioli"
 
 
 # Copy tutorial notebook
 root_path = os.path.dirname(os.path.dirname(os.getcwd()))
-filenames = ["reader_preparation.ipynb"]
+filenames = [
+    "00_basic_funcs.ipynb",
+    "01_retrievals.ipynb",
+    "02_classification.ipynb",
+    "03_snowflake_images.ipynb",
+]
 for filename in filenames:
     in_path = os.path.join(root_path, "tutorials", filename)
     out_path = os.path.join(os.getcwd(), "tutorials", filename)
@@ -67,7 +72,8 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "xarray": ("https://docs.xarray.dev/en/stable/", None),
     "dask": ("https://docs.dask.org/en/stable/", None),
-    "pydantic": ("https://docs.pydantic.dev/latest/", None),
+    "seaborn": ("https://seaborn.pydata.org", None),
+    "zarr": ("https://zarr.readthedocs.io/en/stable/", None),
 }
 always_document_param_types = True
 
@@ -83,6 +89,8 @@ nitpick_ignore = [
     ("py:class", "t.Iterable"),
     ("py:class", "sorted"),
     ("py:class", "dictionary"),
+    ("py:class", "MASCDB"),
+    ("py:class", "palette"),
 ]
 nitpick_ignore_regex = [
     ("py:class", r".*[cC]allable"),
@@ -118,10 +126,10 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 # a list of builtin themes.
 #
 html_theme = "sphinx_book_theme"
-html_title = "disdrodb"
+html_title = "pymascdb"
 html_theme_options = {
-    "repository_url": "https://github.com/ltelab/disdrodb",
-    "repository_branch": "main",
+    "repository_url": "https://github.com/ltelab/pymascdb",
+    "repository_branch": "master",
     "use_repository_button": True,
     "use_edit_page_button": True,
     # "use_source_button": True,
@@ -147,7 +155,7 @@ def run_apidoc(_):
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
     cur_dir = os.path.abspath(os.path.dirname(__file__))
 
-    module_dir = os.path.join(cur_dir, "..", "..", "disdrodb")
+    module_dir = os.path.join(cur_dir, "..", "..", "mascdb")
     output_dir = os.path.join(cur_dir, "api")
     exclude = [os.path.join(module_dir, "tests")]
     main(["-f", "-o", output_dir, module_dir, *exclude])
@@ -205,9 +213,9 @@ def linkcode_resolve(domain, info):
     else:
         linespec = ""
 
-    fn = os.path.relpath(fn, start=os.path.dirname(disdrodb.__file__))
+    fn = os.path.relpath(fn, start=os.path.dirname(mascdb.__file__))
 
-    if "+" in disdrodb.__version__:
-        return f"https://github.com/ltelab/disdrodb/blob/main/disdrodb/{fn}{linespec}"
+    if "+" in mascdb.__version__:
+        return f"https://github.com/ltelab/pymascdb/blob/master/mascdb/{fn}{linespec}"
     else:
-        return f"https://github.com/ltelab/disdrodb/blob/" f"v{disdrodb.__version__}/disdrodb/{fn}{linespec}"
+        return f"https://github.com/ltelab/pymascdb/blob/" f"v{mascdb.__version__}/mascdb/{fn}{linespec}"

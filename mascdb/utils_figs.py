@@ -1,9 +1,17 @@
-#!/usr/bin/env python3
-"""
-Created on Mon Sep 20 22:13:58 2021.
-
-@author: ghiggi
-"""
+# -----------------------------------------------------------------------------.
+# Copyright (c) 2021-2025 MASCDB developers
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# You should have received a copy of the MIT License
+# along with this program.  If not, see <https://opensource.org/license/mit/>.
+# -----------------------------------------------------------------------------.
+"""MASCDB Visualization Utilities."""
 # -----------------------------------------------------------------------------.
 import matplotlib as mpl
 import numpy as np
@@ -41,7 +49,7 @@ def minmax(x):
 
     Parameters
     ----------
-    x : array_like
+    x : array-like
         Input array.
 
     Returns
@@ -62,23 +70,25 @@ def get_c_cmap_from_color_dict(color_dict, labels):
     ----------
     color_dict : dict
         Dictionary mapping labels to color names or hex values.
-    labels : array_like
+    labels : array-like
         Array of labels corresponding to data points.
 
     Returns
     -------
     list
         A list containing [c, cmap] where:
-        - c : numpy.ndarray
-            Integer array of color indices for each label.
-        - cmap : matplotlib.colors.ListedColormap
-            Colormap object with unique colors from the dictionary.
+
+            - c : numpy.ndarray
+                Integer array of color indices for each label.
+            - cmap : matplotlib.colors.ListedColormap
+                Colormap object with unique colors from the dictionary.
 
     Examples
     --------
     >>> color_dict = {"A": "red", "B": "blue", "C": "green"}
     >>> labels = ["A", "B", "A", "C"]
     >>> c, cmap = get_c_cmap_from_color_dict(color_dict, labels)
+
     """
     c_names = [color_dict[x] for x in labels]
     # Retrieve c integer values
@@ -153,7 +163,7 @@ def get_colors_from_cmap(x, cmap_name="Spectral", vmin=None, vmax=None, nan_colo
 
     Parameters
     ----------
-    x : array_like, dict, or float
+    x : array-like, dict, or float
         Numeric values to map to colors. Can be a single value, array, or dictionary
         where values are numeric.
     cmap_name : str, optional

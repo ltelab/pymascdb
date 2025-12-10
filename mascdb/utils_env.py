@@ -1,9 +1,18 @@
-#!/usr/bin/env python3
-"""
-Created on Tue Sep 28 11:23:36 2021.
+# -----------------------------------------------------------------------------.
+# Copyright (c) 2021-2025 MASCDB developers
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# You should have received a copy of the MIT License
+# along with this program.  If not, see <https://opensource.org/license/mit/>.
+# -----------------------------------------------------------------------------.
+"""MASCDB auxiliary environmental functions."""
 
-@author: grazioli
-"""
 
 import numpy as np
 
@@ -14,14 +23,14 @@ def wet_bulb_t(t, rh):
 
     Parameters
     ----------
-    t : float/int scalar, list or numpy.ndarray
+    t : float, int, list or numpy.ndarray
         Temperature in degree Celsius
-    rh : float/int scalar, list or numpy.ndarray
+    rh : float, int, list or numpy.ndarray
         Relative humidity in percentage
 
     Returns
     -------
-    TYPE
+    array-like
         Wet bulb temperature in °C, same data type as as t/rh
 
     """

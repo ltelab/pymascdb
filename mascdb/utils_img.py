@@ -1,9 +1,17 @@
-#!/usr/bin/env python3
-"""
-Created on Tue Sep 14 11:46:52 2021.
-
-@author: ghiggi
-"""
+# -----------------------------------------------------------------------------.
+# Copyright (c) 2021-2025 MASCDB developers
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# You should have received a copy of the MIT License
+# along with this program.  If not, see <https://opensource.org/license/mit/>.
+# -----------------------------------------------------------------------------.
+"""Utilities for image processing."""
 import numpy as np
 import xarray as xr
 from dask.diagnostics import ProgressBar
@@ -386,7 +394,7 @@ def _hist_equalization(img, adaptive=False, nbins=256, kernel_size=None, clip_li
     nbins: int, optional
         Number of bins for image histogram. Note: this argument is ignored for integer images,
         for which each integer is its own bin.
-    kernel_size: int or array_like, optional
+    kernel_size: int or array-like, optional
         Argument used by CLAHE.
         Defines the shape of contextual regions used in the algorithm.
         By default, kernel_size is 1/8 of image height by 1/8 of its width.
@@ -516,7 +524,7 @@ def xri_hist_equalization(da, x="x", y="y", nbins=256, adaptive=False, kernel_si
         If False, uses classical histogram equalization.
         If True, uses Contrast Limited Adaptive Histogram Equalization (CLAHE).
         Default is False.
-    kernel_size : int or array_like, optional
+    kernel_size : int or array-like, optional
         Shape of contextual regions used in CLAHE algorithm.
         By default, uses 1/8 of image height by 1/8 of image width.
     clip_limit : float, optional

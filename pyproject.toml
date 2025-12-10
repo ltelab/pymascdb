@@ -102,7 +102,7 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
-    "generator/*",
+    "generator*",
 ]
 
 [tool.ruff.format]
