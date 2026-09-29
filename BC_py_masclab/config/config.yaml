@@ -1,0 +1,103 @@
+# MASC Processing Pipeline - YAML Configuration
+
+# Orchestration (scripts/runner_joblib.py)
+# When true, the matching step runs automatically after image processing.
+# Standalone runners remain available: scripts/runner_classify.py, scripts/runner_quicklooks.py
+pipeline:
+  run_classification: true
+  run_quicklooks: true
+  run_blowing_snow: true
+
+# Label/data configuration
+label:
+  # Root folder containing all campaign date folders (e.g. data/RAW/2015.06.20/)
+  campaigndir: "/ltenas8/users/carmier/DAVOS_2015_2016/Raw_data"
+
+  # Output directory:
+  # Creates a PROCESSED folder in the parent directory of campaigndir by default, e.g. .. /data/PROCESSED
+  # Or set an explicit absolute path
+  outdir: "auto"
+
+  # Time window (YYYY-MM-DD HH:MM:SS).
+  # Use "all" to process every campaign folder found in campaigndir.
+  starthr_vec: "all" # ou "2015-02-10 00:00:00"
+  endhr_vec:   "all" # ou "2015-02-10 23:00:00"
+
+# Processing parameters
+processing:
+  # Mode
+  use_triplet_algo: true # Enable TRIPLET processing mode by default
+
+  # Parallelism
+  parallel: true
+  max_workers: 32 # Maximum number of parallel workers (to avoid memory issues)
+
+  # Output options
+  saveresults: true
+  save_format: "joblib"   # 'joblib' | 'pkl' | 'mat'
+
+  # If true, wipe outdir at the start of the run (dangerous for multi-campaign use!)
+  clean_outdir: true
+
+  # Figures
+  generate_figs: true
+  display_figs: false
+  save_figs: true
+
+  # Image processing
+  flakebrighten: true
+
+  # Thresholds
+  backthresh: 12
+  sizemin: 0
+  min_area: 20
+  minbright: 0
+  max_intensthresh: 0
+  min_hole_area: 10
+
+  # Border strips blanked before detection: [top, bottom, left, right] (px)
+  # Right=410 matches GT n_roi on cam_2 (was 320 → +3 spurious edge ROIs).
+  discardmat: [400, 548, 320, 320]
+
+  # Triplet matching
+  matching_tol_pix: 50
+  matching_tol_percent: 100
+  camera_order: [0, 1, 2]
+  triplet_required_views: 3
+  triplet_allow_partial: true
+
+classification:
+  classifiers_dir: classification/logit_trained_models
+  class: logit_v.1.1_FINAL3_6classes_weighted_scheme.mat
+  riming: logit_v.1.1_FINAL3_riming_5classes_weighted_scheme.mat
+  melting: logit_v.1.1_FINAL3_melting_2classes_noweight.mat
+  blurry_threshold: 0
+  n_jobs: 4
+
+blowing_snow:
+  in_path: auto
+  model_path: auto
+  davos: auto
+  block_size: 15
+  s: 2
+  w: 10
+  reprocess: false
+
+quicklooks:
+  savepath: auto
+  pixres_mm: 0.0335
+  xi_thresh: 9
+  Nmin_interval: 30
+  Nmin_shift: 10
+  Nclasses_masc: 6
+  MASC_classes: [SP, CC, PC, AG, GR, CPC]
+  MASC_classes_desired: [1, 2, 3, 4, 5, 6]
+  N_MascSamples_min: 0
+  # false matches MATLAB GT quicklooks (per-image); null → processing.use_triplet_algo
+  use_triplet: false
+  OR_180: true
+  savefigs: true
+  overview_classif: true
+  overview_microstruct: true
+  disp_now: true
+  qualities: [GOOD]
